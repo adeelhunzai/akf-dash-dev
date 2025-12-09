@@ -1,0 +1,119 @@
+{
+  "common": {
+    "search": "खोजें",
+    "logout": "लॉग आउट",
+    "settings": "सेटिंग्स",
+    "save": "सहेजें",
+    "cancel": "रद्द करें",
+    "delete": "हटाएं",
+    "edit": "संपादित करें",
+    "view": "देखें",
+    "add": "जोड़ें",
+    "loading": "लोड हो रहा है...",
+    "error": "एक त्रुटि हुई",
+    "success": "सफलता"
+  },
+  "header": {
+    "myAccount": "मेरा खाता",
+    "accountSettings": "खाता सेटिंग्स",
+    "searchPlaceholder": "यहां खोजें"
+  },
+  "roles": {
+    "admin": "व्यवस्थापक डैशबोर्ड",
+    "learner": "शिक्षार्थी डैशबोर्ड",
+    "facilitator": "सुविधाकर्ता डैशबोर्ड",
+    "manager": "प्रबंधक डैशबोर्ड"
+  },
+  "navigation": {
+    "dashboard": "डैशबोर्ड",
+    "courses": "पाठ्यक्रम",
+    "users": "उपयोगकर्ता",
+    "reports": "रिपोर्ट",
+    "settings": "सेटिंग्स",
+    "teamManagement": "टीम प्रबंधन",
+    "userManagement": "उपयोगकर्ता प्रबंधन",
+    "createCourse": "पाठ्यक्रम बनाएं",
+    "manageLearners": "शिक्षार्थियों का प्रबंधन",
+    "certificates": "प्रमाणपत्र",
+    "myCourses": "मेरे पाठ्यक्रम",
+    "achievements": "उपलब्धियां",
+    "myProgress": "मेरी प्रगति"
+  },
+  "dashboard": {
+    "title": "डैशबोर्ड",
+    "welcome": "वापसी पर स्वागत है",
+    "overview": "अवलोकन",
+    "statistics": "आंकड़े",
+    "recentActivity": "हाल की गतिविधि"
+  },
+  "courses": {
+    "title": "पाठ्यक्रम",
+    "myCourses": "मेरे पाठ्यक्रम",
+    "allCourses": "सभी पाठ्यक्रम",
+    "createCourse": "पाठ्यक्रम बनाएं",
+    "courseDetails": "पाठ्यक्रम विवरण",
+    "enrolled": "नामांकित",
+    "progress": "प्रगति",
+    "completed": "पूर्ण",
+    "inProgress": "प्रगति में",
+    "notStarted": "शुरू नहीं हुआ"
+  },
+  "users": {
+    "title": "उपयोगकर्ता",
+    "addUser": "उपयोगकर्ता जोड़ें",
+    "editUser": "उपयोगकर्ता संपादित करें",
+    "deleteUser": "उपयोगकर्ता हटाएं",
+    "userDetails": "उपयोगकर्ता विवरण",
+    "name": "नाम",
+    "email": "ईमेल",
+    "role": "भूमिका",
+    "status": "स्थिति",
+    "active": "सक्रिय",
+    "inactive": "निष्क्रिय"
+  },
+  "learners": {
+    "title": "शिक्षार्थियों का प्रबंधन",
+    "searchPlaceholder": "नाम या ईमेल से खोजें",
+    "filterByCourse": "पाठ्यक्रम के अनुसार फ़िल्टर करें",
+    "filterByStatus": "स्थिति के अनुसार फ़िल्टर करें",
+    "allCourses": "सभी पाठ्यक्रम",
+    "allStatuses": "सभी स्थितियां",
+    "learner": "शिक्षार्थी",
+    "courseEnrolled": "नामांकित पाठ्यक्रम",
+    "progress": "प्रगति",
+    "status": "स्थिति",
+    "lastActivity": "अंतिम गतिविधि",
+    "actions": "क्रियाएं",
+    "viewDetails": "विवरण देखें",
+    "active": "सक्रिय",
+    "completed": "पूर्ण"
+  },
+  "reports": {
+    "title": "रिपोर्ट",
+    "generateReport": "रिपोर्ट बनाएं",
+    "exportReport": "रिपोर्ट निर्यात करें",
+    "dateRange": "तिथि सीमा",
+    "reportType": "रिपोर्ट प्रकार"
+  },
+  "settings": {
+    "title": "सेटिंग्स",
+    "generalSettings": "सामान्य सेटिंग्स",
+    "accountSettings": "खाता सेटिंग्स",
+    "notificationSettings": "सूचना सेटिंग्स",
+    "privacySettings": "गोपनीयता सेटिंग्स",
+    "profile": "प्रोफ़ाइल",
+    "changePassword": "पासवर्ड बदलें",
+    "language": "भाषा",
+    "theme": "थीम"
+  },
+  "auth": {
+    "login": "लॉगिन",
+    "logout": "लॉग आउट",
+    "register": "पंजीकरण करें",
+    "forgotPassword": "पासवर्ड भूल गए",
+    "resetPassword": "पासवर्ड रीसेट करें",
+    "email": "ईमेल",
+    "password": "पासवर्ड",
+    "confirmPassword": "पासवर्ड की पुष्टि करें"
+  }
+}

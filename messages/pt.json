@@ -1,0 +1,119 @@
+{
+  "common": {
+    "search": "Pesquisar",
+    "logout": "Sair",
+    "settings": "Configurações",
+    "save": "Salvar",
+    "cancel": "Cancelar",
+    "delete": "Excluir",
+    "edit": "Editar",
+    "view": "Ver",
+    "add": "Adicionar",
+    "loading": "Carregando...",
+    "error": "Ocorreu um erro",
+    "success": "Sucesso"
+  },
+  "header": {
+    "myAccount": "Minha Conta",
+    "accountSettings": "Configurações da Conta",
+    "searchPlaceholder": "Pesquisar aqui"
+  },
+  "roles": {
+    "admin": "Painel do Administrador",
+    "learner": "Painel do Aluno",
+    "facilitator": "Painel do Facilitador",
+    "manager": "Painel do Gerente"
+  },
+  "navigation": {
+    "dashboard": "Painel",
+    "courses": "Cursos",
+    "users": "Usuários",
+    "reports": "Relatórios",
+    "settings": "Configurações",
+    "teamManagement": "Gestão de Equipe",
+    "userManagement": "Gestão de Usuários",
+    "createCourse": "Criar Curso",
+    "manageLearners": "Gerenciar Alunos",
+    "certificates": "Certificados",
+    "myCourses": "Meus Cursos",
+    "achievements": "Conquistas",
+    "myProgress": "Meu Progresso"
+  },
+  "dashboard": {
+    "title": "Painel",
+    "welcome": "Bem-vindo de volta",
+    "overview": "Visão Geral",
+    "statistics": "Estatísticas",
+    "recentActivity": "Atividade Recente"
+  },
+  "courses": {
+    "title": "Cursos",
+    "myCourses": "Meus Cursos",
+    "allCourses": "Todos os Cursos",
+    "createCourse": "Criar Curso",
+    "courseDetails": "Detalhes do Curso",
+    "enrolled": "Inscrito",
+    "progress": "Progresso",
+    "completed": "Concluído",
+    "inProgress": "Em Andamento",
+    "notStarted": "Não Iniciado"
+  },
+  "users": {
+    "title": "Usuários",
+    "addUser": "Adicionar Usuário",
+    "editUser": "Editar Usuário",
+    "deleteUser": "Excluir Usuário",
+    "userDetails": "Detalhes do Usuário",
+    "name": "Nome",
+    "email": "E-mail",
+    "role": "Função",
+    "status": "Status",
+    "active": "Ativo",
+    "inactive": "Inativo"
+  },
+  "learners": {
+    "title": "Gerenciar Alunos",
+    "searchPlaceholder": "Pesquisar por nome ou e-mail",
+    "filterByCourse": "Filtrar por curso",
+    "filterByStatus": "Filtrar por status",
+    "allCourses": "Todos os Cursos",
+    "allStatuses": "Todos os Status",
+    "learner": "Aluno",
+    "courseEnrolled": "Curso Inscrito",
+    "progress": "Progresso",
+    "status": "Status",
+    "lastActivity": "Última Atividade",
+    "actions": "Ações",
+    "viewDetails": "Ver Detalhes",
+    "active": "Ativo",
+    "completed": "Concluído"
+  },
+  "reports": {
+    "title": "Relatórios",
+    "generateReport": "Gerar Relatório",
+    "exportReport": "Exportar Relatório",
+    "dateRange": "Intervalo de Datas",
+    "reportType": "Tipo de Relatório"
+  },
+  "settings": {
+    "title": "Configurações",
+    "generalSettings": "Configurações Gerais",
+    "accountSettings": "Configurações da Conta",
+    "notificationSettings": "Configurações de Notificação",
+    "privacySettings": "Configurações de Privacidade",
+    "profile": "Perfil",
+    "changePassword": "Alterar Senha",
+    "language": "Idioma",
+    "theme": "Tema"
+  },
+  "auth": {
+    "login": "Entrar",
+    "logout": "Sair",
+    "register": "Registrar",
+    "forgotPassword": "Esqueceu a Senha",
+    "resetPassword": "Redefinir Senha",
+    "email": "E-mail",
+    "password": "Senha",
+    "confirmPassword": "Confirmar Senha"
+  }
+}

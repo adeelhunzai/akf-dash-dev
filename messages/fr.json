@@ -1,0 +1,119 @@
+{
+  "common": {
+    "search": "Rechercher",
+    "logout": "Déconnexion",
+    "settings": "Paramètres",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "view": "Voir",
+    "add": "Ajouter",
+    "loading": "Chargement...",
+    "error": "Une erreur s'est produite",
+    "success": "Succès"
+  },
+  "header": {
+    "myAccount": "Mon Compte",
+    "accountSettings": "Paramètres du Compte",
+    "searchPlaceholder": "Rechercher ici"
+  },
+  "roles": {
+    "admin": "Tableau de Bord Administrateur",
+    "learner": "Tableau de Bord Apprenant",
+    "facilitator": "Tableau de Bord Facilitateur",
+    "manager": "Tableau de Bord Gestionnaire"
+  },
+  "navigation": {
+    "dashboard": "Tableau de Bord",
+    "courses": "Cours",
+    "users": "Utilisateurs",
+    "reports": "Rapports",
+    "settings": "Paramètres",
+    "teamManagement": "Gestion d'Équipe",
+    "userManagement": "Gestion des Utilisateurs",
+    "createCourse": "Créer un Cours",
+    "manageLearners": "Gérer les Apprenants",
+    "certificates": "Certificats",
+    "myCourses": "Mes Cours",
+    "achievements": "Réalisations",
+    "myProgress": "Mon Progrès"
+  },
+  "dashboard": {
+    "title": "Tableau de Bord",
+    "welcome": "Bienvenue",
+    "overview": "Aperçu",
+    "statistics": "Statistiques",
+    "recentActivity": "Activité Récente"
+  },
+  "courses": {
+    "title": "Cours",
+    "myCourses": "Mes Cours",
+    "allCourses": "Tous les Cours",
+    "createCourse": "Créer un Cours",
+    "courseDetails": "Détails du Cours",
+    "enrolled": "Inscrit",
+    "progress": "Progrès",
+    "completed": "Terminé",
+    "inProgress": "En Cours",
+    "notStarted": "Non Commencé"
+  },
+  "users": {
+    "title": "Utilisateurs",
+    "addUser": "Ajouter un Utilisateur",
+    "editUser": "Modifier l'Utilisateur",
+    "deleteUser": "Supprimer l'Utilisateur",
+    "userDetails": "Détails de l'Utilisateur",
+    "name": "Nom",
+    "email": "E-mail",
+    "role": "Rôle",
+    "status": "Statut",
+    "active": "Actif",
+    "inactive": "Inactif"
+  },
+  "learners": {
+    "title": "Gérer les Apprenants",
+    "searchPlaceholder": "Rechercher par nom ou e-mail",
+    "filterByCourse": "Filtrer par cours",
+    "filterByStatus": "Filtrer par statut",
+    "allCourses": "Tous les Cours",
+    "allStatuses": "Tous les Statuts",
+    "learner": "Apprenant",
+    "courseEnrolled": "Cours Inscrit",
+    "progress": "Progrès",
+    "status": "Statut",
+    "lastActivity": "Dernière Activité",
+    "actions": "Actions",
+    "viewDetails": "Voir les Détails",
+    "active": "Actif",
+    "completed": "Terminé"
+  },
+  "reports": {
+    "title": "Rapports",
+    "generateReport": "Générer un Rapport",
+    "exportReport": "Exporter le Rapport",
+    "dateRange": "Plage de Dates",
+    "reportType": "Type de Rapport"
+  },
+  "settings": {
+    "title": "Paramètres",
+    "generalSettings": "Paramètres Généraux",
+    "accountSettings": "Paramètres du Compte",
+    "notificationSettings": "Paramètres de Notification",
+    "privacySettings": "Paramètres de Confidentialité",
+    "profile": "Profil",
+    "changePassword": "Changer le Mot de Passe",
+    "language": "Langue",
+    "theme": "Thème"
+  },
+  "auth": {
+    "login": "Connexion",
+    "logout": "Déconnexion",
+    "register": "S'inscrire",
+    "forgotPassword": "Mot de Passe Oublié",
+    "resetPassword": "Réinitialiser le Mot de Passe",
+    "email": "E-mail",
+    "password": "Mot de Passe",
+    "confirmPassword": "Confirmer le Mot de Passe"
+  }
+}

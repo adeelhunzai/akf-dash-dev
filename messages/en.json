@@ -1,0 +1,120 @@
+{
+  "common": {
+    "search": "Search here",
+    "logout": "Logout",
+    "settings": "Settings",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "view": "View",
+    "add": "Add",
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "success": "Success"
+  },
+  "header": {
+    "myAccount": "My Account",
+    "accountSettings": "Account Settings",
+    "searchPlaceholder": "Search here"
+  },
+  "roles": {
+    "admin": "Admin Dashboard",
+    "learner": "Learner Dashboard",
+    "facilitator": "Facilitator Dashboard",
+    "manager": "Manager Dashboard"
+  },
+  "navigation": {
+    "dashboard": "Dashboard",
+    "adminDashboard": "Admin Dashboard",
+    "courses": "Courses",
+    "users": "Users",
+    "reports": "Reports",
+    "settings": "Settings",
+    "teamManagement": "Team Management",
+    "userManagement": "User Management",
+    "createCourse": "Create Course",
+    "manageLearners": "Manage Learners",
+    "certificates": "Certificates",
+    "myCourses": "My Courses",
+    "achievements": "Achievements",
+    "myProgress": "My Progress"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Welcome back",
+    "overview": "Overview",
+    "statistics": "Statistics",
+    "recentActivity": "Recent Activity"
+  },
+  "courses": {
+    "title": "Courses",
+    "myCourses": "My Courses",
+    "allCourses": "All Courses",
+    "createCourse": "Create Course",
+    "courseDetails": "Course Details",
+    "enrolled": "Enrolled",
+    "progress": "Progress",
+    "completed": "Completed",
+    "inProgress": "In Progress",
+    "notStarted": "Not Started"
+  },
+  "users": {
+    "title": "Users",
+    "addUser": "Add User",
+    "editUser": "Edit User",
+    "deleteUser": "Delete User",
+    "userDetails": "User Details",
+    "name": "Name",
+    "email": "Email",
+    "role": "Role",
+    "status": "Status",
+    "active": "Active",
+    "inactive": "Inactive"
+  },
+  "learners": {
+    "title": "Manage Learners",
+    "searchPlaceholder": "Search by name or email",
+    "filterByCourse": "Filter by course",
+    "filterByStatus": "Filter by status",
+    "allCourses": "All Courses",
+    "allStatuses": "All Statuses",
+    "learner": "Learner",
+    "courseEnrolled": "Course Enrolled",
+    "progress": "Progress",
+    "status": "Status",
+    "lastActivity": "Last Activity",
+    "actions": "Actions",
+    "viewDetails": "View Details",
+    "active": "Active",
+    "completed": "Completed"
+  },
+  "reports": {
+    "title": "Reports",
+    "generateReport": "Generate Report",
+    "exportReport": "Export Report",
+    "dateRange": "Date Range",
+    "reportType": "Report Type"
+  },
+  "settings": {
+    "title": "Settings",
+    "generalSettings": "General Settings",
+    "accountSettings": "Account Settings",
+    "notificationSettings": "Notification Settings",
+    "privacySettings": "Privacy Settings",
+    "profile": "Profile",
+    "changePassword": "Change Password",
+    "language": "Language",
+    "theme": "Theme"
+  },
+  "auth": {
+    "login": "Login",
+    "logout": "Logout",
+    "register": "Register",
+    "forgotPassword": "Forgot Password",
+    "resetPassword": "Reset Password",
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Confirm Password"
+  }
+}

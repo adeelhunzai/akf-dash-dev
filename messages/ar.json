@@ -1,0 +1,119 @@
+{
+  "common": {
+    "search": "بحث",
+    "logout": "تسجيل الخروج",
+    "settings": "الإعدادات",
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "delete": "حذف",
+    "edit": "تعديل",
+    "view": "عرض",
+    "add": "إضافة",
+    "loading": "جار التحميل...",
+    "error": "حدث خطأ",
+    "success": "نجاح"
+  },
+  "header": {
+    "myAccount": "حسابي",
+    "accountSettings": "إعدادات الحساب",
+    "searchPlaceholder": "ابحث هنا"
+  },
+  "roles": {
+    "admin": "لوحة تحكم المسؤول",
+    "learner": "لوحة تحكم المتعلم",
+    "facilitator": "لوحة تحكم الميسر",
+    "manager": "لوحة تحكم المدير"
+  },
+  "navigation": {
+    "dashboard": "لوحة التحكم",
+    "courses": "الدورات",
+    "users": "المستخدمون",
+    "reports": "التقارير",
+    "settings": "الإعدادات",
+    "teamManagement": "إدارة الفريق",
+    "userManagement": "إدارة المستخدمين",
+    "createCourse": "إنشاء دورة",
+    "manageLearners": "إدارة المتعلمين",
+    "certificates": "الشهادات",
+    "myCourses": "دوراتي",
+    "achievements": "الإنجازات",
+    "myProgress": "تقدمي"
+  },
+  "dashboard": {
+    "title": "لوحة التحكم",
+    "welcome": "مرحبا بعودتك",
+    "overview": "نظرة عامة",
+    "statistics": "الإحصائيات",
+    "recentActivity": "النشاط الأخير"
+  },
+  "courses": {
+    "title": "الدورات",
+    "myCourses": "دوراتي",
+    "allCourses": "جميع الدورات",
+    "createCourse": "إنشاء دورة",
+    "courseDetails": "تفاصيل الدورة",
+    "enrolled": "مسجل",
+    "progress": "التقدم",
+    "completed": "مكتمل",
+    "inProgress": "قيد التنفيذ",
+    "notStarted": "لم يبدأ"
+  },
+  "users": {
+    "title": "المستخدمون",
+    "addUser": "إضافة مستخدم",
+    "editUser": "تعديل المستخدم",
+    "deleteUser": "حذف المستخدم",
+    "userDetails": "تفاصيل المستخدم",
+    "name": "الاسم",
+    "email": "البريد الإلكتروني",
+    "role": "الدور",
+    "status": "الحالة",
+    "active": "نشط",
+    "inactive": "غير نشط"
+  },
+  "learners": {
+    "title": "إدارة المتعلمين",
+    "searchPlaceholder": "البحث بالاسم أو البريد الإلكتروني",
+    "filterByCourse": "تصفية حسب الدورة",
+    "filterByStatus": "تصفية حسب الحالة",
+    "allCourses": "جميع الدورات",
+    "allStatuses": "جميع الحالات",
+    "learner": "المتعلم",
+    "courseEnrolled": "الدورة المسجلة",
+    "progress": "التقدم",
+    "status": "الحالة",
+    "lastActivity": "آخر نشاط",
+    "actions": "الإجراءات",
+    "viewDetails": "عرض التفاصيل",
+    "active": "نشط",
+    "completed": "مكتمل"
+  },
+  "reports": {
+    "title": "التقارير",
+    "generateReport": "إنشاء تقرير",
+    "exportReport": "تصدير التقرير",
+    "dateRange": "نطاق التاريخ",
+    "reportType": "نوع التقرير"
+  },
+  "settings": {
+    "title": "الإعدادات",
+    "generalSettings": "الإعدادات العامة",
+    "accountSettings": "إعدادات الحساب",
+    "notificationSettings": "إعدادات الإشعارات",
+    "privacySettings": "إعدادات الخصوصية",
+    "profile": "الملف الشخصي",
+    "changePassword": "تغيير كلمة المرور",
+    "language": "اللغة",
+    "theme": "المظهر"
+  },
+  "auth": {
+    "login": "تسجيل الدخول",
+    "logout": "تسجيل الخروج",
+    "register": "التسجيل",
+    "forgotPassword": "نسيت كلمة المرور",
+    "resetPassword": "إعادة تعيين كلمة المرور",
+    "email": "البريد الإلكتروني",
+    "password": "كلمة المرور",
+    "confirmPassword": "تأكيد كلمة المرور"
+  }
+}
