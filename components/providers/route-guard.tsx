@@ -26,15 +26,14 @@ export function RouteGuard({ children }: RouteGuardProps) {
   const isLoading = useAppSelector((state) => state.auth.loading);
   const isLoggingOut = useAppSelector((state) => state.auth.isLoggingOut);
   const [loadingTimeout, setLoadingTimeout] = useState(false);
-  const [mounted, setMounted] = useState(false);
-
-  // Track when component has mounted to prevent hydration mismatches
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   // Extract path without locale
   const pathWithoutLocale = pathname.replace(`/${locale}`, '') || '/';
+
+  // Skip all checks for auth callback route - it handles its own authentication
+  if (isAuthCallbackRoute(pathWithoutLocale)) {
+    return <>{children}</>;
+  }
 
   // Set a timeout for loading state (5 seconds)
   useEffect(() => {
@@ -107,17 +106,6 @@ export function RouteGuard({ children }: RouteGuardProps) {
       }
     }
   }, [pathname, user, token, isLoading, loadingTimeout, locale, router, pathWithoutLocale, isLoggingOut]);
-
-  // Skip all checks for auth callback route - it handles its own authentication
-  if (isAuthCallbackRoute(pathWithoutLocale)) {
-    return <>{children}</>;
-  }
-
-  // During SSR or initial render, just render children to prevent hydration mismatch
-  // All auth checks will happen after mount
-  if (!mounted) {
-    return <>{children}</>;
-  }
 
   // Show loading state during logout (prevents ForbiddenAccess flash)
   if (isLoggingOut) {

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useAppDispatch, useAppSelector } from '@/lib/store/hooks';
 import { setToken, setUser, initializeAuth } from '@/lib/store/slices/authSlice';
@@ -33,12 +33,6 @@ export function SSOHandler({ children }: { children: React.ReactNode }) {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [exchangeToken, { isLoading, isError, error }] = useExchangeSSOTokenMutation();
-  const [mounted, setMounted] = useState(false);
-
-  // Track when component has mounted to prevent hydration mismatches
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   // Initialize auth on mount (load token from localStorage)
   useEffect(() => {
@@ -83,12 +77,6 @@ export function SSOHandler({ children }: { children: React.ReactNode }) {
         });
     }
   }, [searchParams, token, exchangeToken, dispatch, router]);
-
-  // During SSR or initial render, just render children to prevent hydration mismatch
-  // All SSO checks will happen after mount
-  if (!mounted) {
-    return <>{children}</>;
-  }
 
   // Show loading state during SSO exchange
   if (isLoading) {
