@@ -69,14 +69,15 @@ export function RevenueCertificatesTable() {
         <h3 className="mb-6 text-xl font-semibold text-foreground">Certificates Sale</h3>
 
         {/* Tabs */}
-        <div className="mb-6 flex gap-2">
+        <div className="mb-6 flex gap-1 rounded-lg h-10 items-center" style={{ backgroundColor: '#F3F4F6', padding: '2px' }}>
           <Button
             onClick={() => setActiveTab("cpd")}
             className={`${
               activeTab === "cpd"
                 ? "bg-green-600 text-white hover:bg-green-700"
-                : "bg-transparent text-gray-700 hover:bg-gray-100"
-            }`}
+                : "text-gray-700 hover:bg-transparent"
+            } rounded-md transition-colors h-full px-4`}
+            style={activeTab !== "cpd" ? { backgroundColor: '#F3F4F6' } : {}}
           >
             CPD Certificates
           </Button>
@@ -85,8 +86,9 @@ export function RevenueCertificatesTable() {
             className={`${
               activeTab === "other"
                 ? "bg-green-600 text-white hover:bg-green-700"
-                : "bg-transparent text-gray-700 hover:bg-gray-100"
-            }`}
+                : "text-gray-700 hover:bg-transparent"
+            } rounded-md transition-colors h-full px-4`}
+            style={activeTab !== "other" ? { backgroundColor: '#F3F4F6' } : {}}
           >
             Other Certificates
           </Button>
@@ -106,9 +108,9 @@ export function RevenueCertificatesTable() {
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-gray-200">
-                <th className="px-6 py-4 text-left text-sm font-semibold text-muted-foreground">MONTHS</th>
-                <th className="px-6 py-4 text-right text-sm font-semibold text-muted-foreground">CERTIFICATES ISSUED</th>
+              <tr className="border-b border-gray-200" style={{ backgroundColor: '#F9FAFB' }}>
+                <th className="px-6 py-4 text-left text-sm font-semibold rounded-tl-lg" style={{ color: '#6B7280' }}>MONTHS</th>
+                <th className="px-6 py-4 text-right text-sm font-semibold rounded-tr-lg" style={{ color: '#6B7280' }}>CERTIFICATES ISSUED</th>
               </tr>
             </thead>
             <tbody>
