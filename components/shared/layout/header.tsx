@@ -28,6 +28,7 @@ import { usePathname, useRouter } from "next/navigation";
 import LanguageSelector from "@/components/shared/language-selector";
 import { useTranslations, useLocale } from 'next-intl';
 import { handleLogout } from "@/lib/utils/logout";
+import { useRef, useEffect } from "react";
 
 interface HeaderProps {
   onMenuClick: () => void;
@@ -43,11 +44,37 @@ export default function Header({
   const pathname = usePathname();
   const user = useAppSelector((state) => state.auth.user);
   const token = useAppSelector((state) => state.auth.token);
-  const currentRole = user?.role || UserRole.ADMIN;
   const tHeader = useTranslations('header');
   const tRoles = useTranslations('roles');
   const tAuth = useTranslations('auth');
   const locale = useLocale();
+  
+  // Store the user's actual role (permissions) - this should never change
+  // It represents what roles the user has access to, not what they're currently viewing
+  const actualUserRoleRef = useRef<UserRole | null>(null);
+  const userIdRef = useRef<string | null>(null);
+  
+  // Update the ref when user changes (new user login) or when first set
+  useEffect(() => {
+    if (user?.id && user?.role) {
+      // If it's a different user, reset the ref
+      if (userIdRef.current !== user.id) {
+        actualUserRoleRef.current = user.role;
+        userIdRef.current = user.id;
+      } else if (actualUserRoleRef.current === null) {
+        // First time setting for this user
+        actualUserRoleRef.current = user.role;
+        userIdRef.current = user.id;
+      }
+    } else if (!user) {
+      // User logged out, reset refs
+      actualUserRoleRef.current = null;
+      userIdRef.current = null;
+    }
+  }, [user?.id, user?.role, user]);
+  
+  // Get the actual user role (what they have permission for)
+  const actualUserRole = actualUserRoleRef.current || user?.role || UserRole.ADMIN;
 
   // Derive active role from current path to keep navigation and settings in sync
   const getRoleFromPath = (): UserRole => {
@@ -55,14 +82,15 @@ export default function Header({
     if (pathname.includes('/learner')) return UserRole.LEARNER;
     if (pathname.includes('/facilitator')) return UserRole.FACILITATOR;
     if (pathname.includes('/manager')) return UserRole.MANAGER;
-    return currentRole;
+    return actualUserRole;
   };
 
   const activeRole = getRoleFromPath();
 
   const handleRoleSwitch = (newRole: UserRole) => {
-    dispatch(setRole(newRole));
-    router.push(`/${locale}/${newRole}`);
+    // Don't update the user's actual role - just navigate
+    // The actual role represents permissions, activeRole is just the current view
+    router.replace(`/${locale}/${newRole}`);
   };
 
   const handleLogoutClick = async () => {
@@ -162,30 +190,55 @@ export default function Header({
                 <p className="font-semibold text-base">{tHeader('myAccount')}</p>
               </div>
               <div className="p-2">
-                {/* Role Switching Options */}
-                <DropdownMenuItem 
-                  className={`flex items-center gap-3 cursor-pointer py-2 px-3 rounded-md font-medium hover:bg-emerald-50 ${
-                    activeRole === UserRole.ADMIN ? getRoleColor(UserRole.ADMIN) : "text-foreground"
-                  }`}
-                  onClick={() => handleRoleSwitch(UserRole.ADMIN)}
-                >
-                  <Shield className="w-4 h-4" />
-                  <span>{tRoles('admin')}</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem 
-                  className={`flex items-center gap-3 cursor-pointer py-2 px-3 rounded-md font-medium hover:bg-blue-50 ${
-                    activeRole === UserRole.LEARNER ? getRoleColor(UserRole.LEARNER) : "text-foreground"
-                  }`}
-                  onClick={() => handleRoleSwitch(UserRole.LEARNER)}
-                >
-                  <GraduationCap className="w-4 h-4" />
-                  <span>{tRoles('learner')}</span>
-                </DropdownMenuItem>
-                {/**
-                 * Temporarily hidden: Facilitator and Manager role switches
-                 * Uncomment when these dashboards are ready for user switching.
-                 */}
-                {false && (
+                {/* Role Switching Options - Show based on user's actual role (permissions) */}
+                {/* Use actualUserRole which represents what the user has access to, not what they're viewing */}
+                {actualUserRole === UserRole.ADMIN && (
+                  <>
+                    <DropdownMenuItem 
+                      className={`flex items-center gap-3 cursor-pointer py-2 px-3 rounded-md font-medium hover:bg-emerald-50 ${
+                        activeRole === UserRole.ADMIN ? getRoleColor(UserRole.ADMIN) : "text-foreground"
+                      }`}
+                      onClick={() => handleRoleSwitch(UserRole.ADMIN)}
+                    >
+                      <Shield className="w-4 h-4" />
+                      <span>{tRoles('admin')}</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      className={`flex items-center gap-3 cursor-pointer py-2 px-3 rounded-md font-medium hover:bg-blue-50 ${
+                        activeRole === UserRole.LEARNER ? getRoleColor(UserRole.LEARNER) : "text-foreground"
+                      }`}
+                      onClick={() => handleRoleSwitch(UserRole.LEARNER)}
+                    >
+                      <GraduationCap className="w-4 h-4" />
+                      <span>{tRoles('learner')}</span>
+                    </DropdownMenuItem>
+                  </>
+                )}
+                
+                {actualUserRole === UserRole.MANAGER && (
+                  <>
+                    <DropdownMenuItem 
+                      className={`flex items-center gap-3 cursor-pointer py-2 px-3 rounded-md font-medium hover:bg-purple-50 ${
+                        activeRole === UserRole.MANAGER ? getRoleColor(UserRole.MANAGER) : "text-foreground"
+                      }`}
+                      onClick={() => handleRoleSwitch(UserRole.MANAGER)}
+                    >
+                      <TrendingUp className="w-4 h-4" />
+                      <span>{tRoles('manager')}</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      className={`flex items-center gap-3 cursor-pointer py-2 px-3 rounded-md font-medium hover:bg-blue-50 ${
+                        activeRole === UserRole.LEARNER ? getRoleColor(UserRole.LEARNER) : "text-foreground"
+                      }`}
+                      onClick={() => handleRoleSwitch(UserRole.LEARNER)}
+                    >
+                      <GraduationCap className="w-4 h-4" />
+                      <span>{tRoles('learner')}</span>
+                    </DropdownMenuItem>
+                  </>
+                )}
+                
+                {actualUserRole === UserRole.FACILITATOR && (
                   <>
                     <DropdownMenuItem 
                       className={`flex items-center gap-3 cursor-pointer py-2 px-3 rounded-md font-medium hover:bg-amber-50 ${
@@ -197,15 +250,27 @@ export default function Header({
                       <span>{tRoles('facilitator')}</span>
                     </DropdownMenuItem>
                     <DropdownMenuItem 
-                      className={`flex items-center gap-3 cursor-pointer py-2 px-3 rounded-md font-medium hover:bg-purple-50 ${
-                        activeRole === UserRole.MANAGER ? getRoleColor(UserRole.MANAGER) : "text-foreground"
+                      className={`flex items-center gap-3 cursor-pointer py-2 px-3 rounded-md font-medium hover:bg-blue-50 ${
+                        activeRole === UserRole.LEARNER ? getRoleColor(UserRole.LEARNER) : "text-foreground"
                       }`}
-                      onClick={() => handleRoleSwitch(UserRole.MANAGER)}
+                      onClick={() => handleRoleSwitch(UserRole.LEARNER)}
                     >
-                      <TrendingUp className="w-4 h-4" />
-                      <span>{tRoles('manager')}</span>
+                      <GraduationCap className="w-4 h-4" />
+                      <span>{tRoles('learner')}</span>
                     </DropdownMenuItem>
                   </>
+                )}
+                
+                {actualUserRole === UserRole.LEARNER && (
+                  <DropdownMenuItem 
+                    className={`flex items-center gap-3 cursor-pointer py-2 px-3 rounded-md font-medium hover:bg-blue-50 ${
+                      activeRole === UserRole.LEARNER ? getRoleColor(UserRole.LEARNER) : "text-foreground"
+                    }`}
+                    onClick={() => handleRoleSwitch(UserRole.LEARNER)}
+                  >
+                    <GraduationCap className="w-4 h-4" />
+                    <span>{tRoles('learner')}</span>
+                  </DropdownMenuItem>
                 )}
                 
                 <DropdownMenuSeparator className="my-2" />

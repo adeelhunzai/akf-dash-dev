@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { useAppDispatch, useAppSelector } from '@/lib/store/hooks';
-import { setUser, setLoading, initializeAuth } from '@/lib/store/slices/authSlice';
+import { setUser, setLoading, initializeAuth, setInitializing, setToken } from '@/lib/store/slices/authSlice';
 import { useGetCurrentUserQuery } from '@/lib/store/api/userApi';
 import { useValidateTokenMutation } from '@/lib/store/api/authApi';
 import { useGetGeneralSettingsQuery } from '@/lib/store/api/settingsApi';
@@ -14,14 +14,20 @@ import { useLocale } from 'next-intl';
 
 /**
  * Maps WordPress roles to application UserRole
+ * Note: group_leader = FACILITATOR, group_leader_clone = MANAGER
  */
 function mapWordPressRoleToUserRole(wpRoles: string[]): UserRole {
   // Priority order: admin > manager > facilitator > learner
   if (wpRoles.includes('administrator')) {
     return UserRole.ADMIN;
   }
-  if (wpRoles.includes('group_leader')) {
+  // group_leader_clone maps to MANAGER
+  if (wpRoles.includes('group_leader_clone')) {
     return UserRole.MANAGER;
+  }
+  // group_leader maps to FACILITATOR
+  if (wpRoles.includes('group_leader')) {
+    return UserRole.FACILITATOR;
   }
   if (wpRoles.includes('editor') || wpRoles.includes('author')) {
     return UserRole.FACILITATOR;
@@ -80,13 +86,20 @@ export function AuthInitializer({ children }: AuthInitializerProps) {
   // This must run first before any other auth checks
   useEffect(() => {
     dispatch(initializeAuth());
+    // Note: isInitializing will be set to false after token validation completes
+    // or immediately if no token is found (handled in initializeAuth and validation logic)
   }, [dispatch]);
 
-  // Fetch general settings to get profile picture (same endpoint as settings page)
-  // This ensures we always have the latest profile picture
-  // Skip on auth callback page
+  // Fetch general settings to get profile picture (admin-only API)
+  // Only fetch for admin users, and only once per session
+  // Skip on auth callback page or if user is not admin
+  const isAdmin = user?.role === UserRole.ADMIN;
+  const shouldFetchSettings = token && isAdmin && !isOnAuthCallback;
   const { data: generalSettings, refetch: refetchGeneralSettings } = useGetGeneralSettingsQuery(undefined, {
-    skip: !token || isOnAuthCallback, // Only fetch if we have a token and not on auth callback
+    skip: !shouldFetchSettings, // Only fetch if admin has token and not on auth callback
+    refetchOnMountOrArgChange: false, // Don't refetch on route changes
+    refetchOnFocus: false, // Don't refetch on window focus
+    refetchOnReconnect: false, // Don't refetch on reconnect
   });
 
   // If we have a JWT token, validate it first
@@ -118,10 +131,12 @@ export function AuthInitializer({ children }: AuthInitializerProps) {
               avatar: response.user.avatar_url, // Use avatar from token validation initially
             };
             dispatch(setUser(transformedUser));
+            dispatch(setInitializing(false));
           } else {
             // Token is invalid
             dispatch(setToken(null));
             dispatch(setLoading(false));
+            dispatch(setInitializing(false));
           }
         })
         .catch((err) => {
@@ -129,21 +144,25 @@ export function AuthInitializer({ children }: AuthInitializerProps) {
           // Token is invalid, clear it
           dispatch(setToken(null));
           dispatch(setLoading(false));
+          dispatch(setInitializing(false));
         });
     } else if (!token && !user) {
       // No token and no user - ensure loading is false
       dispatch(setLoading(false));
+      dispatch(setInitializing(false));
     }
   }, [token, user, validateToken, dispatch, isOnAuthCallback]);
   
   // Update avatar when general settings load (after user is already set)
   useEffect(() => {
     if (user && generalSettings?.data?.profilePicture !== undefined) {
+      // Convert null to undefined for avatar (User type expects string | undefined)
+      const newAvatar = generalSettings.data.profilePicture ?? undefined;
       // Only update if the avatar has actually changed
-      if (user.avatar !== generalSettings.data.profilePicture) {
+      if (user.avatar !== newAvatar) {
         dispatch(setUser({
           ...user,
-          avatar: generalSettings.data.profilePicture,
+          avatar: newAvatar,
         }));
       }
     }
@@ -170,6 +189,7 @@ export function AuthInitializer({ children }: AuthInitializerProps) {
       const transformedUser = transformWordPressUser(wpUser);
       console.log('Setting user in Redux:', transformedUser);
       dispatch(setUser(transformedUser));
+      dispatch(setInitializing(false));
     }
   }, [wpUser, user, token, dispatch]);
 
@@ -179,6 +199,7 @@ export function AuthInitializer({ children }: AuthInitializerProps) {
       // If we failed to fetch user and have no token, ensure loading is false
       if (!token) {
         dispatch(setLoading(false));
+        dispatch(setInitializing(false));
       }
     }
   }, [isError, error, token, dispatch]);

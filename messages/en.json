@@ -38,7 +38,10 @@
     "certificates": "Certificates",
     "myCourses": "My Courses",
     "achievements": "Achievements",
-    "myProgress": "My Progress"
+    "myProgress": "My Progress",
+    "analytics": "Analytics",
+    "team": "Team",
+    "goals": "Goals"
   },
   "dashboard": {
     "title": "Dashboard",

@@ -27,7 +27,7 @@ const reports: ReportCard[] = [
   },
   {
     id: "revenue-certificates",
-    title: "Revenue & Certificate Sales",
+    title: "Certificate Sales",
     icon: <DollarSign className="h-6 w-6" />,
   },
   // {

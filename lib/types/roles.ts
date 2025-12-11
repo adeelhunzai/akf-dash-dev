@@ -25,4 +25,5 @@ export interface AuthState {
   loading: boolean;
   token: string | null;
   isLoggingOut: boolean;
+  isInitializing: boolean;
 }

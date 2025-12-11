@@ -9,13 +9,19 @@ import { UserRole } from '@/lib/types/roles';
 
 /**
  * Maps WordPress roles to application UserRole
+ * Note: group_leader = FACILITATOR, group_leader_clone = MANAGER
  */
 function mapWordPressRoleToUserRole(wpRoles: string[]): UserRole {
   if (wpRoles.includes('administrator')) {
     return UserRole.ADMIN;
   }
-  if (wpRoles.includes('group_leader')) {
+  // group_leader_clone maps to MANAGER
+  if (wpRoles.includes('group_leader_clone')) {
     return UserRole.MANAGER;
+  }
+  // group_leader maps to FACILITATOR
+  if (wpRoles.includes('group_leader')) {
+    return UserRole.FACILITATOR;
   }
   if (wpRoles.includes('editor') || wpRoles.includes('author')) {
     return UserRole.FACILITATOR;

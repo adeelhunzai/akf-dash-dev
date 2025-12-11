@@ -103,3 +103,25 @@ export interface CoursePopularityResponse {
   message?: string;
 }
 
+export interface CertificateSalesData {
+  month: string;
+  month_key: string;
+  sold: number;
+}
+
+export interface CertificateSalesTotals {
+  total_cpd_issued: number;
+  total_other_issued: number;
+  total_certificates_issued: number;
+}
+
+export interface CertificateSalesResponse {
+  success: boolean;
+  data: {
+    cpd_certificates: CertificateSalesData[];
+    other_certificates: CertificateSalesData[];
+    totals: CertificateSalesTotals;
+  };
+  message?: string;
+}
+

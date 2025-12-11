@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useAppDispatch, useAppSelector } from '@/lib/store/hooks';
-import { setToken, setUser, initializeAuth } from '@/lib/store/slices/authSlice';
+import { setToken, setUser, initializeAuth, setInitializing } from '@/lib/store/slices/authSlice';
 import { useExchangeSSOTokenMutation } from '@/lib/store/api/authApi';
 import { UserRole } from '@/lib/types/roles';
 import { hasRouteAccess, getDefaultDashboardPath } from '@/lib/utils/auth';
@@ -13,13 +13,19 @@ import { AlertTriangle, LogIn } from 'lucide-react';
 
 /**
  * Maps WordPress roles to application UserRole
+ * Note: group_leader = FACILITATOR, group_leader_clone = MANAGER
  */
 function mapWordPressRoleToUserRole(wpRoles: string[]): UserRole {
   if (wpRoles.includes('administrator')) {
     return UserRole.ADMIN;
   }
-  if (wpRoles.includes('group_leader')) {
+  // group_leader_clone maps to MANAGER
+  if (wpRoles.includes('group_leader_clone')) {
     return UserRole.MANAGER;
+  }
+  // group_leader maps to FACILITATOR
+  if (wpRoles.includes('group_leader')) {
+    return UserRole.FACILITATOR;
   }
   if (wpRoles.includes('editor') || wpRoles.includes('author')) {
     return UserRole.FACILITATOR;
@@ -125,6 +131,7 @@ export default function AuthCallbackPage() {
               avatar: response.user.avatar_url,
             };
             dispatch(setUser(user));
+            dispatch(setInitializing(false));
             
             // Check if there's a redirect parameter (from middleware or unauthorized access)
             const redirectParam = searchParams.get('redirect');

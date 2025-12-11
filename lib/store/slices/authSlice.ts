@@ -8,6 +8,7 @@ const initialState: AuthState = {
   loading: false,
   token: null,
   isLoggingOut: false,
+  isInitializing: true, // Start as true - will be set to false after initialization
 };
 
 const authSlice = createSlice({
@@ -47,6 +48,7 @@ const authSlice = createSlice({
       state.loading = false;
       state.token = null;
       state.isLoggingOut = false;
+      state.isInitializing = false;
       removeTokenCookie();
     },
     setLoading: (state, action: PayloadAction<boolean>) => {
@@ -59,13 +61,19 @@ const authSlice = createSlice({
         state.token = storedToken;
         // Set loading to true so RouteGuard waits for token validation
         state.loading = true;
+        // Keep isInitializing true - will be set to false after validation completes
       } else {
         // No token found, ensure loading is false
         state.loading = false;
+        // No token means initialization is complete (nothing to validate)
+        state.isInitializing = false;
       }
+    },
+    setInitializing: (state, action: PayloadAction<boolean>) => {
+      state.isInitializing = action.payload;
     },
   },
 });
 
-export const { setUser, setToken, setRole, updateUserAvatar, logout, setLoading, initializeAuth, setLoggingOut } = authSlice.actions;
+export const { setUser, setToken, setRole, updateUserAvatar, logout, setLoading, initializeAuth, setLoggingOut, setInitializing } = authSlice.actions;
 export default authSlice.reducer;

@@ -60,6 +60,12 @@ export function getRequiredRoleForRoute(pathname: string): UserRole | null {
 
 /**
  * Check if user has access to a route based on their role
+ * 
+ * Access rules:
+ * - Admins: access to all routes
+ * - Managers: access to manager and learner routes
+ * - Facilitators: access to facilitator and learner routes
+ * - Learners: access to only learner routes
  */
 export function hasRouteAccess(userRole: UserRole | null, pathname: string): boolean {
   // Public routes are accessible to everyone
@@ -69,11 +75,14 @@ export function hasRouteAccess(userRole: UserRole | null, pathname: string): boo
   const requiredRole = getRequiredRoleForRoute(pathname);
   if (!requiredRole) return true;
   
-  // User must have the required role
+  // User must have a role
   if (!userRole) return false;
   
   // Admins have access to all routes
   if (userRole === UserRole.ADMIN) return true;
+  
+  // Learner routes are accessible to all authenticated users
+  if (requiredRole === UserRole.LEARNER) return true;
   
   // Check if user's role matches required role
   return userRole === requiredRole;

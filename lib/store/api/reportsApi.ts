@@ -1,11 +1,11 @@
 import { createApi } from '@reduxjs/toolkit/query/react';
 import { createWordpressBaseQuery } from '@/lib/api/wordpressBaseQuery';
-import { CourseReportResponse, LearnerReportResponse, TeamReportResponse, CoursePopularityResponse } from '@/lib/types/reports.types';
+import { CourseReportResponse, LearnerReportResponse, TeamReportResponse, CoursePopularityResponse, CertificateSalesResponse } from '@/lib/types/reports.types';
 
 export const reportsApi = createApi({
   reducerPath: 'reportsApi',
   baseQuery: createWordpressBaseQuery('token'),
-  tagTypes: ['CourseReport', 'LearnerReport', 'TeamReport', 'CoursePopularity'],
+  tagTypes: ['CourseReport', 'LearnerReport', 'TeamReport', 'CoursePopularity', 'CertificateSales'],
   endpoints: (build) => ({
     getCourseReport: build.query<CourseReportResponse, { page?: number; per_page?: number; search?: string; days?: number }>({
       query: ({ page = 1, per_page = 10, search, days }) => {
@@ -46,8 +46,23 @@ export const reportsApi = createApi({
       query: () => '/custom-api/v1/course-popularity',
       providesTags: ['CoursePopularity'],
     }),
+    getCertificateSales: build.query<CertificateSalesResponse, { months_back?: number; year?: number }>({
+      query: ({ months_back = 24, year }) => {
+        const params = new URLSearchParams();
+        if (months_back) params.append('months_back', months_back.toString());
+        if (year) params.append('year', year.toString());
+        return `/custom-api/v1/certificate-sales?${params.toString()}`;
+      },
+      providesTags: ['CertificateSales'],
+    }),
   }),
 });
 
-export const { useGetCourseReportQuery, useGetLearnerReportQuery, useGetTeamReportQuery, useGetCoursePopularityQuery } = reportsApi;
+export const { 
+  useGetCourseReportQuery, 
+  useGetLearnerReportQuery, 
+  useGetTeamReportQuery, 
+  useGetCoursePopularityQuery,
+  useGetCertificateSalesQuery 
+} = reportsApi;
 
