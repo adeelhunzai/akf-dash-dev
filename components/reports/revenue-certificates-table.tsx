@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useGetCertificateSalesQuery } from "@/lib/store/api/reportsApi"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -16,9 +17,13 @@ interface CertificateData {
 export function RevenueCertificatesTable() {
   const [activeTab, setActiveTab] = useState<"cpd" | "other">("cpd")
   const [searchQuery, setSearchQuery] = useState("")
+  const [monthsBack, setMonthsBack] = useState("24")
+
+  // Convert monthsBack to number
+  const monthsBackNum = parseInt(monthsBack) || 24
 
   // Fetch certificate sales data
-  const { data, isLoading, error } = useGetCertificateSalesQuery({ months_back: 24 })
+  const { data, isLoading, error } = useGetCertificateSalesQuery({ months_back: monthsBackNum })
 
   // Get data based on active tab
   const rawData = activeTab === "cpd" 
@@ -66,7 +71,31 @@ export function RevenueCertificatesTable() {
   return (
     <div className="space-y-6 rounded-lg border border-gray-200 bg-white p-6">
       <div>
-        <h3 className="mb-6 text-xl font-semibold text-foreground">Certificates Sale</h3>
+        {/* Title and Filters */}
+        <div className="mb-6 flex items-center justify-between">
+          <h3 className="text-xl font-semibold text-foreground">Certificates Sale</h3>
+          <div className="flex gap-4">
+            <div className="flex-grow">
+              <Input
+                placeholder="Search..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="border-gray-200 w-64"
+              />
+            </div>
+            <Select value={monthsBack} onValueChange={setMonthsBack}>
+              <SelectTrigger className="w-40 border-gray-200">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="6">Last 6 months</SelectItem>
+                <SelectItem value="12">Last 12 months</SelectItem>
+                <SelectItem value="24">Last 24 months</SelectItem>
+                <SelectItem value="36">Last 36 months</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
 
         {/* Tabs */}
         <div className="mb-6 flex gap-1 rounded-lg h-10 items-center" style={{ backgroundColor: '#F3F4F6', padding: '2px' }}>
@@ -92,16 +121,6 @@ export function RevenueCertificatesTable() {
           >
             Other Certificates
           </Button>
-        </div>
-
-        {/* Search */}
-        <div className="mb-6">
-          <Input
-            placeholder="Search by month..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="border-gray-200"
-          />
         </div>
 
         {/* Table */}

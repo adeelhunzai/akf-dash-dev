@@ -58,7 +58,32 @@ export function ReportsContent() {
       {/* Report Content */}
       {selectedReport === "user-enrollment" && (
         <div>
-          <h3 className="mb-4 text-xl font-semibold text-foreground">User Enrollment & Completion Report</h3>
+          {/* Title and Filters */}
+          <div className="mb-6 flex items-center justify-between">
+            <h3 className="text-xl font-semibold text-foreground">User Enrollment & Completion Report</h3>
+            <div className="flex gap-4">
+              <div className="flex-grow">
+                <Input
+                  placeholder="Search..."
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                  className="border-gray-200 w-64"
+                />
+              </div>
+              <Select value={dateRange} onValueChange={setDateRange}>
+                <SelectTrigger className="w-40 border-gray-200">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="0">All time</SelectItem>
+                  <SelectItem value="7">Last 7 days</SelectItem>
+                  <SelectItem value="30">Last 30 days</SelectItem>
+                  <SelectItem value="90">Last 90 days</SelectItem>
+                  <SelectItem value="365">Last year</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
 
           {/* Tabs */}
           <div className="mb-6 flex gap-2">
@@ -82,30 +107,6 @@ export function ReportsContent() {
             >
               Learner Report
             </Button>
-          </div>
-
-          {/* Filters */}
-          <div className="mb-6 flex gap-4">
-            <div className="flex-grow">
-              <Input
-                placeholder="Search..."
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-                className="border-gray-200"
-              />
-            </div>
-            <Select value={dateRange} onValueChange={setDateRange}>
-              <SelectTrigger className="w-40 border-gray-200">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="0">All time</SelectItem>
-                <SelectItem value="7">Last 7 days</SelectItem>
-                <SelectItem value="30">Last 30 days</SelectItem>
-                <SelectItem value="90">Last 90 days</SelectItem>
-                <SelectItem value="365">Last year</SelectItem>
-              </SelectContent>
-            </Select>
           </div>
 
           {/* Table */}
