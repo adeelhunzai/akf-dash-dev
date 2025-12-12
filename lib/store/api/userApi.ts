@@ -11,8 +11,15 @@ export const usersApi = createApi({
       query: () => '/wp/v2/users/me?context=edit',
       providesTags: ['CurrentUser'],
     }),
-    getUsersCount: build.query<UsersCountResponse, void>({
-      query: () => '/custom-api/v1/users-count',
+    getUsersCount: build.query<UsersCountResponse, string | undefined>({
+      query: (period) => {
+        const params = new URLSearchParams();
+        if (period) {
+          params.append('period', period);
+        }
+        const queryString = params.toString();
+        return `/custom-api/v1/users-count${queryString ? `?${queryString}` : ''}`;
+      },
       providesTags: ['UsersCount'],
     }),
     getCourseCompletionRate: build.query<CourseCompletionRateResponse, void>({

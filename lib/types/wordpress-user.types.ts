@@ -60,6 +60,12 @@ export interface UsersCountResponse {
   new_registrations: number;
   active_courses: number;
   active_teams: number;
+  // Period-specific fields (optional, only present when period parameter is provided)
+  total_users_for_period?: number;
+  group_leader_for_period?: number;
+  group_leader_clone_for_period?: number;
+  subscriber_for_period?: number;
+  period?: string;
 }
 
 /**

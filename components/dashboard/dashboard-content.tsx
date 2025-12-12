@@ -128,8 +128,20 @@ export default function DashboardContent() {
   const [selectedPeriod, setSelectedPeriod] = useState("1 Year");
   const periods = ["1 Month", "3 Months", "6 Months", "1 Year"];
   
-  // Fetch users count from WordPress API
-  const { data: usersCount, isLoading, isError } = useGetUsersCountQuery();
+  // Map frontend period to API period format
+  const getPeriodParam = (period: string): string | undefined => {
+    const periodMap: Record<string, string> = {
+      "1 Month": "1month",
+      "3 Months": "3months",
+      "6 Months": "6months",
+      "1 Year": "1year",
+    };
+    return periodMap[period];
+  };
+  
+  // Fetch users count from WordPress API with period parameter
+  const periodParam = getPeriodParam(selectedPeriod);
+  const { data: usersCount, isLoading, isError } = useGetUsersCountQuery(periodParam);
   
   // Format number with commas
   const formatNumber = (num: number) => {
@@ -140,47 +152,43 @@ export default function DashboardContent() {
   const metricsConfig = getMetricsConfig();
   const metrics = metricsConfig.map((config) => {
     let value = "--";
-    let change = "Loading...";
+    let change = ""; // Removed change text as per design
     
     if (!isLoading && usersCount) {
       switch (config.key) {
         case "total_users":
-          value = formatNumber(usersCount.total_users);
-          change = "Total registered users";
+          // Use period-specific count if available, otherwise use total
+          value = formatNumber(usersCount.total_users_for_period || usersCount.total_users);
           break;
         case "managers":
-          // group_leader + group_leader_clone
-          const totalManagers = usersCount.group_leader + usersCount.group_leader_clone;
+          // Use period-specific count if available
+          const managersForPeriod = usersCount.group_leader_for_period || usersCount.group_leader;
+          const managersCloneForPeriod = usersCount.group_leader_clone_for_period || usersCount.group_leader_clone;
+          const totalManagers = managersForPeriod + managersCloneForPeriod;
           value = formatNumber(totalManagers);
-          change = `${formatNumber(usersCount.group_leader)} active managers`;
           break;
         case "facilitators":
-          // For now showing group_leader_clone as facilitators
-          value = formatNumber(usersCount.group_leader_clone);
-          change = "Active facilitators";
+          // Use period-specific count if available
+          value = formatNumber(usersCount.group_leader_clone_for_period || usersCount.group_leader_clone);
           break;
         case "learners":
-          value = formatNumber(usersCount.subscriber);
-          change = "Enrolled learners";
+          // Use period-specific count if available
+          value = formatNumber(usersCount.subscriber_for_period || usersCount.subscriber);
           break;
         case "active_courses":
           value = formatNumber(usersCount.active_courses);
-          change = "Currently active";
           break;
         case "active_teams":
           value = formatNumber(usersCount.active_teams);
-          change = "Active learning teams";
           break;
         case "new_registrations":
           value = formatNumber(usersCount.new_registrations);
-          change = "This month";
           break;
       }
     }
     
     if (isError) {
       value = "Error";
-      change = "Failed to load data";
     }
     
     return {
