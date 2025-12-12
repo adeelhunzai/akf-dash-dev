@@ -43,7 +43,8 @@ export default function LanguageSelector() {
         <Button
           variant="outline"
           size="sm"
-          className="gap-2 h-9 bg-transparent"
+          className="gap-2 h-9 rounded-md border-0"
+          style={{ backgroundColor: '#F7F7F7' }}
           disabled={isPending}
         >
           <div className="w-6 h-6 rounded-full overflow-hidden flex items-center justify-center">
@@ -55,10 +56,10 @@ export default function LanguageSelector() {
               className="h-full w-auto object-cover"
             />
           </div>
-          <span className="uppercase text-sm font-medium">
+          <span className="uppercase text-sm font-medium text-gray-700">
             {currentLocale}
           </span>
-          <ChevronDown className="w-3 h-3" />
+          <ChevronDown className="w-3 h-3 text-gray-600" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-40">

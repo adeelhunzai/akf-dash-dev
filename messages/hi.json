@@ -26,6 +26,7 @@
   },
   "navigation": {
     "dashboard": "डैशबोर्ड",
+    "adminDashboard": "व्यवस्थापक डैशबोर्ड",
     "courses": "पाठ्यक्रम",
     "users": "उपयोगकर्ता",
     "reports": "रिपोर्ट",
@@ -37,7 +38,10 @@
     "certificates": "प्रमाणपत्र",
     "myCourses": "मेरे पाठ्यक्रम",
     "achievements": "उपलब्धियां",
-    "myProgress": "मेरी प्रगति"
+    "myProgress": "मेरी प्रगति",
+    "analytics": "विश्लेषण",
+    "team": "टीम",
+    "goals": "लक्ष्य"
   },
   "dashboard": {
     "title": "डैशबोर्ड",

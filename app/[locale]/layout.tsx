@@ -26,7 +26,8 @@ export default async function LocaleLayout({
 
   // Providing all messages to the client side is the easiest way to get started
   const messages = await getMessages({ locale });
-  const direction = localeDirections[locale as Locale];
+  // Force LTR layout for all languages to prevent sidebar from moving
+  const direction = 'ltr';
 
   return (
     <html lang={locale} dir={direction} className="overflow-visible">

@@ -26,6 +26,7 @@
   },
   "navigation": {
     "dashboard": "Tableau de Bord",
+    "adminDashboard": "Tableau de Bord Administrateur",
     "courses": "Cours",
     "users": "Utilisateurs",
     "reports": "Rapports",
@@ -37,7 +38,10 @@
     "certificates": "Certificats",
     "myCourses": "Mes Cours",
     "achievements": "Réalisations",
-    "myProgress": "Mon Progrès"
+    "myProgress": "Mon Progrès",
+    "analytics": "Analyses",
+    "team": "Équipe",
+    "goals": "Objectifs"
   },
   "dashboard": {
     "title": "Tableau de Bord",

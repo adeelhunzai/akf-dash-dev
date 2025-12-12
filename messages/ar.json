@@ -26,6 +26,7 @@
   },
   "navigation": {
     "dashboard": "لوحة التحكم",
+    "adminDashboard": "لوحة تحكم المسؤول",
     "courses": "الدورات",
     "users": "المستخدمون",
     "reports": "التقارير",
@@ -37,7 +38,10 @@
     "certificates": "الشهادات",
     "myCourses": "دوراتي",
     "achievements": "الإنجازات",
-    "myProgress": "تقدمي"
+    "myProgress": "تقدمي",
+    "analytics": "التحليلات",
+    "team": "الفريق",
+    "goals": "الأهداف"
   },
   "dashboard": {
     "title": "لوحة التحكم",

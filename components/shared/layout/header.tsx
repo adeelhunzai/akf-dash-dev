@@ -1,16 +1,20 @@
 "use client";
 
 import {
-  Search,
   ChevronDown,
   Menu,
   Shield,
+  ShieldUser,
   User,
   Settings,
   LogOut,
   GraduationCap,
   Users,
   TrendingUp,
+  FileText,
+  FileUser,
+  UserCog,
+  UserPen,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -141,18 +145,6 @@ export default function Header({
           </Button>
         )}
 
-        {/* Center - Search */}
-        <div className="flex-1 max-w-md mx-auto md:mx-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <input
-              type="text"
-              placeholder={tHeader('searchPlaceholder')}
-              className="w-full pl-10 pr-4 py-2 bg-background border border-input rounded-lg text-sm placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-            />
-          </div>
-        </div>
-
         <div className="flex items-center gap-2 md:gap-4 ml-auto">
           {/* Language Selector */}
           <LanguageSelector />
@@ -186,108 +178,53 @@ export default function Header({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56 p-0">
-              <div className="px-4 py-3 border-b border-border">
+              <div className="px-4 py-3">
                 <p className="font-semibold text-base">{tHeader('myAccount')}</p>
               </div>
               <div className="p-2">
-                {/* Role Switching Options - Show based on user's actual role (permissions) */}
-                {/* Use actualUserRole which represents what the user has access to, not what they're viewing */}
+                {/* Admin Dashboard */}
                 {actualUserRole === UserRole.ADMIN && (
-                  <>
-                    <DropdownMenuItem 
-                      className={`flex items-center gap-3 cursor-pointer py-2 px-3 rounded-md font-medium hover:bg-emerald-50 ${
-                        activeRole === UserRole.ADMIN ? getRoleColor(UserRole.ADMIN) : "text-foreground"
-                      }`}
-                      onClick={() => handleRoleSwitch(UserRole.ADMIN)}
-                    >
-                      <Shield className="w-4 h-4" />
-                      <span>{tRoles('admin')}</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem 
-                      className={`flex items-center gap-3 cursor-pointer py-2 px-3 rounded-md font-medium hover:bg-blue-50 ${
-                        activeRole === UserRole.LEARNER ? getRoleColor(UserRole.LEARNER) : "text-foreground"
-                      }`}
-                      onClick={() => handleRoleSwitch(UserRole.LEARNER)}
-                    >
-                      <GraduationCap className="w-4 h-4" />
-                      <span>{tRoles('learner')}</span>
-                    </DropdownMenuItem>
-                  </>
-                )}
-                
-                {actualUserRole === UserRole.MANAGER && (
-                  <>
-                    <DropdownMenuItem 
-                      className={`flex items-center gap-3 cursor-pointer py-2 px-3 rounded-md font-medium hover:bg-purple-50 ${
-                        activeRole === UserRole.MANAGER ? getRoleColor(UserRole.MANAGER) : "text-foreground"
-                      }`}
-                      onClick={() => handleRoleSwitch(UserRole.MANAGER)}
-                    >
-                      <TrendingUp className="w-4 h-4" />
-                      <span>{tRoles('manager')}</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem 
-                      className={`flex items-center gap-3 cursor-pointer py-2 px-3 rounded-md font-medium hover:bg-blue-50 ${
-                        activeRole === UserRole.LEARNER ? getRoleColor(UserRole.LEARNER) : "text-foreground"
-                      }`}
-                      onClick={() => handleRoleSwitch(UserRole.LEARNER)}
-                    >
-                      <GraduationCap className="w-4 h-4" />
-                      <span>{tRoles('learner')}</span>
-                    </DropdownMenuItem>
-                  </>
-                )}
-                
-                {actualUserRole === UserRole.FACILITATOR && (
-                  <>
-                    <DropdownMenuItem 
-                      className={`flex items-center gap-3 cursor-pointer py-2 px-3 rounded-md font-medium hover:bg-amber-50 ${
-                        activeRole === UserRole.FACILITATOR ? getRoleColor(UserRole.FACILITATOR) : "text-foreground"
-                      }`}
-                      onClick={() => handleRoleSwitch(UserRole.FACILITATOR)}
-                    >
-                      <User className="w-4 h-4" />
-                      <span>{tRoles('facilitator')}</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem 
-                      className={`flex items-center gap-3 cursor-pointer py-2 px-3 rounded-md font-medium hover:bg-blue-50 ${
-                        activeRole === UserRole.LEARNER ? getRoleColor(UserRole.LEARNER) : "text-foreground"
-                      }`}
-                      onClick={() => handleRoleSwitch(UserRole.LEARNER)}
-                    >
-                      <GraduationCap className="w-4 h-4" />
-                      <span>{tRoles('learner')}</span>
-                    </DropdownMenuItem>
-                  </>
-                )}
-                
-                {actualUserRole === UserRole.LEARNER && (
                   <DropdownMenuItem 
-                    className={`flex items-center gap-3 cursor-pointer py-2 px-3 rounded-md font-medium hover:bg-blue-50 ${
-                      activeRole === UserRole.LEARNER ? getRoleColor(UserRole.LEARNER) : "text-foreground"
+                    className={`flex items-center gap-3 cursor-pointer py-2 px-3 rounded-md font-medium ${
+                      activeRole === UserRole.ADMIN 
+                        ? "text-green-600 hover:bg-green-50" 
+                        : "text-gray-700 hover:bg-gray-50"
                     }`}
-                    onClick={() => handleRoleSwitch(UserRole.LEARNER)}
+                    onClick={() => handleRoleSwitch(UserRole.ADMIN)}
                   >
-                    <GraduationCap className="w-4 h-4" />
-                    <span>{tRoles('learner')}</span>
+                    <ShieldUser className={`w-4 h-4 ${activeRole === UserRole.ADMIN ? "text-green-600" : "text-gray-600"}`} />
+                    <span>Admin Dashboard</span>
                   </DropdownMenuItem>
                 )}
                 
-                <DropdownMenuSeparator className="my-2" />
-                
+                {/* Learner Profile */}
                 <DropdownMenuItem 
-                  className="flex items-center gap-3 cursor-pointer py-2 px-3 rounded-md text-foreground hover:bg-accent"
+                  className={`flex items-center gap-3 cursor-pointer py-2 px-3 rounded-md font-medium ${
+                    activeRole === UserRole.LEARNER 
+                      ? "text-green-600 hover:bg-green-50" 
+                      : "text-gray-700 hover:bg-gray-50"
+                  }`}
+                  onClick={() => handleRoleSwitch(UserRole.LEARNER)}
+                >
+                  <FileUser className={`w-4 h-4 ${activeRole === UserRole.LEARNER ? "text-green-600" : "text-gray-600"}`} />
+                  <span>Learner Profile</span>
+                </DropdownMenuItem>
+                
+                {/* Account Settings */}
+                <DropdownMenuItem 
+                  className="flex items-center gap-3 cursor-pointer py-2 px-3 rounded-md font-medium text-gray-700 hover:bg-gray-50"
                   onClick={() => router.push(`/${locale}/${activeRole}/settings`)}
                 >
-                  <Settings className="w-4 h-4" />
-                  <span>{tHeader('accountSettings')}</span>
+                  <UserPen className="w-4 h-4 text-gray-600" />
+                  <span>Account Settings</span>
                 </DropdownMenuItem>
-                <DropdownMenuSeparator className="my-2" />
+                
+                {/* Logout */}
                 <DropdownMenuItem 
-                  className="flex items-center gap-3 cursor-pointer py-2 px-3 rounded-md text-destructive hover:bg-destructive/10"
+                  className="flex items-center gap-3 cursor-pointer py-2 px-3 rounded-md font-medium text-gray-700 hover:bg-gray-50"
                   onClick={handleLogoutClick}
                 >
-                  <LogOut className="w-4 h-4" />
+                  <LogOut className="w-4 h-4 text-gray-600" />
                   <span>{tAuth('logout')}</span>
                 </DropdownMenuItem>
               </div>

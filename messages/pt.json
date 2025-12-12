@@ -26,6 +26,7 @@
   },
   "navigation": {
     "dashboard": "Painel",
+    "adminDashboard": "Painel do Administrador",
     "courses": "Cursos",
     "users": "Usuários",
     "reports": "Relatórios",
@@ -37,7 +38,10 @@
     "certificates": "Certificados",
     "myCourses": "Meus Cursos",
     "achievements": "Conquistas",
-    "myProgress": "Meu Progresso"
+    "myProgress": "Meu Progresso",
+    "analytics": "Análises",
+    "team": "Equipe",
+    "goals": "Objetivos"
   },
   "dashboard": {
     "title": "Painel",
