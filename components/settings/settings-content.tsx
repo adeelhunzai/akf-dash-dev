@@ -13,7 +13,7 @@ export default function SettingsContent() {
     <div className="p-6 lg:p-8 space-y-6 bg-transparent">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-foreground">My Setting</h1>
+        <h1 className="text-3xl font-bold text-foreground">Admin Setting</h1>
         <p className="text-muted-foreground mt-1">
           Configure platform settings and preferences
         </p>

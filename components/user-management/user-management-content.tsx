@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Search, Download, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,12 +15,57 @@ import {
 import UserTable from "./user-table";
 import AddLearnerDialog from "./add-learner-dialog";
 import AddFacilitatorDialog from "./add-facilitator-dialog";
+import { UserRow } from "./user-table";
 
 export default function UserManagementContent() {
   const [searchQuery, setSearchQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
   const [isAddLearnerOpen, setIsAddLearnerOpen] = useState(false);
   const [isAddFacilitatorOpen, setIsAddFacilitatorOpen] = useState(false);
+  const [visibleRows, setVisibleRows] = useState<UserRow[]>([]);
+
+  const handleVisibleRowsChange = useCallback((rows: UserRow[]) => {
+    setVisibleRows((prevRows) => {
+      if (
+        prevRows.length === rows.length &&
+        rows.every((row, index) => row.id === prevRows[index]?.id)
+      ) {
+        return prevRows;
+      }
+      return rows;
+    });
+  }, []);
+
+  const handleExport = () => {
+    if (visibleRows.length === 0) {
+      return;
+    }
+
+    const headers = ["Name", "Email", "Role", "Team", "Teams", "Courses"];
+    const rows = visibleRows.map((row) => [
+      row.name,
+      row.email,
+      row.role,
+      row.team,
+      row.teamsCount.toString(),
+      row.coursesCount.toString(),
+    ]);
+    const escapeCell = (cell: string) => `"${cell.replace(/"/g, '""')}"`;
+    const csvContent = "\uFEFF" + [headers, ...rows]
+      .map((row) => row.map((cell) => escapeCell(cell)).join(","))
+      .join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", `users-${new Date().toISOString().split("T")[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+  };
 
   return (
     <div className="p-4 lg:p-6 space-y-6">
@@ -99,7 +144,13 @@ export default function UserManagementContent() {
 
           {/* Export Button */}
           <div className="col-span-1 flex flex-col justify-end">
-            <Button variant="outline" disabled size="sm" className="w-full h-9">
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full h-9"
+              onClick={handleExport}
+              disabled={visibleRows.length === 0}
+            >
               <Download className="w-4 h-4 mr-2" />
               <span
                 className="min-[765px]:max-[1000px]:hidden
@@ -118,6 +169,7 @@ export default function UserManagementContent() {
           searchQuery={searchQuery}
           roleFilter={roleFilter}
           statusFilter="all"
+          onVisibleRowsChange={handleVisibleRowsChange}
         />
       </Card>
 

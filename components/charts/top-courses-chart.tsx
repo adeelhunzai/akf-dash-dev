@@ -38,8 +38,12 @@ function CourseBar({ name, enrollments, maxEnrollments, color }: CourseBarProps)
   );
 }
 
-export default function TopCoursesChart() {
-  const { data, isLoading, isError } = useGetTopCoursesQuery();
+interface TopCoursesChartProps {
+  period?: string;
+}
+
+export default function TopCoursesChart({ period }: TopCoursesChartProps) {
+  const { data, isLoading, isError } = useGetTopCoursesQuery(period);
 
   // Color palette for the bars
   const colors = ["#1275DB", "#00B140", "#FDC300", "#CD1D5A", "#C4A2EA"];

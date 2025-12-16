@@ -88,45 +88,45 @@ const getMetricsConfig = () => [
     bgColor: "bg-[#3FBEF4]",
     iconColor: "text-[#fff]",
   },
-  {
-    key: "new_registrations",
-    title: "New Registrations",
-    icon: UserRoundPlus,
-    bgColor: "bg-[#B5985A]",
-    iconColor: "text-[#fff]",
-  },
+  // {
+  //   key: "new_registrations",
+  //   title: "New Registrations",
+  //   icon: UserRoundPlus,
+  //   bgColor: "bg-[#B5985A]",
+  //   iconColor: "text-[#fff]",
+  // },
 ];
 
-const bottomMetrics = [
-  {
-    title: "Certificates Issued",
-    value: "1,847",
-    change: "+156 this month",
-    icon: Award,
-    bgColor: "bg-[#FC664D]",
-    iconColor: "text-[#fff]",
-  },
-  {
-    title: "Avg. Quiz Score",
-    value: "86.2%",
-    change: "+2.1% improvement",
-    icon: BookText,
-    bgColor: "bg-[#CD1D5A]",
-    iconColor: "text-[#fff]",
-  },
-  {
-    title: "New Registrations",
-    value: "234",
-    change: "this month",
-    icon: UserRoundPlus,
-    bgColor: "bg-[#B5985A]",
-    iconColor: "text-[#fff]",
-  },
-];
+// const bottomMetrics = [
+//   {
+//     title: "Certificates Issued",
+//     value: "1,847",
+//     change: "+156 this month",
+//     icon: Award,
+//     bgColor: "bg-[#FC664D]",
+//     iconColor: "text-[#fff]",
+//   },
+//   {
+//     title: "Avg. Quiz Score",
+//     value: "86.2%",
+//     change: "+2.1% improvement",
+//     icon: BookText,
+//     bgColor: "bg-[#CD1D5A]",
+//     iconColor: "text-[#fff]",
+//   },
+//   {
+//     title: "New Registrations",
+//     value: "234",
+//     change: "this month",
+//     icon: UserRoundPlus,
+//     bgColor: "bg-[#B5985A]",
+//     iconColor: "text-[#fff]",
+//   },
+// ];
 
 export default function DashboardContent() {
-  const [selectedPeriod, setSelectedPeriod] = useState("1 Year");
-  const periods = ["1 Month", "3 Months", "6 Months", "1 Year"];
+  const [selectedPeriod, setSelectedPeriod] = useState("All Time");
+  const periods = ["1 Month", "3 Months", "6 Months", "1 Year", "All Time"];
   
   // Map frontend period to API period format
   const getPeriodParam = (period: string): string | undefined => {
@@ -135,6 +135,7 @@ export default function DashboardContent() {
       "3 Months": "3months",
       "6 Months": "6months",
       "1 Year": "1year",
+      "All Time": "all",
     };
     return periodMap[period];
   };
@@ -272,7 +273,7 @@ export default function DashboardContent() {
       
 
       {/* Charts Section */}
-      <ChartSection />
+      <ChartSection periodParam={periodParam} />
     </div>
   );
 }

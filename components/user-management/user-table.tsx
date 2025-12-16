@@ -8,14 +8,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import EditUserDialog from "./edit-user-dialog"
 import DeleteUserDialog from "./delete-user-dialog"
 import ViewUserDialog from "./view-user-dialog"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo, useRef } from "react"
 import { useGetUsersListQuery } from "@/lib/store/api/userApi"
 
-interface User {
+export interface UserRow {
   id: string
   name: string
   email: string
   avatar: string
+  avatarUrl?: string | null
   role: "Learner" | "Facilitator" | "Manager"
   team: string
   country: string
@@ -99,9 +100,10 @@ interface UserTableProps {
   searchQuery: string
   roleFilter: string
   statusFilter: string
+  onVisibleRowsChange?: (rows: UserRow[]) => void
 }
 
-export default function UserTable({ searchQuery, roleFilter, statusFilter }: UserTableProps) {
+export default function UserTable({ searchQuery, roleFilter, statusFilter, onVisibleRowsChange }: UserTableProps) {
   const [currentPage, setCurrentPage] = useState(1)
   const [perPage, setPerPage] = useState(5)
   const [debouncedSearch, setDebouncedSearch] = useState(searchQuery)
@@ -109,7 +111,7 @@ export default function UserTable({ searchQuery, roleFilter, statusFilter }: Use
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [viewDialogOpen, setViewDialogOpen] = useState(false)
   const [selectedUserId, setSelectedUserId] = useState<number | undefined>(undefined)
-  const [selectedUser, setSelectedUser] = useState<User | undefined>(undefined)
+  const [selectedUser, setSelectedUser] = useState<UserRow | undefined>(undefined)
 
   // Debounce search query - wait 500ms after user stops typing
   useEffect(() => {
@@ -135,27 +137,46 @@ export default function UserTable({ searchQuery, roleFilter, statusFilter }: Use
 
   // Transform API data to match User interface
   // No client-side filtering needed as API handles it
-  const users: User[] = data?.users.map((user) => ({
-    id: user.ID.toString(),
-    name: user.display_name,
-    email: user.user_email,
-    avatar: getInitials(user.display_name),
-    avatarUrl: isGravatarDefault(user.avatar_url) ? null : user.avatar_url,
-    role: mapRole(user.roles),
-    team: user.teams.length > 0 ? user.teams.join(', ') : 'Unassigned',
-    country: '', // Not available in API
-    teamsCount: user.team_count,
-    coursesCount: user.courses_enrolled,
-    status: "Active", // Default status since not in API
-    department: '', // Not available in API
-  })) || []
+  const users: UserRow[] = useMemo(
+    () =>
+      data?.users.map((user) => ({
+        id: user.ID.toString(),
+        name: user.display_name,
+        email: user.user_email,
+        avatar: getInitials(user.display_name),
+        avatarUrl: isGravatarDefault(user.avatar_url) ? null : user.avatar_url,
+        role: mapRole(user.roles),
+        team: user.teams.length > 0 ? user.teams.join(', ') : 'Unassigned',
+        country: '', // Not available in API
+        teamsCount: user.team_count,
+        coursesCount: user.courses_enrolled,
+        status: "Active", // Default status since not in API
+        department: '', // Not available in API
+      })) || [],
+    [data]
+  )
+
+  const previousUsersRef = useRef<UserRow[]>([])
+
+  useEffect(() => {
+    if (!onVisibleRowsChange) return
+
+    const hasSameIds =
+      previousUsersRef.current.length === users.length &&
+      users.every((row, index) => row.id === previousUsersRef.current[index]?.id)
+
+    if (hasSameIds) return
+
+    previousUsersRef.current = users
+    onVisibleRowsChange(users)
+  }, [users, onVisibleRowsChange])
 
   const handleEditClick = (userId: number) => {
     setSelectedUserId(userId)
     setEditDialogOpen(true)
   }
 
-  const handleDeleteClick = (user: User) => {
+  const handleDeleteClick = (user: UserRow) => {
     setSelectedUser(user)
     setDeleteDialogOpen(true)
   }
@@ -276,7 +297,7 @@ export default function UserTable({ searchQuery, roleFilter, statusFilter }: Use
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
                       <Avatar className="h-10 w-10 bg-[#00B140]">
-                        {(user as any).avatarUrl && <AvatarImage src={(user as any).avatarUrl} />}
+                        {user.avatarUrl && <AvatarImage src={user.avatarUrl} />}
                         <AvatarFallback className="text-white bg-[#00B140] font-semibold">{user.avatar}</AvatarFallback>
                       </Avatar>
                       <div>

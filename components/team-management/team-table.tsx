@@ -3,7 +3,7 @@
 import { PencilLine, UsersRound, Trash2, ChevronLeft, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { useState } from "react"
+import { useState, useEffect, useMemo, useRef } from "react"
 import { useGetTeamsListQuery } from "@/lib/store/api/teamApi"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -14,16 +14,13 @@ import TeamDetailsDialog from "./team-details-dialog"
 import type { Team } from "@/lib/types/team.types"
 
 
-const getStatusBadgeColor = (status: string) => {
-  return status === "Active" ? "text-[#00a63e]" : "text-[#991b1b]"
-}
-
 interface TeamTableProps {
   searchQuery: string
   statusFilter: string
+  onVisibleRowsChange?: (teams: Team[]) => void
 }
 
-export default function TeamTable({ searchQuery, statusFilter }: TeamTableProps) {
+export default function TeamTable({ searchQuery, statusFilter, onVisibleRowsChange }: TeamTableProps) {
   const [currentPage, setCurrentPage] = useState(1)
   const [perPage, setPerPage] = useState(5)
   const [teamDetailsDialogOpen, setTeamDetailsDialogOpen] = useState(false)
@@ -40,7 +37,7 @@ export default function TeamTable({ searchQuery, statusFilter }: TeamTableProps)
     status: statusFilter,
   })
 
-  const teams = data?.teams || []
+  const teams = useMemo(() => data?.teams || [], [data?.teams])
   const pagination = data?.pagination
 
   const handleEditClick = (team: Team) => {
@@ -52,6 +49,22 @@ export default function TeamTable({ searchQuery, statusFilter }: TeamTableProps)
     setSelectedTeam(team)
     setDeleteDialogOpen(true)
   }
+
+  const previousTeamIds = useRef<number[]>([])
+
+  useEffect(() => {
+    if (!onVisibleRowsChange) return
+
+    const currentIds = teams.map((team) => team.id)
+    const hasSameIds =
+      currentIds.length === previousTeamIds.current.length &&
+      currentIds.every((id, index) => id === previousTeamIds.current[index])
+
+    if (hasSameIds) return
+
+    previousTeamIds.current = currentIds
+    onVisibleRowsChange(teams)
+  }, [teams, onVisibleRowsChange])
 
   const handleMembersClick = (team: Team) => {
     setSelectedTeam(team)
@@ -71,6 +84,11 @@ export default function TeamTable({ searchQuery, statusFilter }: TeamTableProps)
       setTeamToEdit(selectedTeam)
       setEditDialogOpen(true)
     }
+  }
+
+  const handleViewClick = (team: Team) => {
+    setSelectedTeam(team)
+    setTeamDetailsDialogOpen(true)
   }
 
   // Helper function to generate page numbers with ellipsis logic
@@ -152,9 +170,6 @@ export default function TeamTable({ searchQuery, statusFilter }: TeamTableProps)
                 Progress
               </th>
               <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                Status
-              </th>
-              <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wide">
                 Created
               </th>
               <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wide">
@@ -177,7 +192,6 @@ export default function TeamTable({ searchQuery, statusFilter }: TeamTableProps)
                   <td className="px-6 py-4"><Skeleton className="h-4 w-8" /></td>
                   <td className="px-6 py-4"><Skeleton className="h-4 w-full max-w-xs" /></td>
                   <td className="px-6 py-4"><Skeleton className="h-6 w-16 rounded-full" /></td>
-                  <td className="px-6 py-4"><Skeleton className="h-4 w-20" /></td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-2">
                       <Skeleton className="h-8 w-8" />
@@ -226,11 +240,6 @@ export default function TeamTable({ searchQuery, statusFilter }: TeamTableProps)
                     </div>
                     <span className="text-sm font-medium text-foreground">{team.progress}%</span>
                   </div>
-                </td>
-
-                {/* Status Column */}
-                <td className="px-6 py-4">
-                  <span className={`text-sm font-medium rounded-full px-3 py-0.5 ${team.status === "Inactive" ? "bg-[#fee2e2]" : "bg-[#dcfce7]"} ${getStatusBadgeColor(team.status)}`}>{team.status}</span>
                 </td>
 
                 {/* Created Column */}

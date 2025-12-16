@@ -13,3 +13,27 @@ export interface CoursesListResponse {
   total_pages: number;
   current_page: number;
 }
+
+// My Courses types (for learner's enrolled courses)
+export interface MyCourse {
+  id: number;
+  title: string;
+  instructor: string;
+  progress: number;
+  totalLessons: number;
+  completedLessons: number;
+  status: 'completed' | 'in-progress';
+  color: string;
+  thumbnail: string;
+}
+
+export interface MyCoursesResponse {
+  success: boolean;
+  data: MyCourse[];
+  pagination: {
+    current_page: number;
+    per_page: number;
+    total_items: number;
+    total_pages: number;
+  };
+}

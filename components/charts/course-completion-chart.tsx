@@ -51,8 +51,12 @@ function CircularProgress({ value, total, color, label }: CircularProgressProps)
   );
 }
 
-export default function CourseCompletionChart() {
-  const { data, isLoading, isError } = useGetCourseCompletionRateQuery();
+interface CourseCompletionChartProps {
+  period?: string;
+}
+
+export default function CourseCompletionChart({ period }: CourseCompletionChartProps) {
+  const { data, isLoading, isError } = useGetCourseCompletionRateQuery(period);
 
   // Use API data or fallback to loading/error states
   const completed = data?.completed.count || 0;

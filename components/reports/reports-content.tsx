@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -12,6 +12,12 @@ import { TeamPerformanceTable } from "./team-performance-table"
 import { CoursePopularityTable } from "./course-popularity-table"
 import { RevenueCertificatesTable } from "./revenue-certificates-table"
 import { DemographicBreakdownTable } from "./demographic-breakdown-table"
+import jsPDF from "jspdf"
+import autoTable from "jspdf-autotable"
+import { CourseReportItem, LearnerReportItem } from "@/lib/types/reports.types"
+
+const LOCAL_UNICODE_FONT = "/fonts/NotoSans-Regular.ttf"
+const REMOTE_UNICODE_FONT = "https://fonts.gstatic.com/s/notosans/v40/o-0NIpQlx3QUlC5A4PNr5TRA.ttf"
 
 export function ReportsContent() {
   const [activeTab, setActiveTab] = useState<"courses" | "learner">("courses")
@@ -19,6 +25,345 @@ export function ReportsContent() {
   const [dateRange, setDateRange] = useState("0")
   const [searchInput, setSearchInput] = useState("")
   const [searchQuery, setSearchQuery] = useState("")
+  const [visibleCourses, setVisibleCourses] = useState<CourseReportItem[]>([])
+  const [visibleLearners, setVisibleLearners] = useState<LearnerReportItem[]>([])
+  const [isExportingPDF, setIsExportingPDF] = useState(false)
+
+  // Font cache for Unicode support
+  const fontCacheRef = useRef<string | null>(null)
+  const fontLoadingRef = useRef<Promise<string | null> | null>(null)
+
+  const handleVisibleCoursesChange = useCallback((rows: CourseReportItem[]) => {
+    setVisibleCourses((prev) => {
+      if (
+        prev.length === rows.length &&
+        rows.every((course, index) => course.id === prev[index]?.id)
+      ) {
+        return prev
+      }
+      return rows
+    })
+  }, [])
+
+  const handleVisibleLearnersChange = useCallback((rows: LearnerReportItem[]) => {
+    setVisibleLearners((prev) => {
+      if (
+        prev.length === rows.length &&
+        rows.every((learner, index) => learner.id === prev[index]?.id)
+      ) {
+        return prev
+      }
+      return rows
+    })
+  }, [])
+
+  const escapeCell = (cell: string) => `"${cell.replace(/"/g, '""')}"`
+
+  const downloadCSV = (filename: string, headers: string[], rows: string[][]) => {
+    if (rows.length === 0) return
+
+    const csvContent = "\uFEFF" + [headers, ...rows]
+      .map((row) => row.map((cell) => escapeCell(cell)).join(","))
+      .join("\n")
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement("a")
+    link.href = url
+    link.setAttribute("download", filename)
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+  }
+
+  const exportExcel = () => {
+    if (activeTab === "courses") {
+      const headers = [
+        "Course ID",
+        "Course Name",
+        "Enrolled",
+        "Not Started",
+        "In Progress",
+        "Completed",
+        "Completion Rate",
+        "Quiz Score",
+        "Avg Time",
+      ]
+      const rows = visibleCourses.map((course) => [
+        course.id,
+        course.name,
+        course.enrolled.toString(),
+        course.notStarted.toString(),
+        course.inProgress.toString(),
+        course.completed.toString(),
+        course.completionRate,
+        course.quizScore,
+        course.avgTime,
+      ])
+      downloadCSV(`courses-report-${new Date().toISOString().split("T")[0]}.csv`, headers, rows)
+      return
+    }
+
+    const headers = [
+      "Learner ID",
+      "Name",
+      "Email",
+      "Courses Enrolled",
+      "Courses Completed",
+      "Total Hours",
+      "Average Score",
+    ]
+    const rows = visibleLearners.map((learner) => [
+      learner.id,
+      learner.name,
+      learner.email,
+      learner.coursesEnrolled.toString(),
+      learner.coursesCompleted.toString(),
+      `${learner.totalHours}h`,
+      learner.averageScore,
+    ])
+    downloadCSV(`learners-report-${new Date().toISOString().split("T")[0]}.csv`, headers, rows)
+  }
+
+  /**
+   * Convert ArrayBuffer to Base64 string
+   */
+  const arrayBufferToBase64 = (buffer: ArrayBuffer): string => {
+    let binary = ""
+    const bytes = new Uint8Array(buffer)
+    const chunkSize = 0x8000 // 32KB chunks
+    
+    for (let i = 0; i < bytes.length; i += chunkSize) {
+      const chunk = bytes.subarray(i, Math.min(i + chunkSize, bytes.length))
+      binary += String.fromCharCode.apply(null, Array.from(chunk))
+    }
+    
+    return btoa(binary)
+  }
+
+  /**
+   * Check if text contains non-Latin characters
+   * Detects Arabic, Chinese, Japanese, Korean, Hindi, Thai, Hebrew, etc.
+   */
+  const hasNonLatinChars = (text: string): boolean => {
+    return /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\u4E00-\u9FFF\u3040-\u309F\u30A0-\u30FF\uAC00-\uD7AF\u0900-\u097F\u0E00-\u0E7F\u0590-\u05FF]/.test(text)
+  }
+
+  /**
+   * Load Unicode font (Noto Sans) from Google Fonts
+   * Cached to avoid reloading on every export
+   */
+  const loadUnicodeFont = useCallback(async (): Promise<string | null> => {
+    // Return cached font if available
+    if (fontCacheRef.current) {
+      return fontCacheRef.current
+    }
+
+    // Return existing loading promise if already loading
+    if (fontLoadingRef.current) {
+      await fontLoadingRef.current
+      return fontCacheRef.current
+    }
+
+    const fontSources = [LOCAL_UNICODE_FONT, REMOTE_UNICODE_FONT]
+
+    const loadFont = async () => {
+      for (const source of fontSources) {
+        try {
+          const response = await fetch(source)
+
+          if (!response.ok) {
+            throw new Error(`Font fetch failed: ${response.status}`)
+          }
+
+          const arrayBuffer = await response.arrayBuffer()
+          const base64 = arrayBufferToBase64(arrayBuffer)
+
+          fontCacheRef.current = base64
+          console.log(`✅ Unicode font loaded from ${source}`)
+          return base64
+        } catch (error) {
+          console.warn(`⚠️ Unable to load Unicode font from ${source}.`, error)
+        }
+      }
+
+      fontCacheRef.current = null
+      return null
+    }
+
+    fontLoadingRef.current = loadFont()
+
+    await fontLoadingRef.current
+    return fontCacheRef.current
+  }, [])
+
+  /**
+   * Export PDF with Unicode support for multilingual content
+   */
+  const exportPDF = async () => {
+    if (isExportingPDF) return
+
+    setIsExportingPDF(true)
+
+    try {
+      const doc = new jsPDF()
+      const dateStamp = new Date().toISOString().split("T")[0]
+      
+      const headers =
+        activeTab === "courses"
+          ? [
+              "Course ID",
+              "Course Name",
+              "Enrolled",
+              "Not Started",
+              "In Progress",
+              "Completed",
+              "Completion Rate",
+              "Quiz Score",
+              "Avg Time",
+            ]
+          : [
+              "Learner ID",
+              "Name",
+              "Email",
+              "Courses Enrolled",
+              "Courses Completed",
+              "Total Hours",
+              "Average Score",
+            ]
+      
+      const rows =
+        activeTab === "courses"
+          ? visibleCourses.map((course) => [
+              course.id,
+              course.name,
+              course.enrolled.toString(),
+              course.notStarted.toString(),
+              course.inProgress.toString(),
+              course.completed.toString(),
+              course.completionRate,
+              course.quizScore,
+              course.avgTime,
+            ])
+          : visibleLearners.map((learner) => [
+              learner.id,
+              learner.name,
+              learner.email,
+              learner.coursesEnrolled.toString(),
+              learner.coursesCompleted.toString(),
+              `${learner.totalHours}h`,
+              learner.averageScore,
+            ])
+
+      if (rows.length === 0) {
+        alert("No data to export")
+        setIsExportingPDF(false)
+        return
+      }
+
+      // Check if Unicode characters are present in the data
+      const allText = [...headers, ...rows.flat()].join(" ")
+      const needsUnicode = hasNonLatinChars(allText)
+
+      let fontName = "helvetica" // Default font
+
+      // Load and register Unicode font if needed
+      if (needsUnicode) {
+        console.log("🌍 Non-Latin characters detected, loading Unicode font...")
+        const fontBase64 = await loadUnicodeFont()
+
+        if (fontBase64) {
+          try {
+            const fontFileName = "NotoSans-Regular.ttf"
+            doc.addFileToVFS(fontFileName, fontBase64)
+            doc.addFont(fontFileName, "NotoSans", "normal")
+            fontName = "NotoSans"
+            console.log("✅ Unicode font registered")
+          } catch (fontError) {
+            console.error("❌ Failed to register font:", fontError)
+            alert("Warning: Some characters may not display correctly in the PDF")
+          }
+        } else {
+          alert("Warning: Unicode font could not be loaded. Some characters may not display correctly.")
+        }
+      }
+
+      // Set font for document
+      doc.setFont(fontName)
+
+      // Add title
+      doc.setFontSize(14)
+      doc.text(
+        `Exported ${activeTab === "courses" ? "Courses" : "Learners"} Report (${dateStamp})`,
+        14,
+        15
+      )
+
+      // Generate table
+      const pageMargin = 14
+      const pageWidth = doc.internal.pageSize.getWidth()
+      const tableWidth = pageWidth - pageMargin * 2
+      const cellPadding = 1.5
+
+      const columnWeights =
+        activeTab === "courses"
+          ? [0.07, 0.33, 0.08, 0.08, 0.08, 0.08, 0.08, 0.08, 0.12]
+          : [0.1, 0.25, 0.25, 0.1, 0.1, 0.1, 0.1]
+
+      const columnStyles: Record<number, { cellWidth: number }> = {}
+      let assignedWidth = 0
+      const totalPadding = columnWeights.length * cellPadding * 2
+      const availableWidth = Math.max(0, tableWidth - totalPadding)
+
+      columnWeights.forEach((weight, index) => {
+        const width = Math.max(12, Math.floor(availableWidth * weight))
+        columnStyles[index] = { cellWidth: width }
+        assignedWidth += width
+      })
+
+      const remainder = Math.round(availableWidth - assignedWidth)
+      if (remainder !== 0) {
+        const lastIndex = columnWeights.length - 1
+        columnStyles[lastIndex].cellWidth += remainder
+      }
+
+      autoTable(doc, {
+        startY: 25,
+        margin: { left: pageMargin, right: pageMargin },
+        tableWidth: availableWidth,
+        head: [headers],
+        body: rows,
+        styles: {
+          font: fontName, // Use Unicode font for table
+          fontSize: activeTab === "courses" ? 7.5 : 8,
+          cellPadding,
+          overflow: "linebreak",
+          cellWidth: "wrap",
+        },
+        headStyles: {
+          fillColor: [4, 124, 45], // Green color
+          textColor: 255,
+          fontStyle: "bold",
+        },
+        alternateRowStyles: {
+          fillColor: [240, 240, 240],
+        },
+        tableLineWidth: 0.1,
+        columnStyles,
+      })
+
+      // Save PDF
+      doc.save(`${activeTab === "courses" ? "courses-report" : "learners-report"}-${dateStamp}.pdf`)
+      
+      console.log("✅ PDF exported successfully")
+    } catch (error) {
+      console.error("❌ PDF export error:", error)
+      alert("Failed to export PDF. Please try again or check the console for details.")
+    } finally {
+      setIsExportingPDF(false)
+    }
+  }
 
   // Debounce search query - wait 500ms after user stops typing
   useEffect(() => {
@@ -38,17 +383,25 @@ export function ReportsContent() {
           <p className="mt-2 text-sm text-muted-foreground">Generate and view detailed analytics reports</p>
         </div>
         <div className="flex gap-3">
-          <Button variant="outline" className="border-green-600 text-green-600 hover:bg-green-50 bg-transparent">
+          <Button
+            variant="outline"
+            className="border-green-600 text-green-600 hover:bg-green-50 bg-transparent"
+            onClick={exportPDF}
+            disabled={isExportingPDF}
+          >
             <Download className="mr-2 h-4 w-4" />
-            Export PDF
+            {isExportingPDF ? "Exporting..." : "Export PDF"}
           </Button>
-          <Button className="bg-green-600 hover:bg-green-700">
+          <Button
+            className="bg-green-600 hover:bg-green-700"
+            onClick={exportExcel}
+            disabled={isExportingPDF}
+          >
             <Download className="mr-2 h-4 w-4" />
             Export Excel
           </Button>
         </div>
       </div>
-
       {/* Available Reports */}
       <div className="mb-8">
         <h2 className="mb-4 text-lg font-semibold text-foreground">Available Reports</h2>
@@ -110,8 +463,20 @@ export function ReportsContent() {
           </div>
 
           {/* Table */}
-          {activeTab === "courses" && <CoursesReportTable searchQuery={searchQuery} dateRange={dateRange} />}
-          {activeTab === "learner" && <LearnerReportTable searchQuery={searchQuery} dateRange={dateRange} />}
+          {activeTab === "courses" && (
+            <CoursesReportTable
+              searchQuery={searchQuery}
+              dateRange={dateRange}
+              onVisibleRowsChange={handleVisibleCoursesChange}
+            />
+          )}
+          {activeTab === "learner" && (
+            <LearnerReportTable
+              searchQuery={searchQuery}
+              dateRange={dateRange}
+              onVisibleRowsChange={handleVisibleLearnersChange}
+            />
+          )}
         </div>
       )}
 

@@ -1,11 +1,11 @@
 import { createApi } from '@reduxjs/toolkit/query/react';
 import { createWordpressBaseQuery } from '@/lib/api/wordpressBaseQuery';
-import { WordPressUserResponse, UsersCountResponse, CourseCompletionRateResponse, TopCoursesResponse, UsersListResponse, UserDetailsResponse, UpdateUserRequest, UpdateUserResponse, DeleteUserRequest, DeleteUserResponse } from '@/lib/types/wordpress-user.types';
+import { WordPressUserResponse, UsersCountResponse, CourseCompletionRateResponse, TopCoursesResponse, UsersListResponse, UserDetailsResponse, UpdateUserRequest, UpdateUserResponse, DeleteUserRequest, DeleteUserResponse, LearnerDashboardResponse } from '@/lib/types/wordpress-user.types';
 
 export const usersApi = createApi({
   reducerPath: 'usersApi',
   baseQuery: createWordpressBaseQuery('token'),
-  tagTypes: ['CurrentUser', 'UsersCount', 'CourseCompletionRate', 'TopCourses', 'UsersList', 'UserDetails'],
+  tagTypes: ['CurrentUser', 'UsersCount', 'CourseCompletionRate', 'TopCourses', 'UsersList', 'UserDetails', 'LearnerDashboard'],
   endpoints: (build) => ({
     getCurrentUser: build.query<WordPressUserResponse, void>({
       query: () => '/wp/v2/users/me?context=edit',
@@ -22,12 +22,26 @@ export const usersApi = createApi({
       },
       providesTags: ['UsersCount'],
     }),
-    getCourseCompletionRate: build.query<CourseCompletionRateResponse, void>({
-      query: () => '/custom-api/v1/course-completion-rate',
+    getCourseCompletionRate: build.query<CourseCompletionRateResponse, string | undefined>({
+      query: (period) => {
+        const params = new URLSearchParams();
+        if (period) {
+          params.append('period', period);
+        }
+        const queryString = params.toString();
+        return `/custom-api/v1/course-completion-rate${queryString ? `?${queryString}` : ''}`;
+      },
       providesTags: ['CourseCompletionRate'],
     }),
-    getTopCourses: build.query<TopCoursesResponse, void>({
-      query: () => '/custom-api/v1/top-courses',
+    getTopCourses: build.query<TopCoursesResponse, string | undefined>({
+      query: (period) => {
+        const params = new URLSearchParams();
+        if (period) {
+          params.append('period', period);
+        }
+        const queryString = params.toString();
+        return `/custom-api/v1/top-courses${queryString ? `?${queryString}` : ''}`;
+      },
       providesTags: ['TopCourses'],
     }),
     getUsersList: build.query<UsersListResponse, { page: number; per_page?: number; search?: string; role?: string }>({
@@ -64,7 +78,26 @@ export const usersApi = createApi({
       }),
       invalidatesTags: ['UsersList', 'UsersCount'],
     }),
+    getLearnerDashboard: build.query<LearnerDashboardResponse, string | undefined>({
+      query: (period) => {
+        const params = new URLSearchParams();
+        if (period) {
+          params.append('period', period);
+        }
+        const queryString = params.toString();
+        return `/custom-api/v1/learner-dashboard${queryString ? `?${queryString}` : ''}`;
+      },
+      // Serialize query args to ensure consistent caching
+      serializeQueryArgs: ({ endpointName, queryArgs }) => {
+        const period = queryArgs || '';
+        // Consistent serialization ensures RTK Query caches properly
+        return `${endpointName}(${period})`;
+      },
+      providesTags: ['LearnerDashboard'],
+      // Keep cached data for 5 minutes to prevent unnecessary refetches
+      keepUnusedDataFor: 300,
+    }),
   }),
 });
 
-export const { useGetCurrentUserQuery, useGetUsersCountQuery, useGetCourseCompletionRateQuery, useGetTopCoursesQuery, useGetUsersListQuery, useGetUserDetailsQuery, useUpdateUserMutation, useDeleteUserMutation } = usersApi;
+export const { useGetCurrentUserQuery, useGetUsersCountQuery, useGetCourseCompletionRateQuery, useGetTopCoursesQuery, useGetUsersListQuery, useGetUserDetailsQuery, useUpdateUserMutation, useDeleteUserMutation, useGetLearnerDashboardQuery } = usersApi;

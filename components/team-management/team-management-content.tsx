@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Search, Download, Users } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -8,12 +8,55 @@ import { Card } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import TeamTable from "./team-table"
 import CreateTeamDialog from "./create-team-dialog"
+import type { Team } from "@/lib/types/team.types"
 
 export default function TeamManagementContent() {
   const [searchInput, setSearchInput] = useState("")
   const [debouncedSearch, setDebouncedSearch] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
   const [isCreateTeamOpen, setIsCreateTeamOpen] = useState(false)
+  const [visibleTeams, setVisibleTeams] = useState<Team[]>([])
+
+  const handleVisibleTeamsChange = useCallback((rows: Team[]) => {
+    setVisibleTeams((prev) => {
+      if (
+        prev.length === rows.length &&
+        rows.every((team, index) => team.id === prev[index]?.id)
+      ) {
+        return prev
+      }
+      return rows
+    })
+  }, [])
+
+  const handleExport = () => {
+    if (visibleTeams.length === 0) {
+      return
+    }
+
+    const headers = ["Team", "Facilitators", "Learners", "Progress", "Created"]
+    const rows = visibleTeams.map((team) => [
+      team.name,
+      team.facilitators.toString(),
+      team.members.toString(),
+      `${team.progress}%`,
+      team.created,
+    ])
+    const escapeCell = (cell: string) => `"${cell.replace(/"/g, '""')}"`
+    const csvContent = "\uFEFF" + [headers, ...rows]
+      .map((row) => row.map((cell) => escapeCell(cell)).join(","))
+      .join("\n")
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement("a")
+    link.href = url
+    link.setAttribute("download", `teams-${new Date().toISOString().split("T")[0]}.csv`)
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+  }
 
   // Debounce search - wait 500ms after user stops typing
   useEffect(() => {
@@ -73,7 +116,13 @@ export default function TeamManagementContent() {
           </div>
         {/* Export Button */}
         <div className="col-span-1 flex flex-col justify-end">
-          <Button variant="outline" className="w-full h-9" size="sm">
+          <Button
+            variant="outline"
+            className="w-full h-9"
+            size="sm"
+            onClick={handleExport}
+            disabled={visibleTeams.length === 0}
+          >
             <Download className="w-4 h-4 mr-2" />
             Export Teams
           </Button>
@@ -84,7 +133,11 @@ export default function TeamManagementContent() {
 
       {/* Teams Table */}
       <Card>
-        <TeamTable searchQuery={debouncedSearch} statusFilter={statusFilter} />
+        <TeamTable
+          searchQuery={debouncedSearch}
+          statusFilter={statusFilter}
+          onVisibleRowsChange={handleVisibleTeamsChange}
+        />
       </Card>
 
       <CreateTeamDialog open={isCreateTeamOpen} onOpenChange={setIsCreateTeamOpen} />

@@ -195,3 +195,38 @@ export interface DeleteUserResponse {
   message: string;
   deleted_user_id: number;
 }
+
+/**
+ * Learner Dashboard API Response
+ * From /custom-api/v1/learner-dashboard endpoint
+ */
+export interface LearnerDashboardCourse {
+  id: number;
+  title: string;
+  progress: number;
+  thumbnail: string;
+}
+
+export interface LearnerDashboardAchievement {
+  id: number;
+  title: string;
+  description: string;
+  date: string;
+  type: string;
+}
+
+export interface LearnerDashboardSummary {
+  courses_enrolled: number;
+  courses_completed: number;
+  certificates: number;
+  learning_time: string;
+}
+
+export interface LearnerDashboardResponse {
+  success: boolean;
+  data: {
+    summary: LearnerDashboardSummary;
+    current_progress: LearnerDashboardCourse[];
+    achievements: LearnerDashboardAchievement[];
+  };
+}

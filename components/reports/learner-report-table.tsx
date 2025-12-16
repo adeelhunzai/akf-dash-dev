@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo, useRef } from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
@@ -13,9 +13,10 @@ import { LearnerReportItem } from "@/lib/types/reports.types"
 interface LearnerReportTableProps {
   searchQuery?: string;
   dateRange?: string;
+  onVisibleRowsChange?: (rows: LearnerReportItem[]) => void;
 }
 
-export function LearnerReportTable({ searchQuery = "", dateRange = "0" }: LearnerReportTableProps) {
+export function LearnerReportTable({ searchQuery = "", dateRange = "0", onVisibleRowsChange }: LearnerReportTableProps) {
   const [currentPage, setCurrentPage] = useState(1)
   const [perPage, setPerPage] = useState(10)
   const [selectedLearner, setSelectedLearner] = useState<LearnerReportItem | null>(null)
@@ -37,7 +38,7 @@ export function LearnerReportTable({ searchQuery = "", dateRange = "0" }: Learne
     setCurrentPage(1)
   }, [searchQuery, dateRange])
 
-  const learnersData = data?.data || []
+  const learnersData = useMemo(() => data?.data || [], [data?.data])
   const totalItems = data?.total || 0
   const totalPages = Math.ceil(totalItems / perPage)
   const startIndex = (currentPage - 1) * perPage
@@ -108,11 +109,28 @@ export function LearnerReportTable({ searchQuery = "", dateRange = "0" }: Learne
     )
   }
 
+  const previousLearnerIds = useRef<string[]>([])
+
+  useEffect(() => {
+    if (!onVisibleRowsChange) return
+
+    const currentIds = learnersData.map((learner) => learner.id)
+    const hasSameIds =
+      currentIds.length === previousLearnerIds.current.length &&
+      currentIds.every((id, index) => id === previousLearnerIds.current[index])
+
+    if (hasSameIds) return
+
+    previousLearnerIds.current = currentIds
+    onVisibleRowsChange(learnersData)
+  }, [learnersData, onVisibleRowsChange])
+
   return (
     <div>
       {/* Table */}
-      <div className="bg-white overflow-hidden">
-        <Table>
+      <div className="bg-white overflow-x-auto rounded-lg border border-gray-200 shadow-sm">
+        <div className="min-w-[900px]">
+          <Table>
           <TableHeader>
             <TableRow className="border-b border-gray-200 bg-[#F9FAFB]">
               <TableHead className="text-xs font-medium uppercase text-gray-500 py-3 px-4">Learner ID</TableHead>
@@ -173,7 +191,8 @@ export function LearnerReportTable({ searchQuery = "", dateRange = "0" }: Learne
               </TableRow>
             )}
           </TableBody>
-        </Table>
+          </Table>
+        </div>
       </div>
 
       {/* Pagination */}

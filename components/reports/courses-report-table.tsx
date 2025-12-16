@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo, useRef } from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
@@ -13,9 +13,10 @@ import { CourseReportItem } from "@/lib/types/reports.types"
 interface CoursesReportTableProps {
   searchQuery?: string;
   dateRange?: string;
+  onVisibleRowsChange?: (rows: CourseReportItem[]) => void;
 }
 
-export function CoursesReportTable({ searchQuery = "", dateRange = "0" }: CoursesReportTableProps) {
+export function CoursesReportTable({ searchQuery = "", dateRange = "0", onVisibleRowsChange }: CoursesReportTableProps) {
   const [currentPage, setCurrentPage] = useState(1)
   const [perPage, setPerPage] = useState(10)
   const [selectedCourse, setSelectedCourse] = useState<CourseReportItem | null>(null)
@@ -37,7 +38,7 @@ export function CoursesReportTable({ searchQuery = "", dateRange = "0" }: Course
     setCurrentPage(1)
   }, [searchQuery, dateRange])
 
-  const coursesData = data?.data || []
+  const coursesData = useMemo(() => data?.data || [], [data?.data])
   const totalItems = data?.total || 0
   const totalPages = Math.ceil(totalItems / perPage)
   const startIndex = (currentPage - 1) * perPage
@@ -100,6 +101,22 @@ export function CoursesReportTable({ searchQuery = "", dateRange = "0" }: Course
     setCurrentPage(1) // Reset to first page when changing page size
   }
 
+  const previousCourseIds = useRef<string[]>([])
+
+  useEffect(() => {
+    if (!onVisibleRowsChange) return
+
+    const currentIds = coursesData.map((course) => course.id)
+    const hasSameIds =
+      currentIds.length === previousCourseIds.current.length &&
+      currentIds.every((id, index) => id === previousCourseIds.current[index])
+
+    if (hasSameIds) return
+
+    previousCourseIds.current = currentIds
+    onVisibleRowsChange(coursesData)
+  }, [coursesData, onVisibleRowsChange])
+
   if (error) {
     return (
       <div className="bg-white p-6 rounded-lg border border-red-200">
@@ -111,8 +128,9 @@ export function CoursesReportTable({ searchQuery = "", dateRange = "0" }: Course
   return (
     <div>
       {/* Table */}
-      <div className="bg-white overflow-hidden">
-        <Table>
+      <div className="bg-white overflow-x-auto rounded-lg border border-gray-200 shadow-sm">
+        <div className="min-w-[900px]">
+          <Table>
           <TableHeader>
             <TableRow className="border-b border-gray-200 bg-[#F9FAFB]">
               <TableHead className="text-xs font-medium uppercase text-gray-500 py-3 px-4">Course ID</TableHead>
@@ -177,7 +195,8 @@ export function CoursesReportTable({ searchQuery = "", dateRange = "0" }: Course
               </TableRow>
             )}
           </TableBody>
-        </Table>
+          </Table>
+        </div>
       </div>
 
       {/* Pagination */}

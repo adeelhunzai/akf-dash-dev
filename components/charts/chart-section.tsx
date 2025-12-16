@@ -6,7 +6,11 @@ import TopCoursesChart from "./top-courses-chart";
 import UserDistributionChart from "./user-distribution-chart";
 import { Card } from "@/components/ui/card";
 
-export default function ChartSection() {
+interface ChartSectionProps {
+  periodParam?: string;
+}
+
+export default function ChartSection({ periodParam }: ChartSectionProps) {
   return (
     <div className="space-y-4">
       {/* Top Charts Row */}
@@ -16,7 +20,7 @@ export default function ChartSection() {
           <p className="text-sm text-muted-foreground mb-6">
             Completed vs In Progress
           </p>
-          <CourseCompletionChart />
+          <CourseCompletionChart period={periodParam} />
         </Card>
         <Card className="p-4 md:p-6">
           <h3 className="text-lg font-semibold mb-4">
@@ -25,7 +29,7 @@ export default function ChartSection() {
           <p className="text-sm text-muted-foreground mb-6">
             By enrollment count
           </p>
-          <TopCoursesChart />
+          <TopCoursesChart period={periodParam} />
         </Card>
       </div>
 
