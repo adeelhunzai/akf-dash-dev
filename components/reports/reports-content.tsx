@@ -12,12 +12,12 @@ import { TeamPerformanceTable } from "./team-performance-table"
 import { CoursePopularityTable } from "./course-popularity-table"
 import { RevenueCertificatesTable } from "./revenue-certificates-table"
 import { DemographicBreakdownTable } from "./demographic-breakdown-table"
-import jsPDF from "jspdf"
-import autoTable from "jspdf-autotable"
 import { CourseReportItem, LearnerReportItem } from "@/lib/types/reports.types"
+import { Document, Page, Text, View, StyleSheet, Font, pdf } from "@react-pdf/renderer"
 
-const LOCAL_UNICODE_FONT = "/fonts/NotoSans-Regular.ttf"
-const REMOTE_UNICODE_FONT = "https://fonts.gstatic.com/s/notosans/v40/o-0NIpQlx3QUlC5A4PNr5TRA.ttf"
+Font.register({ family: "DejaVuSans", src: "/fonts/DejaVuSans.ttf" })
+Font.register({ family: "NotoSansArabic", src: "/fonts/NotoSansArabic-Regular.ttf" })
+Font.register({ family: "NotoSans", src: "/fonts/NotoSans-Regular.ttf" })
 
 export function ReportsContent() {
   const [activeTab, setActiveTab] = useState<"courses" | "learner">("courses")
@@ -28,10 +28,6 @@ export function ReportsContent() {
   const [visibleCourses, setVisibleCourses] = useState<CourseReportItem[]>([])
   const [visibleLearners, setVisibleLearners] = useState<LearnerReportItem[]>([])
   const [isExportingPDF, setIsExportingPDF] = useState(false)
-
-  // Font cache for Unicode support
-  const fontCacheRef = useRef<string | null>(null)
-  const fontLoadingRef = useRef<Promise<string | null> | null>(null)
 
   const handleVisibleCoursesChange = useCallback((rows: CourseReportItem[]) => {
     setVisibleCourses((prev) => {
@@ -129,87 +125,74 @@ export function ReportsContent() {
   /**
    * Convert ArrayBuffer to Base64 string
    */
-  const arrayBufferToBase64 = (buffer: ArrayBuffer): string => {
-    let binary = ""
-    const bytes = new Uint8Array(buffer)
-    const chunkSize = 0x8000 // 32KB chunks
-    
-    for (let i = 0; i < bytes.length; i += chunkSize) {
-      const chunk = bytes.subarray(i, Math.min(i + chunkSize, bytes.length))
-      binary += String.fromCharCode.apply(null, Array.from(chunk))
-    }
-    
-    return btoa(binary)
-  }
-
-  /**
-   * Check if text contains non-Latin characters
-   * Detects Arabic, Chinese, Japanese, Korean, Hindi, Thai, Hebrew, etc.
-   */
   const hasNonLatinChars = (text: string): boolean => {
     return /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\u4E00-\u9FFF\u3040-\u309F\u30A0-\u30FF\uAC00-\uD7AF\u0900-\u097F\u0E00-\u0E7F\u0590-\u05FF]/.test(text)
   }
 
-  /**
-   * Load Unicode font (Noto Sans) from Google Fonts
-   * Cached to avoid reloading on every export
-   */
-  const loadUnicodeFont = useCallback(async (): Promise<string | null> => {
-    // Return cached font if available
-    if (fontCacheRef.current) {
-      return fontCacheRef.current
-    }
+  const hasArabicChars = (text: string): boolean => {
+    return /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF]/.test(text)
+  }
 
-    // Return existing loading promise if already loading
-    if (fontLoadingRef.current) {
-      await fontLoadingRef.current
-      return fontCacheRef.current
-    }
+  const hasHindiChars = (text: string): boolean => {
+    return /[\u0900-\u097F]/.test(text)
+  }
 
-    const fontSources = [LOCAL_UNICODE_FONT, REMOTE_UNICODE_FONT]
+  const tableStyles = StyleSheet.create({
+    page: {
+      padding: 18,
+      fontSize: 9,
+      fontFamily: "DejaVuSans",
+    },
+    title: {
+      fontSize: 14,
+      marginBottom: 8,
+      fontWeight: "bold",
+    },
+    table: {
+      width: "100%",
+      borderWidth: 1,
+      borderColor: "#cccccc",
+      borderStyle: "solid",
+    },
+    tableRow: {
+      flexDirection: "row",
+    },
+    tableHeader: {
+      backgroundColor: "#047c2d",
+      color: "#fff",
+      padding: 6,
+      borderStyle: "solid",
+      borderWidth: 1,
+      borderColor: "#ccc",
+      flexGrow: 1,
+      textAlign: "center",
+    },
+    tableCell: {
+      padding: 6,
+      borderStyle: "solid",
+      borderWidth: 1,
+      borderColor: "#ccc",
+      flexGrow: 1,
+    },
+  })
 
-    const loadFont = async () => {
-      for (const source of fontSources) {
-        try {
-          const response = await fetch(source)
+  const columnWidths = activeTab === "courses"
+    ? [0.12, 0.34, 0.08, 0.08, 0.08, 0.08, 0.08, 0.12, 0.10]
+    : [0.12, 0.26, 0.20, 0.10, 0.10, 0.10, 0.12]
 
-          if (!response.ok) {
-            throw new Error(`Font fetch failed: ${response.status}`)
-          }
+  const getFontFamily = (text: string) => {
+    if (hasHindiChars(text)) return "NotoSans"
+    if (hasArabicChars(text)) return "NotoSansArabic"
+    if (hasNonLatinChars(text)) return "DejaVuSans"
+    return "DejaVuSans"
+  }
 
-          const arrayBuffer = await response.arrayBuffer()
-          const base64 = arrayBufferToBase64(arrayBuffer)
-
-          fontCacheRef.current = base64
-          console.log(`✅ Unicode font loaded from ${source}`)
-          return base64
-        } catch (error) {
-          console.warn(`⚠️ Unable to load Unicode font from ${source}.`, error)
-        }
-      }
-
-      fontCacheRef.current = null
-      return null
-    }
-
-    fontLoadingRef.current = loadFont()
-
-    await fontLoadingRef.current
-    return fontCacheRef.current
-  }, [])
-
-  /**
-   * Export PDF with Unicode support for multilingual content
-   */
   const exportPDF = async () => {
     if (isExportingPDF) return
 
     setIsExportingPDF(true)
 
     try {
-      const doc = new jsPDF()
-      const dateStamp = new Date().toISOString().split("T")[0]
-      
       const headers =
         activeTab === "courses"
           ? [
@@ -232,7 +215,7 @@ export function ReportsContent() {
               "Total Hours",
               "Average Score",
             ]
-      
+
       const rows =
         activeTab === "courses"
           ? visibleCourses.map((course) => [
@@ -262,100 +245,61 @@ export function ReportsContent() {
         return
       }
 
-      // Check if Unicode characters are present in the data
       const allText = [...headers, ...rows.flat()].join(" ")
-      const needsUnicode = hasNonLatinChars(allText)
+      const needsHindi = hasHindiChars(allText)
+      const needsArabic = !needsHindi && hasArabicChars(allText)
+      const fontFamily = needsHindi ? "NotoSans" : needsArabic ? "NotoSansArabic" : "DejaVuSans"
 
-      let fontName = "helvetica" // Default font
-
-      // Load and register Unicode font if needed
-      if (needsUnicode) {
-        console.log("🌍 Non-Latin characters detected, loading Unicode font...")
-        const fontBase64 = await loadUnicodeFont()
-
-        if (fontBase64) {
-          try {
-            const fontFileName = "NotoSans-Regular.ttf"
-            doc.addFileToVFS(fontFileName, fontBase64)
-            doc.addFont(fontFileName, "NotoSans", "normal")
-            fontName = "NotoSans"
-            console.log("✅ Unicode font registered")
-          } catch (fontError) {
-            console.error("❌ Failed to register font:", fontError)
-            alert("Warning: Some characters may not display correctly in the PDF")
-          }
-        } else {
-          alert("Warning: Unicode font could not be loaded. Some characters may not display correctly.")
-        }
-      }
-
-      // Set font for document
-      doc.setFont(fontName)
-
-      // Add title
-      doc.setFontSize(14)
-      doc.text(
-        `Exported ${activeTab === "courses" ? "Courses" : "Learners"} Report (${dateStamp})`,
-        14,
-        15
+      const pdfDoc = (
+        <Document>
+          <Page size="A4" style={tableStyles.page} wrap>
+            <Text style={tableStyles.title}>
+              Exported {activeTab === "courses" ? "Courses" : "Learners"} Report
+            </Text>
+            <View style={tableStyles.table}>
+              <View style={tableStyles.tableRow}>
+                {headers.map((header, index) => (
+                  <Text
+                    key={header}
+                    style={[
+                      tableStyles.tableHeader,
+                      { fontFamily, width: `${(columnWidths[index] * 100).toFixed(2)}%` },
+                    ]}
+                  >
+                    {header}
+                  </Text>
+                ))}
+              </View>
+              {rows.map((row, rowIndex) => (
+                <View key={rowIndex} style={tableStyles.tableRow}>
+                  {row.map((cell, cellIndex) => (
+                    <Text
+                      key={`${rowIndex}-${cellIndex}`}
+                      style={[
+                        tableStyles.tableCell,
+                        { fontFamily: getFontFamily(cell.toString()), width: `${(columnWidths[cellIndex] * 100).toFixed(2)}%`, textAlign: cellIndex > 1 ? "right" : "left" },
+                      ]}
+                    >
+                      {cell}
+                    </Text>
+                  ))}
+                </View>
+              ))}
+            </View>
+          </Page>
+        </Document>
       )
 
-      // Generate table
-      const pageMargin = 14
-      const pageWidth = doc.internal.pageSize.getWidth()
-      const tableWidth = pageWidth - pageMargin * 2
-      const cellPadding = 1.5
+      const blob = await pdf(pdfDoc).toBlob()
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement("a")
+      link.href = url
+      link.setAttribute("download", `${activeTab === "courses" ? "courses-report" : "learners-report"}.pdf`)
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      URL.revokeObjectURL(url)
 
-      const columnWeights =
-        activeTab === "courses"
-          ? [0.07, 0.33, 0.08, 0.08, 0.08, 0.08, 0.08, 0.08, 0.12]
-          : [0.1, 0.25, 0.25, 0.1, 0.1, 0.1, 0.1]
-
-      const columnStyles: Record<number, { cellWidth: number }> = {}
-      let assignedWidth = 0
-      const totalPadding = columnWeights.length * cellPadding * 2
-      const availableWidth = Math.max(0, tableWidth - totalPadding)
-
-      columnWeights.forEach((weight, index) => {
-        const width = Math.max(12, Math.floor(availableWidth * weight))
-        columnStyles[index] = { cellWidth: width }
-        assignedWidth += width
-      })
-
-      const remainder = Math.round(availableWidth - assignedWidth)
-      if (remainder !== 0) {
-        const lastIndex = columnWeights.length - 1
-        columnStyles[lastIndex].cellWidth += remainder
-      }
-
-      autoTable(doc, {
-        startY: 25,
-        margin: { left: pageMargin, right: pageMargin },
-        tableWidth: availableWidth,
-        head: [headers],
-        body: rows,
-        styles: {
-          font: fontName, // Use Unicode font for table
-          fontSize: activeTab === "courses" ? 7.5 : 8,
-          cellPadding,
-          overflow: "linebreak",
-          cellWidth: "wrap",
-        },
-        headStyles: {
-          fillColor: [4, 124, 45], // Green color
-          textColor: 255,
-          fontStyle: "bold",
-        },
-        alternateRowStyles: {
-          fillColor: [240, 240, 240],
-        },
-        tableLineWidth: 0.1,
-        columnStyles,
-      })
-
-      // Save PDF
-      doc.save(`${activeTab === "courses" ? "courses-report" : "learners-report"}-${dateStamp}.pdf`)
-      
       console.log("✅ PDF exported successfully")
     } catch (error) {
       console.error("❌ PDF export error:", error)

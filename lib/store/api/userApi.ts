@@ -1,6 +1,6 @@
 import { createApi } from '@reduxjs/toolkit/query/react';
 import { createWordpressBaseQuery } from '@/lib/api/wordpressBaseQuery';
-import { WordPressUserResponse, UsersCountResponse, CourseCompletionRateResponse, TopCoursesResponse, UsersListResponse, UserDetailsResponse, UpdateUserRequest, UpdateUserResponse, DeleteUserRequest, DeleteUserResponse, LearnerDashboardResponse } from '@/lib/types/wordpress-user.types';
+import { WordPressUserResponse, UsersCountResponse, CourseCompletionRateResponse, TopCoursesResponse, UsersListResponse, UserDetailsResponse, CreateUserRequest, CreateUserResponse, UpdateUserRequest, UpdateUserResponse, DeleteUserRequest, DeleteUserResponse, LearnerDashboardResponse } from '@/lib/types/wordpress-user.types';
 
 export const usersApi = createApi({
   reducerPath: 'usersApi',
@@ -71,6 +71,14 @@ export const usersApi = createApi({
         'UsersList',
       ],
     }),
+    createUser: build.mutation<CreateUserResponse, CreateUserRequest>({
+      query: (body) => ({
+        url: '/wp/v2/users',
+        method: 'POST',
+        body,
+      }),
+      invalidatesTags: ['UsersList', 'UsersCount'],
+    }),
     deleteUser: build.mutation<DeleteUserResponse, DeleteUserRequest>({
       query: ({ userId }) => ({
         url: `/custom-api/v1/users/${userId}`,
@@ -100,4 +108,4 @@ export const usersApi = createApi({
   }),
 });
 
-export const { useGetCurrentUserQuery, useGetUsersCountQuery, useGetCourseCompletionRateQuery, useGetTopCoursesQuery, useGetUsersListQuery, useGetUserDetailsQuery, useUpdateUserMutation, useDeleteUserMutation, useGetLearnerDashboardQuery } = usersApi;
+export const { useGetCurrentUserQuery, useGetUsersCountQuery, useGetCourseCompletionRateQuery, useGetTopCoursesQuery, useGetUsersListQuery, useGetUserDetailsQuery, useUpdateUserMutation, useCreateUserMutation, useDeleteUserMutation, useGetLearnerDashboardQuery } = usersApi;

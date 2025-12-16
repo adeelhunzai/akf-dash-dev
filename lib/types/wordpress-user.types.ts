@@ -178,6 +178,19 @@ export interface UpdateUserResponse {
   };
 }
 
+export interface CreateUserRequest {
+  username: string;
+  email: string;
+  password: string;
+  first_name?: string;
+  last_name?: string;
+  organization?: string;
+  role?: string;
+  roles?: string[];
+}
+
+export type CreateUserResponse = WordPressUserResponse;
+
 /**
  * Delete User Request
  * For DELETE /custom-api/v1/users/{id} endpoint
