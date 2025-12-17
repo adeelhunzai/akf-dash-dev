@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useGetUserDetailsQuery, useUpdateUserMutation } from "@/lib/store/api/userApi"
 import { Loader2 } from "lucide-react"
-import { useToast } from "@/hooks/use-toast"
+import { SuccessModal } from "@/components/ui/success-modal"
 
 interface EditUserDialogProps {
   open: boolean
@@ -33,12 +33,12 @@ const mapToWordPressRole = (role: string): string => {
 }
 
 export default function EditUserDialog({ open, onOpenChange, userId }: EditUserDialogProps) {
-  const { toast } = useToast()
   const { data: userDetails, isLoading, isFetching } = useGetUserDetailsQuery(userId!, {
     skip: !userId || !open,
   })
   const [updateUser, { isLoading: isUpdating }] = useUpdateUserMutation()
   const [currentUserId, setCurrentUserId] = useState<number | undefined>(undefined)
+  const [showSuccessModal, setShowSuccessModal] = useState(false)
 
   const [formData, setFormData] = useState({
     name: "",
@@ -98,17 +98,11 @@ export default function EditUserDialog({ open, onOpenChange, userId }: EditUserD
         organization: formData.organization,
       }).unwrap()
 
-      toast({
-        title: "Success",
-        description: "User updated successfully",
-      })
       onOpenChange(false)
+      setShowSuccessModal(true)
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to update user",
-        variant: "destructive",
-      })
+      // Handle error silently for now
+      console.error('Failed to update user:', error)
     }
   }
 
@@ -118,7 +112,7 @@ export default function EditUserDialog({ open, onOpenChange, userId }: EditUserD
 
   if (!userId) return null
 
-  return (
+  return (<>
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader className="flex items-center justify-between mb-6">
@@ -243,5 +237,15 @@ export default function EditUserDialog({ open, onOpenChange, userId }: EditUserD
         </div>
       </DialogContent>
     </Dialog>
-  )
+
+    <SuccessModal
+      open={showSuccessModal}
+      onOpenChange={setShowSuccessModal}
+      title="User Updated"
+      message="The user has been updated successfully."
+      userName={formData.name}
+      userEmail={formData.email}
+      buttonText="Done"
+    />
+  </>)
 }

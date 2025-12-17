@@ -14,9 +14,15 @@ interface LearnerReportTableProps {
   searchQuery?: string;
   dateRange?: string;
   onVisibleRowsChange?: (rows: LearnerReportItem[]) => void;
+  onLoadingChange?: (loading: boolean) => void;
 }
 
-export function LearnerReportTable({ searchQuery = "", dateRange = "0", onVisibleRowsChange }: LearnerReportTableProps) {
+export function LearnerReportTable({
+  searchQuery = "",
+  dateRange = "0",
+  onVisibleRowsChange,
+  onLoadingChange,
+}: LearnerReportTableProps) {
   const [currentPage, setCurrentPage] = useState(1)
   const [perPage, setPerPage] = useState(10)
   const [selectedLearner, setSelectedLearner] = useState<LearnerReportItem | null>(null)
@@ -125,14 +131,18 @@ export function LearnerReportTable({ searchQuery = "", dateRange = "0", onVisibl
     onVisibleRowsChange(learnersData)
   }, [learnersData, onVisibleRowsChange])
 
+  useEffect(() => {
+    if (!onLoadingChange) return
+    onLoadingChange(isLoading || isFetching)
+  }, [isLoading, isFetching, onLoadingChange])
+
   return (
     <div>
       {/* Table */}
-      <div className="bg-white overflow-x-auto rounded-lg border border-gray-200 shadow-sm">
-        <div className="min-w-[900px]">
-          <Table>
+      <div className="bg-white rounded-md border border-gray-200 shadow-sm overflow-hidden">
+          <Table className="min-w-[900px]">
           <TableHeader>
-            <TableRow className="border-b border-gray-200 bg-[#F9FAFB]">
+            <TableRow className="border-b border-gray-200 bg-[#F3F4F6]">
               <TableHead className="text-xs font-medium uppercase text-gray-500 py-3 px-4">Learner ID</TableHead>
               <TableHead className="text-xs font-medium uppercase text-gray-500 py-3 px-4">Name</TableHead>
               <TableHead className="text-xs font-medium uppercase text-gray-500 py-3 px-4">Email</TableHead>
@@ -192,7 +202,6 @@ export function LearnerReportTable({ searchQuery = "", dateRange = "0", onVisibl
             )}
           </TableBody>
           </Table>
-        </div>
       </div>
 
       {/* Pagination */}

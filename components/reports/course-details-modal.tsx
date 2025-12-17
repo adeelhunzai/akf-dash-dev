@@ -135,7 +135,11 @@ export function CourseDetailsModal({ course, open, onOpenChange }: CourseDetails
 
           {/* View Course Button */}
           <div className="flex justify-start pt-4 border-t">
-            <Button variant="outline" className="border-gray-200 bg-white hover:bg-gray-50">
+            <Button 
+              variant="outline" 
+              className="border-gray-200 bg-white hover:bg-gray-50"
+              onClick={() => window.open(course.url, '_blank')}
+            >
               <Eye className="h-4 w-4 mr-2" />
               View Course
             </Button>

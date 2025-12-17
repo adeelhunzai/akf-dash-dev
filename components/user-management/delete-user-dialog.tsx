@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import { AlertTriangle, Loader2 } from "lucide-react"
 import {
   AlertDialog,
@@ -12,6 +13,7 @@ import {
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { useDeleteUserMutation } from "@/lib/store/api/userApi"
+import { SuccessModal } from "@/components/ui/success-modal"
 
 interface User {
   id: string
@@ -35,6 +37,7 @@ interface DeleteUserDialogProps {
 
 export default function DeleteUserDialog({ open, onOpenChange, user }: DeleteUserDialogProps) {
   const [deleteUser, { isLoading }] = useDeleteUserMutation()
+  const [showSuccessModal, setShowSuccessModal] = useState(false)
 
   const handleDelete = async () => {
     if (!user) return
@@ -42,13 +45,14 @@ export default function DeleteUserDialog({ open, onOpenChange, user }: DeleteUse
     try {
       await deleteUser({ userId: parseInt(user.id) }).unwrap()
       onOpenChange(false)
+      setShowSuccessModal(true)
     } catch (error) {
       // Handle error silently for now
       console.error('Failed to delete user:', error)
     }
   }
 
-  return (
+  return (<>
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent className="max-w-md">
         {/* Warning Icon */}
@@ -102,5 +106,15 @@ export default function DeleteUserDialog({ open, onOpenChange, user }: DeleteUse
         </div>
       </AlertDialogContent>
     </AlertDialog>
-  )
+
+    <SuccessModal
+      open={showSuccessModal}
+      onOpenChange={setShowSuccessModal}
+      title="User Deleted"
+      message="The user has been deleted successfully."
+      userName={user?.name}
+      userEmail={user?.email}
+      buttonText="Done"
+    />
+  </>)
 }

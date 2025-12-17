@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { Users, Users2, BookOpen, DollarSign, PieChart } from "lucide-react"
+import { Users, Monitor, Globe } from "lucide-react"
 
 interface ReportCard {
   id: string
@@ -12,29 +12,19 @@ interface ReportCard {
 const reports: ReportCard[] = [
   {
     id: "user-enrollment",
-    title: "Course Reports",
-    icon: <Users className="h-6 w-6 text-green-600" />,
-  },
-  {
-    id: "team-performance",
-    title: "Team Reports",
-    icon: <Users2 className="h-6 w-6" />,
+    title: "User Enrollment & Completion",
+    icon: <Users className="h-5 w-5" />,
   },
   {
     id: "course-popularity",
     title: "Course Popularity",
-    icon: <BookOpen className="h-6 w-6" />,
+    icon: <Monitor className="h-5 w-5" />,
   },
   {
     id: "revenue-certificates",
-    title: "Certificate Sales",
-    icon: <DollarSign className="h-6 w-6" />,
+    title: "Certificates",
+    icon: <Globe className="h-5 w-5" />,
   },
-  // {
-  //   id: "demographic",
-  //   title: "Demographic Breakdown",
-  //   icon: <PieChart className="h-6 w-6" />,
-  // },
 ]
 
 export function ReportCards({
@@ -45,18 +35,18 @@ export function ReportCards({
   onSelectReport: (id: string) => void
 }) {
   return (
-    <div className="grid grid-cols-4 gap-4">
+    <div className="flex flex-col sm:flex-row gap-3">
       {reports.map((report) => (
         <button
           key={report.id}
           onClick={() => onSelectReport(report.id)}
-          className={`p-4 text-center transition-all ${
+          className={`w-full sm:w-[240px] py-4 px-3 text-center transition-all rounded-lg ${
             selectedReport === report.id
-              ? "border-2 border-green-600 bg-green-50 rounded-lg"
-              : "border border-gray-200 bg-white hover:bg-gray-50 rounded-lg"
+              ? "border-2 border-green-600 bg-green-50"
+              : "border border-gray-200 bg-white hover:bg-gray-50"
           }`}
         >
-          <div className="mb-3 flex justify-center">
+          <div className="mb-2 flex justify-center">
             {selectedReport === report.id ? (
               <span className="text-green-600">{report.icon}</span>
             ) : (

@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import { AlertTriangle, Loader2, AlertCircle } from "lucide-react"
 import {
   AlertDialog,
@@ -14,6 +15,7 @@ import { Button } from "@/components/ui/button"
 import { useDeleteTeamMutation } from "@/lib/store/api/teamApi"
 import { useToast } from "@/hooks/use-toast"
 import type { Team } from "@/lib/types/team.types"
+import { SuccessModal } from "@/components/ui/success-modal"
 
 interface DeleteTeamDialogProps {
   open: boolean
@@ -24,19 +26,19 @@ interface DeleteTeamDialogProps {
 export default function DeleteTeamDialog({ open, onOpenChange, team }: DeleteTeamDialogProps) {
   const [deleteTeam, { isLoading }] = useDeleteTeamMutation()
   const { toast } = useToast()
+  const [showSuccessModal, setShowSuccessModal] = useState(false)
+  const [deletedTeamName, setDeletedTeamName] = useState("")
 
   const handleDelete = async () => {
     if (!team) return
 
     try {
-      const result = await deleteTeam({ teamId: team.id }).unwrap()
+      const teamNameToSave = team.name
+      await deleteTeam({ teamId: team.id }).unwrap()
       
-      toast({
-        title: "Success",
-        description: result.message || "Team deleted successfully",
-      })
-      
+      setDeletedTeamName(teamNameToSave)
       onOpenChange(false)
+      setShowSuccessModal(true)
     } catch (error: any) {
       toast({
         title: "Error",
@@ -57,7 +59,7 @@ export default function DeleteTeamDialog({ open, onOpenChange, team }: DeleteTea
 
   const teamInitials = team?.avatar || (team?.name ? getInitials(team.name) : '')
 
-  return (
+  return (<>
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent className="max-w-md">
         {/* Warning Icon */}
@@ -116,5 +118,14 @@ export default function DeleteTeamDialog({ open, onOpenChange, team }: DeleteTea
         </div>
       </AlertDialogContent>
     </AlertDialog>
-  )
+
+    <SuccessModal
+      open={showSuccessModal}
+      onOpenChange={setShowSuccessModal}
+      title="Team Deleted"
+      message="The team has been deleted successfully."
+      userName={deletedTeamName}
+      buttonText="Done"
+    />
+  </>)
 }

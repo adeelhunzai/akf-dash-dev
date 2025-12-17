@@ -1,38 +1,41 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { Input } from "@/components/ui/input"
+import { useState, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
-import { Filter, ChevronLeft, ChevronRight } from "lucide-react"
+import { ChevronLeft, ChevronRight } from "lucide-react"
 import { useGetTeamReportQuery } from "@/lib/store/api/reportsApi"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { TeamReportItem } from "@/lib/types/reports.types"
 
 interface TeamPerformanceTableProps {
   searchQuery?: string;
+  dateRange?: string;
+  onVisibleRowsChange?: (rows: TeamReportItem[]) => void;
+  onLoadingChange?: (loading: boolean) => void;
 }
 
-export function TeamPerformanceTable({ searchQuery = "" }: TeamPerformanceTableProps) {
+export function TeamPerformanceTable({ searchQuery = "", dateRange = "0", onVisibleRowsChange, onLoadingChange }: TeamPerformanceTableProps) {
   const [currentPage, setCurrentPage] = useState(1)
-  const [perPage, setPerPage] = useState(20)
-  const [localSearchQuery, setLocalSearchQuery] = useState("")
+  const [perPage, setPerPage] = useState(10)
 
-  // Use the searchQuery prop if provided, otherwise use local state
-  const effectiveSearchQuery = searchQuery || localSearchQuery
+  // Convert dateRange to days
+  const days = dateRange === "0" ? undefined : parseInt(dateRange)
 
   // Fetch data from API
   const { data, isLoading, isFetching, error } = useGetTeamReportQuery({
     page: currentPage,
     per_page: perPage,
-    search: effectiveSearchQuery || undefined,
+    search: searchQuery || undefined,
   })
 
-  // Reset to page 1 when search changes
+  // Reset to page 1 when search or date range changes
   useEffect(() => {
     setCurrentPage(1)
-  }, [effectiveSearchQuery])
+  }, [searchQuery, dateRange])
 
   const teamsData = data?.data || []
+  const previousTeamIds = useRef<string[]>([])
   const totalItems = data?.total || 0
   const totalPages = Math.ceil(totalItems / perPage)
 
@@ -93,6 +96,25 @@ export function TeamPerformanceTable({ searchQuery = "" }: TeamPerformanceTableP
     setCurrentPage(1) // Reset to first page when changing page size
   }
 
+  useEffect(() => {
+    if (!onVisibleRowsChange) return
+
+    const currentIds = teamsData.map((team) => team.id)
+    const hasSameIds =
+      currentIds.length === previousTeamIds.current.length &&
+      currentIds.every((id, index) => id === previousTeamIds.current[index])
+
+    if (hasSameIds) return
+
+    previousTeamIds.current = currentIds
+    onVisibleRowsChange(teamsData)
+  }, [onVisibleRowsChange, teamsData])
+
+  useEffect(() => {
+    if (!onLoadingChange) return
+    onLoadingChange(isLoading || isFetching)
+  }, [isLoading, isFetching, onLoadingChange])
+
   if (error) {
     return (
       <div className="space-y-6">
@@ -107,28 +129,11 @@ export function TeamPerformanceTable({ searchQuery = "" }: TeamPerformanceTableP
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h3 className="text-xl font-semibold text-foreground">Team Reports</h3>
-        <div className="flex gap-3">
-          <Input
-            placeholder="Search..."
-            value={localSearchQuery}
-            onChange={(e) => setLocalSearchQuery(e.target.value)}
-            className="w-64 border-gray-200"
-            disabled={!!searchQuery} // Disable if searchQuery prop is provided
-          />
-          <Button variant="outline" className="border-gray-200 bg-transparent">
-            <Filter className="mr-2 h-4 w-4" />
-            Team Filter
-          </Button>
-        </div>
-      </div>
-
+    <div>
       {/* Table */}
-      <div className="overflow-x-auto rounded-lg border border-gray-200">
+      <div className="overflow-x-auto rounded-md border border-gray-200">
         <table className="w-full">
-          <thead className="bg-gray-50 border-b border-gray-200">
+          <thead className="border-b border-gray-200" style={{ backgroundColor: '#F3F4F6' }}>
             <tr>
               <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600">TEAM</th>
               <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600">MEMBERS</th>

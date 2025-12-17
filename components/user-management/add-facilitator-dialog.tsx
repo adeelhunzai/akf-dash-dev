@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label";
 import { X, Copy } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useCreateUserMutation, useUpdateUserMutation } from "@/lib/store/api/userApi";
+import { SuccessModal } from "@/components/ui/success-modal";
 
 interface AddFacilitatorDialogProps {
   open: boolean;
@@ -38,6 +39,8 @@ export default function AddFacilitatorDialog({
   const [createUser, { isLoading: isCreating }] = useCreateUserMutation();
   const [updateUser] = useUpdateUserMutation();
   const { toast } = useToast();
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successUserData, setSuccessUserData] = useState({ name: "", email: "" });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -93,13 +96,11 @@ export default function AddFacilitatorDialog({
         }
       }
 
-      toast({
-        title: "Facilitator created",
-        description: "The facilitator can now log in with the generated password.",
-      });
-
+      const fullName = `${formData.firstName} ${formData.lastName}`.trim();
+      setSuccessUserData({ name: fullName, email: formData.email });
       resetForm();
       onOpenChange(false);
+      setShowSuccessModal(true);
     } catch (error) {
       const message =
         (error as { data?: { message?: string } })?.data?.message ??
@@ -161,7 +162,7 @@ export default function AddFacilitatorDialog({
     };
   }, []);
 
-  return (
+  return (<>
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader className="flex flex-row items-center justify-between space-y-0">
@@ -294,5 +295,15 @@ export default function AddFacilitatorDialog({
         </form>
       </DialogContent>
     </Dialog>
-  );
+
+    <SuccessModal
+      open={showSuccessModal}
+      onOpenChange={setShowSuccessModal}
+      title="Facilitator Added"
+      message="The facilitator has been added successfully and can now log in."
+      userName={successUserData.name}
+      userEmail={successUserData.email}
+      buttonText="Done"
+    />
+  </>);
 }

@@ -15,6 +15,7 @@ import { useCreateTeamMutation, useUpdateTeamMutation, useGetTeamDetailsQuery } 
 import { useToast } from "@/hooks/use-toast"
 import { Skeleton } from "@/components/ui/skeleton"
 import type { Team } from "@/lib/types/team.types"
+import { SuccessModal } from "@/components/ui/success-modal"
 
 interface Learner {
   id: number
@@ -133,6 +134,8 @@ export default function CreateTeamDialog({ open, onOpenChange, team }: CreateTea
   const [createTeam, { isLoading: isCreating }] = useCreateTeamMutation()
   const [updateTeam, { isLoading: isUpdating }] = useUpdateTeamMutation()
   const isLoading = isCreating || isUpdating
+  const [showSuccessModal, setShowSuccessModal] = useState(false)
+  const [successTeamName, setSuccessTeamName] = useState("")
 
   // Debounce search query - wait 500ms after user stops typing
   useEffect(() => {
@@ -484,18 +487,31 @@ export default function CreateTeamDialog({ open, onOpenChange, team }: CreateTea
         })
       } else {
         // Create new team
-      const result = await createTeam({
-        name: formData.teamName,
+        const teamNameToSave = formData.teamName
+        await createTeam({
+          name: formData.teamName,
           course_ids: Array.from(selectedCourses),
-        description: formData.description,
+          description: formData.description,
           learner_ids: Array.from(selectedLearners),
           facilitator_ids: Array.from(selectedFacilitators)
-      }).unwrap()
+        }).unwrap()
 
-      toast({
-        title: "Success",
-        description: result.message || "Team created successfully"
-      })
+        setSuccessTeamName(teamNameToSave)
+        // Reset form
+        setFormData({ teamName: "", description: "" })
+        setSelectedLearners(new Set())
+        setSelectedCourses(new Set())
+        setSelectedFacilitators(new Set())
+        setSearchQuery("")
+        setCourseSearchQuery("")
+        setCurrentCoursePage(1)
+        setAllCourses([])
+        setFacilitatorSearchQuery("")
+        setCurrentFacilitatorPage(1)
+        setAllFacilitators([])
+        onOpenChange(false)
+        setShowSuccessModal(true)
+        return
       }
 
       // Reset form
@@ -522,7 +538,7 @@ export default function CreateTeamDialog({ open, onOpenChange, team }: CreateTea
 
   const selectedCount = selectedLearners.size
 
-  return (
+  return (<>
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="!max-w-[950px] w-[95vw] p-0 gap-0 overflow-hidden" showCloseButton={false}>
         <DialogTitle className="sr-only">Create New Team</DialogTitle>
@@ -960,5 +976,14 @@ export default function CreateTeamDialog({ open, onOpenChange, team }: CreateTea
         </div>
       </DialogContent>
     </Dialog>
-  )
+
+    <SuccessModal
+      open={showSuccessModal}
+      onOpenChange={setShowSuccessModal}
+      title="Team Created"
+      message="The team has been created successfully."
+      userName={successTeamName}
+      buttonText="Done"
+    />
+  </>)
 }

@@ -5,6 +5,33 @@ import { Star, Laptop, UserPlus, Trophy } from "lucide-react"
 import { useGetCoursePopularityQuery } from "@/lib/store/api/reportsApi"
 import { Skeleton } from "@/components/ui/skeleton"
 
+// Map Tailwind color classes to hex values for dynamic usage
+const tailwindColorMap: Record<string, string> = {
+  "bg-yellow-400": "#facc15",
+  "bg-green-400": "#4ade80",
+  "bg-blue-400": "#60a5fa",
+  "bg-pink-500": "#ec4899",
+  "bg-cyan-500": "#06b6d4",
+  "bg-purple-500": "#a855f7",
+  "bg-orange-500": "#f97316",
+  "bg-indigo-500": "#6366f1",
+  "bg-red-400": "#f87171",
+  "bg-teal-500": "#14b8a6",
+  // Additional colors for future use
+  "bg-gray-400": "#9ca3af",
+  "bg-lime-500": "#84cc16",
+  "bg-amber-500": "#f59e0b",
+  "bg-emerald-500": "#10b981",
+  "bg-rose-500": "#f43f5e",
+  "bg-violet-500": "#8b5cf6",
+  "bg-sky-500": "#0ea5e9",
+  "bg-fuchsia-500": "#d946ef",
+}
+
+const getColorFromClass = (colorClass: string): string => {
+  return tailwindColorMap[colorClass] || "#9ca3af" // fallback to gray
+}
+
 export function CoursePopularityTable() {
   const { data, isLoading, error } = useGetCoursePopularityQuery()
 
@@ -65,7 +92,7 @@ export function CoursePopularityTable() {
   ]
 
   return (
-    <div className="space-y-6">
+    <div className="rounded-md border border-gray-200 bg-white p-6 space-y-6">
       <h3 className="text-xl font-semibold text-foreground">Course Popularity Report</h3>
 
       {/* Metrics Grid */}
@@ -128,8 +155,8 @@ export function CoursePopularityTable() {
               topCourses_data.map((course) => (
                 <div key={course.id} className="flex items-center gap-4 rounded-lg border border-gray-200 bg-[#F9FAFB] p-4 hover:shadow-sm transition-shadow">
                   {/* Rank Badge */}
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-100 flex-shrink-0">
-                    <span className="text-base font-semibold text-green-700">{course.rank}</span>
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full flex-shrink-0" style={{ backgroundColor: '#e0f3e8' }}>
+                    <span className="text-base font-semibold" style={{ color: '#00b140' }}>{course.rank}</span>
                   </div>
                   
                   {/* Course Info */}
@@ -195,7 +222,10 @@ export function CoursePopularityTable() {
             ) : (
               categories_data.map((category, index) => (
                 <div key={index} className="flex items-start gap-3">
-                  <div className={`${category.color} h-4 w-4 rounded-sm flex-shrink-0 mt-1`} />
+                  <div 
+                    className="h-4 w-4 rounded-sm flex-shrink-0 mt-1" 
+                    style={{ backgroundColor: getColorFromClass(category.color) }}
+                  />
                   <div className="flex-1">
                     <p className="font-medium text-foreground">{category.name}</p>
                     <div className="mt-1 flex items-center justify-between text-xs text-muted-foreground">

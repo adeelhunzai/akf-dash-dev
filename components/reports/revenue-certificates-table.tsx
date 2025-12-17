@@ -1,22 +1,27 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useGetCertificateSalesQuery } from "@/lib/store/api/reportsApi"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { AlertCircle } from "lucide-react"
 
+import { CertificateSalesData } from "@/lib/types/reports.types"
+
 interface CertificateData {
   month: string
   sold: number
 }
 
-export function RevenueCertificatesTable() {
+interface RevenueCertificatesTableProps {
+  onVisibleRowsChange?: (context: { rows: CertificateSalesData[]; activeTab: "cpd" | "other" }) => void
+  onLoadingChange?: (loading: boolean) => void
+}
+
+export function RevenueCertificatesTable({ onVisibleRowsChange, onLoadingChange }: RevenueCertificatesTableProps) {
   const [activeTab, setActiveTab] = useState<"cpd" | "other">("cpd")
-  const [searchQuery, setSearchQuery] = useState("")
   const [monthsBack, setMonthsBack] = useState("24")
 
   // Convert monthsBack to number
@@ -30,15 +35,39 @@ export function RevenueCertificatesTable() {
     ? data?.data?.cpd_certificates || []
     : data?.data?.other_certificates || []
 
-  // Filter data based on search query
-  const filteredData = rawData.filter((item) => 
-    item.month.toLowerCase().includes(searchQuery.toLowerCase())
-  )
+  // Use raw data directly (no search filter)
+  const filteredData = rawData
+
+  const prevContextRef = useRef<{ rows: CertificateSalesData[]; activeTab: "cpd" | "other" } | null>(null)
+
+  useEffect(() => {
+    if (!onVisibleRowsChange) return
+
+    const prevContext = prevContextRef.current
+    const rowsAreSame =
+      prevContext?.rows.length === filteredData.length &&
+      filteredData.every((row, index) => {
+        const prevRow = prevContext?.rows[index]
+        return prevRow && prevRow.month === row.month && prevRow.sold === row.sold
+      })
+    const tabIsSame = prevContext?.activeTab === activeTab
+
+    if (rowsAreSame && tabIsSame) return
+
+    const context = { rows: filteredData, activeTab }
+    prevContextRef.current = context
+    onVisibleRowsChange(context)
+  }, [filteredData, activeTab, onVisibleRowsChange])
+
+  useEffect(() => {
+    if (!onLoadingChange) return
+    onLoadingChange(isLoading)
+  }, [isLoading, onLoadingChange])
 
   // Loading state
   if (isLoading) {
     return (
-      <div className="space-y-6 rounded-lg border border-gray-200 bg-white p-6">
+      <div className="space-y-6 rounded-md border border-gray-200 bg-white p-6">
         <div>
           <h3 className="mb-6 text-xl font-semibold text-foreground">Certificates Sale</h3>
           <div className="space-y-4">
@@ -54,7 +83,7 @@ export function RevenueCertificatesTable() {
   // Error state
   if (error) {
     return (
-      <div className="space-y-6 rounded-lg border border-gray-200 bg-white p-6">
+      <div className="space-y-6 rounded-md border border-gray-200 bg-white p-6">
         <div>
           <h3 className="mb-6 text-xl font-semibold text-foreground">Certificates Sale</h3>
           <Alert variant="destructive">
@@ -69,67 +98,55 @@ export function RevenueCertificatesTable() {
   }
 
   return (
-    <div className="space-y-6 rounded-lg border border-gray-200 bg-white p-6">
+    <div className="space-y-6 rounded-md border border-gray-200 bg-white p-6">
       <div>
         {/* Title and Filters */}
         <div className="mb-6 flex items-center justify-between">
           <h3 className="text-xl font-semibold text-foreground">Certificates Sale</h3>
-          <div className="flex gap-4">
-            <div className="flex-grow">
-              <Input
-                placeholder="Search..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="border-gray-200 w-64"
-              />
-            </div>
-            <Select value={monthsBack} onValueChange={setMonthsBack}>
-              <SelectTrigger className="w-40 border-gray-200">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="6">Last 6 months</SelectItem>
-                <SelectItem value="12">Last 12 months</SelectItem>
-                <SelectItem value="24">Last 24 months</SelectItem>
-                <SelectItem value="36">Last 36 months</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          <Select value={monthsBack} onValueChange={setMonthsBack}>
+            <SelectTrigger className="w-40 border-gray-200">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="6">Last 6 months</SelectItem>
+              <SelectItem value="12">Last 12 months</SelectItem>
+              <SelectItem value="24">Last 24 months</SelectItem>
+              <SelectItem value="36">Last 36 months</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         {/* Tabs */}
-        <div className="mb-6 flex gap-1 rounded-lg h-10 items-center" style={{ backgroundColor: '#F3F4F6', padding: '2px' }}>
+        <div className="mb-6 flex gap-1 rounded-md p-1" style={{ backgroundColor: '#F3F4F6' }}>
           <Button
             onClick={() => setActiveTab("cpd")}
-            className={`${
+            className={`w-[160px] ${
               activeTab === "cpd"
                 ? "bg-green-600 text-white hover:bg-green-700"
-                : "text-gray-700 hover:bg-transparent"
-            } rounded-md transition-colors h-full px-4`}
-            style={activeTab !== "cpd" ? { backgroundColor: '#F3F4F6' } : {}}
+                : "bg-transparent text-gray-700 hover:bg-gray-200"
+            }`}
           >
             CPD Certificates
           </Button>
           <Button
             onClick={() => setActiveTab("other")}
-            className={`${
+            className={`w-[160px] ${
               activeTab === "other"
                 ? "bg-green-600 text-white hover:bg-green-700"
-                : "text-gray-700 hover:bg-transparent"
-            } rounded-md transition-colors h-full px-4`}
-            style={activeTab !== "other" ? { backgroundColor: '#F3F4F6' } : {}}
+                : "bg-transparent text-gray-700 hover:bg-gray-200"
+            }`}
           >
             Other Certificates
           </Button>
         </div>
 
         {/* Table */}
-        <div className="overflow-x-auto">
+        <div className="overflow-hidden rounded-md border border-gray-200">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-gray-200" style={{ backgroundColor: '#F9FAFB' }}>
-                <th className="px-6 py-4 text-left text-sm font-semibold rounded-tl-lg" style={{ color: '#6B7280' }}>MONTHS</th>
-                <th className="px-6 py-4 text-right text-sm font-semibold rounded-tr-lg" style={{ color: '#6B7280' }}>CERTIFICATES ISSUED</th>
+              <tr style={{ backgroundColor: '#F3F4F6' }}>
+                <th className="px-6 py-4 text-left text-xs font-medium uppercase text-gray-500">MONTHS</th>
+                <th className="px-6 py-4 text-right text-xs font-medium uppercase text-gray-500">CERTIFICATES ISSUED</th>
               </tr>
             </thead>
             <tbody>
@@ -137,15 +154,13 @@ export function RevenueCertificatesTable() {
                 filteredData.map((row, idx) => (
                   <tr key={idx} className="border-b border-gray-100 hover:bg-gray-50">
                     <td className="px-6 py-4 text-sm text-foreground">{row.month}</td>
-                    <td className="px-6 py-4 text-sm text-foreground font-medium text-right">{row.sold}</td>
+                    <td className="px-6 py-4 text-sm text-foreground text-right">{row.sold}</td>
                   </tr>
                 ))
               ) : (
                 <tr>
                   <td colSpan={2} className="px-6 py-8 text-center text-sm text-muted-foreground">
-                    {searchQuery 
-                      ? `No data found for "${searchQuery}"`
-                      : "No certificate data available"}
+                    No certificate data available
                   </td>
                 </tr>
               )}

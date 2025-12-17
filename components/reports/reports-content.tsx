@@ -1,18 +1,18 @@
 "use client"
 
-import { useState, useEffect, useCallback, useRef } from "react"
+import { useState, useEffect, useCallback, useMemo, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ReportCards } from "./report-cards"
 import { CoursesReportTable } from "./courses-report-table"
 import { LearnerReportTable } from "./learner-report-table"
-import { Download } from "lucide-react"
+import { Download, Filter } from "lucide-react"
 import { TeamPerformanceTable } from "./team-performance-table"
 import { CoursePopularityTable } from "./course-popularity-table"
 import { RevenueCertificatesTable } from "./revenue-certificates-table"
 import { DemographicBreakdownTable } from "./demographic-breakdown-table"
-import { CourseReportItem, LearnerReportItem } from "@/lib/types/reports.types"
+import { CertificateSalesData, CourseReportItem, LearnerReportItem, TeamReportItem } from "@/lib/types/reports.types"
 import { Document, Page, Text, View, StyleSheet, Font, pdf } from "@react-pdf/renderer"
 
 Font.register({ family: "DejaVuSans", src: "/fonts/DejaVuSans.ttf" })
@@ -20,20 +20,37 @@ Font.register({ family: "NotoSansArabic", src: "/fonts/NotoSansArabic-Regular.tt
 Font.register({ family: "NotoSans", src: "/fonts/NotoSans-Regular.ttf" })
 
 export function ReportsContent() {
-  const [activeTab, setActiveTab] = useState<"courses" | "learner">("courses")
+  const [activeTab, setActiveTab] = useState<"courses" | "learner" | "team">("courses")
   const [selectedReport, setSelectedReport] = useState("user-enrollment")
   const [dateRange, setDateRange] = useState("0")
   const [searchInput, setSearchInput] = useState("")
   const [searchQuery, setSearchQuery] = useState("")
   const [visibleCourses, setVisibleCourses] = useState<CourseReportItem[]>([])
   const [visibleLearners, setVisibleLearners] = useState<LearnerReportItem[]>([])
+  const [visibleTeams, setVisibleTeams] = useState<TeamReportItem[]>([])
+  const [visibleCertificates, setVisibleCertificates] = useState<CertificateSalesData[]>([])
+  const [certificateActiveTab, setCertificateActiveTab] = useState<"cpd" | "other">("cpd")
   const [isExportingPDF, setIsExportingPDF] = useState(false)
+  const [isReportLoading, setIsReportLoading] = useState(false)
+  const loadingSourcesRef = useRef(new Set<string>())
 
   const handleVisibleCoursesChange = useCallback((rows: CourseReportItem[]) => {
     setVisibleCourses((prev) => {
       if (
         prev.length === rows.length &&
         rows.every((course, index) => course.id === prev[index]?.id)
+      ) {
+        return prev
+      }
+      return rows
+    })
+  }, [])
+
+  const handleVisibleTeamsChange = useCallback((rows: TeamReportItem[]) => {
+    setVisibleTeams((prev) => {
+      if (
+        prev.length === rows.length &&
+        rows.every((team, index) => team.id === prev[index]?.id)
       ) {
         return prev
       }
@@ -53,6 +70,51 @@ export function ReportsContent() {
     })
   }, [])
 
+  const handleVisibleCertificateRowsChange = useCallback(
+    (context: { rows: CertificateSalesData[]; activeTab: "cpd" | "other" }) => {
+      setVisibleCertificates(context.rows)
+      setCertificateActiveTab(context.activeTab)
+    },
+    []
+  )
+
+  const handleReportLoadingChange = useCallback((source: string, loading: boolean) => {
+    const sources = loadingSourcesRef.current
+    if (loading) {
+      if (!sources.has(source)) {
+        sources.add(source)
+        setIsReportLoading(true)
+      }
+      return
+    }
+
+    if (!sources.has(source)) return
+    sources.delete(source)
+    if (sources.size === 0) {
+      setIsReportLoading(false)
+    }
+  }, [])
+
+  const handleCoursesLoadingChange = useCallback(
+    (loading: boolean) => handleReportLoadingChange("courses", loading),
+    [handleReportLoadingChange]
+  )
+
+  const handleLearnersLoadingChange = useCallback(
+    (loading: boolean) => handleReportLoadingChange("learners", loading),
+    [handleReportLoadingChange]
+  )
+
+  const handleTeamsLoadingChange = useCallback(
+    (loading: boolean) => handleReportLoadingChange("teams", loading),
+    [handleReportLoadingChange]
+  )
+
+  const handleCertificatesLoadingChange = useCallback(
+    (loading: boolean) => handleReportLoadingChange("certificates", loading),
+    [handleReportLoadingChange]
+  )
+
   const escapeCell = (cell: string) => `"${cell.replace(/"/g, '""')}"`
 
   const downloadCSV = (filename: string, headers: string[], rows: string[][]) => {
@@ -71,55 +133,6 @@ export function ReportsContent() {
     link.click()
     document.body.removeChild(link)
     URL.revokeObjectURL(url)
-  }
-
-  const exportExcel = () => {
-    if (activeTab === "courses") {
-      const headers = [
-        "Course ID",
-        "Course Name",
-        "Enrolled",
-        "Not Started",
-        "In Progress",
-        "Completed",
-        "Completion Rate",
-        "Quiz Score",
-        "Avg Time",
-      ]
-      const rows = visibleCourses.map((course) => [
-        course.id,
-        course.name,
-        course.enrolled.toString(),
-        course.notStarted.toString(),
-        course.inProgress.toString(),
-        course.completed.toString(),
-        course.completionRate,
-        course.quizScore,
-        course.avgTime,
-      ])
-      downloadCSV(`courses-report-${new Date().toISOString().split("T")[0]}.csv`, headers, rows)
-      return
-    }
-
-    const headers = [
-      "Learner ID",
-      "Name",
-      "Email",
-      "Courses Enrolled",
-      "Courses Completed",
-      "Total Hours",
-      "Average Score",
-    ]
-    const rows = visibleLearners.map((learner) => [
-      learner.id,
-      learner.name,
-      learner.email,
-      learner.coursesEnrolled.toString(),
-      learner.coursesCompleted.toString(),
-      `${learner.totalHours}h`,
-      learner.averageScore,
-    ])
-    downloadCSV(`learners-report-${new Date().toISOString().split("T")[0]}.csv`, headers, rows)
   }
 
   /**
@@ -176,10 +189,6 @@ export function ReportsContent() {
     },
   })
 
-  const columnWidths = activeTab === "courses"
-    ? [0.12, 0.34, 0.08, 0.08, 0.08, 0.08, 0.08, 0.12, 0.10]
-    : [0.12, 0.26, 0.20, 0.10, 0.10, 0.10, 0.12]
-
   const getFontFamily = (text: string) => {
     if (hasHindiChars(text)) return "NotoSans"
     if (hasArabicChars(text)) return "NotoSansArabic"
@@ -187,63 +196,152 @@ export function ReportsContent() {
     return "DejaVuSans"
   }
 
+  type ExportContext = {
+    headers: string[]
+    rows: string[][]
+    title: string
+    filePrefix: string
+    columnWidths: number[]
+  }
+
+  const buildExportContext = (): ExportContext | null => {
+    if (selectedReport === "course-popularity") {
+      return null
+    }
+
+    if (selectedReport === "revenue-certificates") {
+      const headers = ["Month", "Certificates Issued"]
+      const rows = visibleCertificates.map((row) => [row.month, row.sold.toString()])
+      const title = `Certificate Sales (${certificateActiveTab === "cpd" ? "CPD" : "Other"})`
+      const filePrefix = `certificate-sales-${certificateActiveTab}`
+      return {
+        headers,
+        rows,
+        title,
+        filePrefix,
+        columnWidths: [0.7, 0.3],
+      }
+    }
+
+    // User Enrollment & Completion report tabs
+    if (activeTab === "courses") {
+      const headers = [
+        "Course ID",
+        "Course Name",
+        "Enrolled",
+        "Not Started",
+        "In Progress",
+        "Completed",
+        "Completion Rate",
+        "Quiz Score",
+        "Avg Time",
+        "Certificates",
+        "CPD Certificates",
+      ]
+      const rows = visibleCourses.map((course) => [
+        course.id,
+        course.name,
+        course.enrolled.toString(),
+        course.notStarted.toString(),
+        course.inProgress.toString(),
+        course.completed.toString(),
+        course.completionRate,
+        course.quizScore,
+        course.avgTime,
+        course.certificatesIssued.toString(),
+        course.cpdCertificatesIssued.toString(),
+      ])
+      return {
+        headers,
+        rows,
+        title: "Courses Report",
+        filePrefix: "courses-report",
+        columnWidths: [0.10, 0.26, 0.07, 0.07, 0.07, 0.07, 0.08, 0.08, 0.08, 0.06, 0.06],
+      }
+    }
+
+    if (activeTab === "team") {
+      const headers = ["Team", "Members", "Avg Progress", "Completion Rate"]
+      const rows = visibleTeams.map((team) => [
+        team.name,
+        team.members.toString(),
+        `${team.avgProgress}%`,
+        `${team.completionRate}%`,
+      ])
+      return {
+        headers,
+        rows,
+        title: "Team Report",
+        filePrefix: "team-report",
+        columnWidths: [0.35, 0.2, 0.25, 0.2],
+      }
+    }
+
+    // Learner tab (default)
+    const headers = [
+      "Learner ID",
+      "Name",
+      "Email",
+      "Courses Enrolled",
+      "Courses Completed",
+      "Total Hours",
+      "Average Score",
+    ]
+    const rows = visibleLearners.map((learner) => [
+      learner.id,
+      learner.name,
+      learner.email,
+      learner.coursesEnrolled.toString(),
+      learner.coursesCompleted.toString(),
+      `${learner.totalHours}h`,
+      learner.averageScore,
+    ])
+    return {
+      headers,
+      rows,
+      title: "Learner Report",
+      filePrefix: "learners-report",
+      columnWidths: [0.12, 0.26, 0.20, 0.10, 0.10, 0.10, 0.12],
+    }
+  }
+
+  const exportContext = useMemo(() => buildExportContext(), [
+    selectedReport,
+    activeTab,
+    visibleCourses,
+    visibleLearners,
+    visibleTeams,
+    visibleCertificates,
+    certificateActiveTab,
+  ])
+
+  const isExportDisabled = !exportContext || exportContext.rows.length === 0 || isReportLoading
+
+  const exportExcel = () => {
+    if (isExportDisabled) {
+      alert("No data to export")
+      return
+    }
+
+    downloadCSV(
+      `${exportContext!.filePrefix}-${new Date().toISOString().split("T")[0]}.csv`,
+      exportContext!.headers,
+      exportContext!.rows
+    )
+  }
+
   const exportPDF = async () => {
-    if (isExportingPDF) return
+    if (isExportingPDF || isReportLoading) return
+
+    if (!exportContext || exportContext.rows.length === 0) {
+      alert("No data to export")
+      return
+    }
 
     setIsExportingPDF(true)
 
     try {
-      const headers =
-        activeTab === "courses"
-          ? [
-              "Course ID",
-              "Course Name",
-              "Enrolled",
-              "Not Started",
-              "In Progress",
-              "Completed",
-              "Completion Rate",
-              "Quiz Score",
-              "Avg Time",
-            ]
-          : [
-              "Learner ID",
-              "Name",
-              "Email",
-              "Courses Enrolled",
-              "Courses Completed",
-              "Total Hours",
-              "Average Score",
-            ]
-
-      const rows =
-        activeTab === "courses"
-          ? visibleCourses.map((course) => [
-              course.id,
-              course.name,
-              course.enrolled.toString(),
-              course.notStarted.toString(),
-              course.inProgress.toString(),
-              course.completed.toString(),
-              course.completionRate,
-              course.quizScore,
-              course.avgTime,
-            ])
-          : visibleLearners.map((learner) => [
-              learner.id,
-              learner.name,
-              learner.email,
-              learner.coursesEnrolled.toString(),
-              learner.coursesCompleted.toString(),
-              `${learner.totalHours}h`,
-              learner.averageScore,
-            ])
-
-      if (rows.length === 0) {
-        alert("No data to export")
-        setIsExportingPDF(false)
-        return
-      }
+      const { headers, rows, filePrefix, title, columnWidths } = exportContext!
 
       const allText = [...headers, ...rows.flat()].join(" ")
       const needsHindi = hasHindiChars(allText)
@@ -253,31 +351,36 @@ export function ReportsContent() {
       const pdfDoc = (
         <Document>
           <Page size="A4" style={tableStyles.page} wrap>
-            <Text style={tableStyles.title}>
-              Exported {activeTab === "courses" ? "Courses" : "Learners"} Report
-            </Text>
+            <Text style={tableStyles.title}>{title}</Text>
             <View style={tableStyles.table}>
               <View style={tableStyles.tableRow}>
-                {headers.map((header, index) => (
+                {headers.map((header: string, index: number) => (
                   <Text
                     key={header}
                     style={[
                       tableStyles.tableHeader,
-                      { fontFamily, width: `${(columnWidths[index] * 100).toFixed(2)}%` },
+                      {
+                        fontFamily,
+                        width: `${((columnWidths[index] ?? 1 / headers.length) * 100).toFixed(2)}%`,
+                      },
                     ]}
                   >
                     {header}
                   </Text>
                 ))}
               </View>
-              {rows.map((row, rowIndex) => (
+              {rows.map((row: string[], rowIndex: number) => (
                 <View key={rowIndex} style={tableStyles.tableRow}>
-                  {row.map((cell, cellIndex) => (
+                  {row.map((cell: string, cellIndex: number) => (
                     <Text
                       key={`${rowIndex}-${cellIndex}`}
                       style={[
                         tableStyles.tableCell,
-                        { fontFamily: getFontFamily(cell.toString()), width: `${(columnWidths[cellIndex] * 100).toFixed(2)}%`, textAlign: cellIndex > 1 ? "right" : "left" },
+                        {
+                          fontFamily: getFontFamily(cell.toString()),
+                          width: `${((columnWidths[cellIndex] ?? 1 / headers.length) * 100).toFixed(2)}%`,
+                          textAlign: cellIndex > 1 ? "right" : "left",
+                        },
                       ]}
                     >
                       {cell}
@@ -294,7 +397,7 @@ export function ReportsContent() {
       const url = URL.createObjectURL(blob)
       const link = document.createElement("a")
       link.href = url
-      link.setAttribute("download", `${activeTab === "courses" ? "courses-report" : "learners-report"}.pdf`)
+      link.setAttribute("download", `${filePrefix}.pdf`)
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
@@ -331,7 +434,7 @@ export function ReportsContent() {
             variant="outline"
             className="border-green-600 text-green-600 hover:bg-green-50 bg-transparent"
             onClick={exportPDF}
-            disabled={isExportingPDF}
+            disabled={isExportingPDF || isExportDisabled}
           >
             <Download className="mr-2 h-4 w-4" />
             {isExportingPDF ? "Exporting..." : "Export PDF"}
@@ -339,34 +442,35 @@ export function ReportsContent() {
           <Button
             className="bg-green-600 hover:bg-green-700"
             onClick={exportExcel}
-            disabled={isExportingPDF}
+            disabled={isExportingPDF || isExportDisabled}
           >
             <Download className="mr-2 h-4 w-4" />
             Export Excel
           </Button>
         </div>
       </div>
-      {/* Available Reports */}
-      <div className="mb-8">
+      <div className="mb-8 rounded-md border border-gray-200 bg-white p-6">
         <h2 className="mb-4 text-lg font-semibold text-foreground">Available Reports</h2>
         <ReportCards selectedReport={selectedReport} onSelectReport={setSelectedReport} />
       </div>
 
       {/* Report Content */}
       {selectedReport === "user-enrollment" && (
-        <div>
-          {/* Title and Filters */}
-          <div className="mb-6 flex items-center justify-between">
+        <div className="rounded-md border border-gray-200 bg-white p-6">
+          {/* Filters */}
+          <div className="mb-4 flex items-center justify-between">
             <h3 className="text-xl font-semibold text-foreground">User Enrollment & Completion Report</h3>
-            <div className="flex gap-4">
-              <div className="flex-grow">
-                <Input
-                  placeholder="Search..."
-                  value={searchInput}
-                  onChange={(e) => setSearchInput(e.target.value)}
-                  className="border-gray-200 w-64"
-                />
-              </div>
+            <div className="flex gap-3">
+              <Input
+                placeholder="Search..."
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                className="border-gray-200 w-64"
+              />
+              <Button variant="outline" className="border-gray-200 bg-transparent">
+                <Filter className="mr-2 h-4 w-4" />
+                Team Filter
+              </Button>
               <Select value={dateRange} onValueChange={setDateRange}>
                 <SelectTrigger className="w-40 border-gray-200">
                   <SelectValue />
@@ -383,26 +487,36 @@ export function ReportsContent() {
           </div>
 
           {/* Tabs */}
-          <div className="mb-6 flex gap-2">
+          <div className="mb-4 flex gap-1 rounded-md p-1" style={{ backgroundColor: '#F3F4F6' }}>
             <Button
               onClick={() => setActiveTab("courses")}
-              className={`${
+              className={`w-[140px] ${
                 activeTab === "courses"
                   ? "bg-green-600 text-white hover:bg-green-700"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  : "bg-transparent text-gray-700 hover:bg-gray-200"
               }`}
             >
               Courses Report
             </Button>
             <Button
               onClick={() => setActiveTab("learner")}
-              className={`${
+              className={`w-[140px] ${
                 activeTab === "learner"
                   ? "bg-green-600 text-white hover:bg-green-700"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  : "bg-transparent text-gray-700 hover:bg-gray-200"
               }`}
             >
               Learner Report
+            </Button>
+            <Button
+              onClick={() => setActiveTab("team")}
+              className={`w-[140px] ${
+                activeTab === "team"
+                  ? "bg-green-600 text-white hover:bg-green-700"
+                  : "bg-transparent text-gray-700 hover:bg-gray-200"
+              }`}
+            >
+              Team Report
             </Button>
           </div>
 
@@ -412,6 +526,7 @@ export function ReportsContent() {
               searchQuery={searchQuery}
               dateRange={dateRange}
               onVisibleRowsChange={handleVisibleCoursesChange}
+              onLoadingChange={handleCoursesLoadingChange}
             />
           )}
           {activeTab === "learner" && (
@@ -419,22 +534,30 @@ export function ReportsContent() {
               searchQuery={searchQuery}
               dateRange={dateRange}
               onVisibleRowsChange={handleVisibleLearnersChange}
+              onLoadingChange={handleLearnersLoadingChange}
+            />
+          )}
+          {activeTab === "team" && (
+            <TeamPerformanceTable
+              searchQuery={searchQuery}
+              dateRange={dateRange}
+              onVisibleRowsChange={handleVisibleTeamsChange}
+              onLoadingChange={handleTeamsLoadingChange}
             />
           )}
         </div>
       )}
 
-      {/* Team Performance Report */}
-      {selectedReport === "team-performance" && <TeamPerformanceTable />}
-
       {/* Course Popularity Report */}
       {selectedReport === "course-popularity" && <CoursePopularityTable />}
 
       {/* Revenue & Certificates Report */}
-      {selectedReport === "revenue-certificates" && <RevenueCertificatesTable />}
-
-      {/* Demographic Breakdown Report */}
-      {/* {selectedReport === "demographic" && <DemographicBreakdownTable />} */}
+      {selectedReport === "revenue-certificates" && (
+        <RevenueCertificatesTable
+          onVisibleRowsChange={handleVisibleCertificateRowsChange}
+          onLoadingChange={handleCertificatesLoadingChange}
+        />
+      )}
     </div>
   )
 }

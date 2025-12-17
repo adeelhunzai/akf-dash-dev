@@ -14,9 +14,15 @@ interface CoursesReportTableProps {
   searchQuery?: string;
   dateRange?: string;
   onVisibleRowsChange?: (rows: CourseReportItem[]) => void;
+  onLoadingChange?: (loading: boolean) => void;
 }
 
-export function CoursesReportTable({ searchQuery = "", dateRange = "0", onVisibleRowsChange }: CoursesReportTableProps) {
+export function CoursesReportTable({
+  searchQuery = "",
+  dateRange = "0",
+  onVisibleRowsChange,
+  onLoadingChange,
+}: CoursesReportTableProps) {
   const [currentPage, setCurrentPage] = useState(1)
   const [perPage, setPerPage] = useState(10)
   const [selectedCourse, setSelectedCourse] = useState<CourseReportItem | null>(null)
@@ -117,6 +123,11 @@ export function CoursesReportTable({ searchQuery = "", dateRange = "0", onVisibl
     onVisibleRowsChange(coursesData)
   }, [coursesData, onVisibleRowsChange])
 
+  useEffect(() => {
+    if (!onLoadingChange) return
+    onLoadingChange(isLoading || isFetching)
+  }, [isLoading, isFetching, onLoadingChange])
+
   if (error) {
     return (
       <div className="bg-white p-6 rounded-lg border border-red-200">
@@ -128,11 +139,10 @@ export function CoursesReportTable({ searchQuery = "", dateRange = "0", onVisibl
   return (
     <div>
       {/* Table */}
-      <div className="bg-white overflow-x-auto rounded-lg border border-gray-200 shadow-sm">
-        <div className="min-w-[900px]">
-          <Table>
+      <div className="bg-white rounded-md border border-gray-200 shadow-sm overflow-hidden">
+          <Table className="min-w-[1100px]">
           <TableHeader>
-            <TableRow className="border-b border-gray-200 bg-[#F9FAFB]">
+            <TableRow className="border-b border-gray-200 bg-[#F3F4F6]">
               <TableHead className="text-xs font-medium uppercase text-gray-500 py-3 px-4">Course ID</TableHead>
               <TableHead className="text-xs font-medium uppercase text-gray-500 py-3 px-4">Course Name ↑</TableHead>
               <TableHead className="text-center text-xs font-medium uppercase text-gray-500 py-3 px-4">Enrolled</TableHead>
@@ -142,6 +152,8 @@ export function CoursesReportTable({ searchQuery = "", dateRange = "0", onVisibl
               <TableHead className="text-center text-xs font-medium uppercase text-gray-500 py-3 px-4">Completion Rate</TableHead>
               <TableHead className="text-center text-xs font-medium uppercase text-gray-500 py-3 px-4">Quiz Score</TableHead>
               <TableHead className="text-center text-xs font-medium uppercase text-gray-500 py-3 px-4">Avg Time</TableHead>
+              <TableHead className="text-center text-xs font-medium uppercase text-gray-500 py-3 px-4">Certificates</TableHead>
+              <TableHead className="text-center text-xs font-medium uppercase text-gray-500 py-3 px-4">CPD Certificates</TableHead>
               <TableHead className="text-center text-xs font-medium uppercase text-gray-500 py-3 px-4">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -159,6 +171,8 @@ export function CoursesReportTable({ searchQuery = "", dateRange = "0", onVisibl
                   <TableCell><Skeleton className="h-4 w-16 mx-auto" /></TableCell>
                   <TableCell><Skeleton className="h-4 w-16 mx-auto" /></TableCell>
                   <TableCell><Skeleton className="h-4 w-16 mx-auto" /></TableCell>
+                  <TableCell><Skeleton className="h-4 w-12 mx-auto" /></TableCell>
+                  <TableCell><Skeleton className="h-4 w-12 mx-auto" /></TableCell>
                   <TableCell><Skeleton className="h-4 w-20 mx-auto" /></TableCell>
                 </TableRow>
               ))
@@ -174,6 +188,8 @@ export function CoursesReportTable({ searchQuery = "", dateRange = "0", onVisibl
                   <TableCell className="text-center text-sm text-gray-900 py-4 px-4">{course.completionRate}</TableCell>
                   <TableCell className="text-center text-sm text-gray-900 py-4 px-4">{course.quizScore}</TableCell>
                   <TableCell className="text-center text-sm text-gray-900 py-4 px-4">{course.avgTime}</TableCell>
+                  <TableCell className="text-center text-sm text-gray-900 py-4 px-4">{course.certificatesIssued}</TableCell>
+                  <TableCell className="text-center text-sm text-gray-900 py-4 px-4">{course.cpdCertificatesIssued}</TableCell>
                   <TableCell className="text-center py-4 px-4">
                     <button
                       onClick={() => {
@@ -189,14 +205,13 @@ export function CoursesReportTable({ searchQuery = "", dateRange = "0", onVisibl
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={10} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={12} className="text-center py-8 text-muted-foreground">
                   No courses found
                 </TableCell>
               </TableRow>
             )}
           </TableBody>
           </Table>
-        </div>
       </div>
 
       {/* Pagination */}

@@ -1,6 +1,7 @@
 export interface CourseReportItem {
   id: string;
   name: string;
+  url: string;
   enrolled: number;
   notStarted: number;
   inProgress: number;
@@ -8,6 +9,8 @@ export interface CourseReportItem {
   completionRate: string;
   quizScore: string;
   avgTime: string;
+  certificatesIssued: number;
+  cpdCertificatesIssued: number;
 }
 
 export interface CourseReportResponse {

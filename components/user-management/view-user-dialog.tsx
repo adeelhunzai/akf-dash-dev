@@ -170,14 +170,6 @@ export default function ViewUserDialog({ open, onOpenChange, userId, onEditClick
                     {userDetails.days_since_login !== null ? `${userDetails.days_since_login} days` : 'Never logged in'}
                   </span>
                 </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">Account Status:</span>
-                  <span className="font-semibold text-foreground">
-                    {userDetails.days_since_login !== null 
-                      ? `${userDetails.days_since_login} days since login` 
-                      : 'Never logged in'}
-                  </span>
-                </div>
               </div>
             </div>
 
