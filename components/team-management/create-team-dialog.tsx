@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Upload, X, Search, Loader2 } from "lucide-react"
-import { useGetUsersListQuery } from "@/lib/store/api/userApi"
+import { useGetUsersListQuery, useFilterUsersByCsvMutation } from "@/lib/store/api/userApi"
 import { useGetCoursesListQuery } from "@/lib/store/api/coursesApi"
 import { useCreateTeamMutation, useUpdateTeamMutation, useGetTeamDetailsQuery } from "@/lib/store/api/teamApi"
 import { useToast } from "@/hooks/use-toast"
@@ -133,10 +133,15 @@ export default function CreateTeamDialog({ open, onOpenChange, team }: CreateTea
   // Create and update team mutations
   const [createTeam, { isLoading: isCreating }] = useCreateTeamMutation()
   const [updateTeam, { isLoading: isUpdating }] = useUpdateTeamMutation()
+  const [filterUsersByCsv, { isLoading: isFilteringCsv }] = useFilterUsersByCsvMutation()
   const isLoading = isCreating || isUpdating
   const [showSuccessModal, setShowSuccessModal] = useState(false)
   const [successTeamName, setSuccessTeamName] = useState("")
   const [successModalType, setSuccessModalType] = useState<"create" | "update">("create")
+  const [csvNotFound, setCsvNotFound] = useState<Array<{ email: string; name: string }>>([])
+  const [showCsvResults, setShowCsvResults] = useState(false)
+  const [csvImportedUsers, setCsvImportedUsers] = useState<Learner[]>([])
+  const [csvImportedIds, setCsvImportedIds] = useState<Set<number>>(new Set())
 
   // Debounce search query - wait 500ms after user stops typing
   useEffect(() => {
@@ -176,22 +181,25 @@ export default function CreateTeamDialog({ open, onOpenChange, team }: CreateTea
   // Update learners list when new data arrives
   useEffect(() => {
     if (usersData?.users) {
-      const newLearners = usersData.users.map((user) => ({
-        id: user.ID,
-        name: user.display_name,
-        email: user.user_email,
-        initials: getInitials(user.display_name),
-        selected: selectedLearners.has(user.ID)
-      }))
+      // Filter out CSV-imported users from API results
+      const newLearners = usersData.users
+        .filter((user) => !csvImportedIds.has(user.ID))
+        .map((user) => ({
+          id: user.ID,
+          name: user.display_name,
+          email: user.user_email,
+          initials: getInitials(user.display_name),
+          selected: selectedLearners.has(user.ID)
+        }))
 
       if (currentPage === 1) {
-        // Replace learners on first page or new search
-        setAllLearners(newLearners)
+        // Replace learners on first page or new search, but keep CSV users at top
+        setAllLearners([...csvImportedUsers, ...newLearners])
       } else {
-        // Append learners on subsequent pages, filtering out duplicates
+        // Append learners on subsequent pages, filtering out duplicates and CSV users
         setAllLearners(prev => {
           const existingIds = new Set(prev.map(l => l.id))
-          const uniqueNewLearners = newLearners.filter(l => !existingIds.has(l.id))
+          const uniqueNewLearners = newLearners.filter(l => !existingIds.has(l.id) && !csvImportedIds.has(l.id))
           return [...prev, ...uniqueNewLearners]
         })
       }
@@ -202,7 +210,7 @@ export default function CreateTeamDialog({ open, onOpenChange, team }: CreateTea
       // Clear searching state when data arrives
       setIsSearching(false)
     }
-  }, [usersData, currentPage, selectedLearners])
+  }, [usersData, currentPage, selectedLearners, csvImportedUsers, csvImportedIds])
 
   // Update courses list when new data arrives
   useEffect(() => {
@@ -329,12 +337,21 @@ export default function CreateTeamDialog({ open, onOpenChange, team }: CreateTea
       setSelectedLearners(new Set())
       setSelectedCourses(new Set())
       setSelectedFacilitators(new Set())
+      // Reset CSV import state
+      setCsvNotFound([])
+      setShowCsvResults(false)
+      setCsvImportedUsers([])
+      setCsvImportedIds(new Set())
     } else if (!isEditMode) {
       // Reset form when opening in create mode
       setFormData({ teamName: "", description: "" })
       setSelectedLearners(new Set())
       setSelectedCourses(new Set())
       setSelectedFacilitators(new Set())
+      setCsvNotFound([])
+      setShowCsvResults(false)
+      setCsvImportedUsers([])
+      setCsvImportedIds(new Set())
     }
   }, [open, isEditMode])
 
@@ -438,6 +455,103 @@ export default function CreateTeamDialog({ open, onOpenChange, team }: CreateTea
     if (scrollPercentage > 0.8 && hasMoreFacilitators && !isFetchingFacilitators) {
       setCurrentFacilitatorPage(prev => prev + 1)
     }
+  }
+
+  // Handle CSV file import
+  const handleCsvImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    // Validate file type
+    if (!file.name.toLowerCase().endsWith('.csv')) {
+      toast({
+        title: "Invalid File",
+        description: "Please upload a CSV file",
+        variant: "destructive"
+      })
+      return
+    }
+
+    try {
+      const formData = new FormData()
+      formData.append('csv_file', file)
+
+      const result = await filterUsersByCsv(formData).unwrap()
+
+      if (result.success) {
+        // Auto-select the found users (ensure IDs are numbers)
+        const foundUserIds = result.users.map(user => Number(user.ID))
+        setSelectedLearners(prev => {
+          const newSet = new Set(prev)
+          foundUserIds.forEach(id => newSet.add(id))
+          return newSet
+        })
+
+        // Create learner objects from CSV results
+        const newLearners = result.users.map(user => ({
+          id: Number(user.ID),
+          name: user.display_name,
+          email: user.user_email,
+          initials: getInitials(user.display_name),
+          selected: true
+        }))
+
+        // Store CSV-imported users separately to keep them at top
+        setCsvImportedUsers(prev => {
+          const existingIds = new Set(prev.map(l => l.id))
+          const uniqueNewLearners = newLearners.filter(l => !existingIds.has(l.id))
+          return [...prev, ...uniqueNewLearners]
+        })
+
+        // Update the set of CSV-imported IDs
+        setCsvImportedIds(prev => {
+          const newSet = new Set(prev)
+          foundUserIds.forEach(id => newSet.add(id))
+          return newSet
+        })
+
+        // Update allLearners - put CSV users at top, filter out duplicates from existing list
+        setAllLearners(prev => {
+          // Remove any existing entries that are now CSV-imported
+          const filteredPrev = prev.filter(l => !foundUserIds.includes(l.id))
+          // Get all CSV users (existing + new)
+          const allCsvUsers = [...newLearners]
+          const existingCsvIds = new Set(allCsvUsers.map(l => l.id))
+          // Add any previously imported CSV users that aren't in the new batch
+          csvImportedUsers.forEach(u => {
+            if (!existingCsvIds.has(u.id)) {
+              allCsvUsers.push({ ...u, selected: u.selected ?? false })
+            }
+          })
+          return [...allCsvUsers, ...filteredPrev.filter(l => !csvImportedIds.has(l.id))]
+        })
+
+        // Store not found users
+        setCsvNotFound(result.not_found)
+        setShowCsvResults(true)
+
+        // Show success toast
+        toast({
+          title: "CSV Imported",
+          description: `${result.total_found} learner(s) found and selected${result.total_not_found > 0 ? `, ${result.total_not_found} not found` : ''}`,
+        })
+      } else {
+        toast({
+          title: "Import Failed",
+          description: result.message || "Failed to process CSV file",
+          variant: "destructive"
+        })
+      }
+    } catch (error: any) {
+      toast({
+        title: "Import Error",
+        description: error?.data?.message || "Failed to import CSV file",
+        variant: "destructive"
+      })
+    }
+
+    // Reset the file input
+    e.target.value = ''
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -978,15 +1092,45 @@ export default function CreateTeamDialog({ open, onOpenChange, team }: CreateTea
 
             {/* Selection Info and Import */}
             <div className="flex items-center justify-between pt-6 mt-4">
-              <span className="text-sm text-gray-600">Selected: {selectedCount}</span>
-              <Button
-                type="button"
-                variant="outline"
-                className="gap-2 h-10 px-4 text-green-600 border-green-500 hover:bg-green-50 bg-white"
-              >
-                <Upload className="w-4 h-4" />
-                Import CSV
-              </Button>
+              <div className="flex flex-col">
+                <span className="text-sm text-gray-600">Selected: {selectedCount}</span>
+                {showCsvResults && csvNotFound.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setShowCsvResults(false)}
+                    className="text-xs text-amber-600 hover:text-amber-700 text-left mt-1"
+                  >
+                    {csvNotFound.length} email(s) not found in system
+                  </button>
+                )}
+              </div>
+              <div className="relative">
+                <input
+                  type="file"
+                  accept=".csv"
+                  onChange={handleCsvImport}
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  disabled={isFilteringCsv || isLoadingTeamDetails}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="gap-2 h-10 px-4 text-green-600 border-green-500 hover:bg-green-50 bg-white"
+                  disabled={isFilteringCsv || isLoadingTeamDetails}
+                >
+                  {isFilteringCsv ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Importing...
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="w-4 h-4" />
+                      Import CSV
+                    </>
+                  )}
+                </Button>
+              </div>
             </div>
           </div>
         </div>

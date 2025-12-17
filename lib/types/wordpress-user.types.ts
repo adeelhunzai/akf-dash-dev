@@ -243,3 +243,34 @@ export interface LearnerDashboardResponse {
     achievements: LearnerDashboardAchievement[];
   };
 }
+
+/**
+ * Filter Users by CSV Response
+ * From POST /custom-api/v1/users/filter-by-csv endpoint
+ */
+export interface CsvFilteredUser {
+  ID: number;
+  user_login: string;
+  user_email: string;
+  display_name: string;
+  roles: string[];
+  avatar_url: string;
+  teams: string[];
+  team_count: number;
+  courses_enrolled: number;
+}
+
+export interface CsvNotFoundUser {
+  email: string;
+  name: string;
+}
+
+export interface FilterUsersByCsvResponse {
+  success: boolean;
+  message: string;
+  total_csv_rows: number;
+  total_found: number;
+  total_not_found: number;
+  users: CsvFilteredUser[];
+  not_found: CsvNotFoundUser[];
+}

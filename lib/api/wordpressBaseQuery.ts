@@ -16,8 +16,8 @@ export const createWordpressBaseQuery = (authMode: AuthMode) =>
     prepareHeaders: (headers, api) => {
       const state = api.getState() as RootState;
 
-      // Set Content-Type for POST requests
-      headers.set('Content-Type', 'application/json');
+      // Note: Don't set Content-Type here - let fetchBaseQuery handle it
+      // For FormData requests, the browser needs to set the boundary automatically
 
       if (authMode === 'token') {
         const token = state.auth?.token;

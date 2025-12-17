@@ -1,6 +1,6 @@
 import { createApi } from '@reduxjs/toolkit/query/react';
 import { createWordpressBaseQuery } from '@/lib/api/wordpressBaseQuery';
-import { WordPressUserResponse, UsersCountResponse, CourseCompletionRateResponse, TopCoursesResponse, UsersListResponse, UserDetailsResponse, CreateUserRequest, CreateUserResponse, UpdateUserRequest, UpdateUserResponse, DeleteUserRequest, DeleteUserResponse, LearnerDashboardResponse } from '@/lib/types/wordpress-user.types';
+import { WordPressUserResponse, UsersCountResponse, CourseCompletionRateResponse, TopCoursesResponse, UsersListResponse, UserDetailsResponse, CreateUserRequest, CreateUserResponse, UpdateUserRequest, UpdateUserResponse, DeleteUserRequest, DeleteUserResponse, LearnerDashboardResponse, FilterUsersByCsvResponse } from '@/lib/types/wordpress-user.types';
 
 export const usersApi = createApi({
   reducerPath: 'usersApi',
@@ -105,7 +105,27 @@ export const usersApi = createApi({
       // Keep cached data for 5 minutes to prevent unnecessary refetches
       keepUnusedDataFor: 300,
     }),
+    filterUsersByCsv: build.mutation<FilterUsersByCsvResponse, FormData>({
+      query: (formData) => ({
+        url: '/custom-api/v1/users/filter-by-csv',
+        method: 'POST',
+        body: formData,
+        formData: true,
+      }),
+    }),
   }),
 });
 
-export const { useGetCurrentUserQuery, useGetUsersCountQuery, useGetCourseCompletionRateQuery, useGetTopCoursesQuery, useGetUsersListQuery, useGetUserDetailsQuery, useUpdateUserMutation, useCreateUserMutation, useDeleteUserMutation, useGetLearnerDashboardQuery } = usersApi;
+export const { 
+  useGetCurrentUserQuery, 
+  useGetUsersCountQuery, 
+  useGetCourseCompletionRateQuery, 
+  useGetTopCoursesQuery, 
+  useGetUsersListQuery, 
+  useGetUserDetailsQuery, 
+  useUpdateUserMutation, 
+  useCreateUserMutation, 
+  useDeleteUserMutation, 
+  useGetLearnerDashboardQuery, 
+  useFilterUsersByCsvMutation 
+} = usersApi;

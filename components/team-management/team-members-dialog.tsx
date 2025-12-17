@@ -31,15 +31,12 @@ const getRoleBadgeColor = (role: string) => {
   }
 }
 
-const getStatusColor = (status: string) => {
-  return status === "Active" ? "text-green-600" : "text-red-600"
-}
 
 export default function TeamMembersDialog({ open, onOpenChange, teamId, teamName }: TeamMembersDialogProps) {
   const [searchQuery, setSearchQuery] = useState("")
   const [removingUserId, setRemovingUserId] = useState<number | null>(null)
   const { toast } = useToast()
-  const { data, isLoading, isError } = useGetTeamMembersQuery(teamId, { skip: !open })
+  const { data, isLoading, isFetching, isError } = useGetTeamMembersQuery(teamId, { skip: !open })
   const [removeMember] = useRemoveMemberFromTeamMutation()
 
   const members = data?.members || []
@@ -87,7 +84,7 @@ export default function TeamMembersDialog({ open, onOpenChange, teamId, teamName
           <DialogTitle className="text-xl font-bold">
             {teamName} - Team Member
             <p className="text-sm font-normal text-muted-foreground mt-1">
-              Total: {isLoading ? "..." : members.length} members
+              Total: {isFetching ? "..." : members.length} members
             </p>
           </DialogTitle>
         </DialogHeader>
@@ -101,14 +98,14 @@ export default function TeamMembersDialog({ open, onOpenChange, teamId, teamName
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10"
-              disabled={isLoading}
+              disabled={isFetching}
             />
           </div>
         </div>
 
         {/* Members Table */}
         <div className="overflow-x-auto flex-1">
-          {isLoading ? (
+          {isFetching ? (
             <div className="p-8">
               <div className="space-y-4">
                 {Array.from({ length: 5 }).map((_, index) => (
@@ -141,12 +138,6 @@ export default function TeamMembersDialog({ open, onOpenChange, teamId, teamName
                   </th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wide">
                     Join Date
-                  </th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                    Last Activity
-                  </th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                    Status
                   </th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wide">
                     Actions
@@ -182,14 +173,6 @@ export default function TeamMembersDialog({ open, onOpenChange, teamId, teamName
                       {/* Join Date Column */}
                       <td className="px-6 py-4 text-sm text-foreground">{member.joinDate}</td>
 
-                      {/* Last Activity Column */}
-                      <td className="px-6 py-4 text-sm text-foreground">{member.lastActivity}</td>
-
-                      {/* Status Column */}
-                      <td className="px-6 py-4">
-                        <span className={`text-sm font-medium ${getStatusColor(member.status)}`}>{member.status}</span>
-                      </td>
-
                       {/* Actions Column */}
                       <td className="px-6 py-4">
                         <Button 
@@ -211,7 +194,7 @@ export default function TeamMembersDialog({ open, onOpenChange, teamId, teamName
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={7} className="px-6 py-12 text-center text-muted-foreground">
+                    <td colSpan={5} className="px-6 py-12 text-center text-muted-foreground">
                       No members found matching your search.
                     </td>
                   </tr>
