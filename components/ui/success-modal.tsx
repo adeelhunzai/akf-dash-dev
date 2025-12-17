@@ -7,7 +7,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import { VisuallyHidden } from "@radix-ui/react-visually-hidden"
 
 interface SuccessModalProps {
   open: boolean
@@ -38,9 +37,7 @@ export function SuccessModal({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-sm text-center">
-        <VisuallyHidden>
-          <DialogTitle>{title}</DialogTitle>
-        </VisuallyHidden>
+        <DialogTitle className="sr-only">{title}</DialogTitle>
         {/* Success Icon */}
         <div className="flex justify-center pt-4 pb-2">
           <div className="flex items-center justify-center w-16 h-16 rounded-full" style={{ backgroundColor: '#e0f3e8' }}>

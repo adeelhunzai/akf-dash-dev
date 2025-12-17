@@ -136,6 +136,7 @@ export default function CreateTeamDialog({ open, onOpenChange, team }: CreateTea
   const isLoading = isCreating || isUpdating
   const [showSuccessModal, setShowSuccessModal] = useState(false)
   const [successTeamName, setSuccessTeamName] = useState("")
+  const [successModalType, setSuccessModalType] = useState<"create" | "update">("create")
 
   // Debounce search query - wait 500ms after user stops typing
   useEffect(() => {
@@ -472,7 +473,8 @@ export default function CreateTeamDialog({ open, onOpenChange, team }: CreateTea
     try {
       if (isEditMode && team?.id) {
         // Update existing team
-        const result = await updateTeam({
+        const teamNameToSave = formData.teamName
+        await updateTeam({
           teamId: team.id,
           name: formData.teamName,
           course_ids: Array.from(selectedCourses),
@@ -481,10 +483,23 @@ export default function CreateTeamDialog({ open, onOpenChange, team }: CreateTea
           facilitator_ids: Array.from(selectedFacilitators)
         }).unwrap()
 
-        toast({
-          title: "Success",
-          description: result.message || "Team updated successfully"
-        })
+        setSuccessTeamName(teamNameToSave)
+        setSuccessModalType("update")
+        // Reset form
+        setFormData({ teamName: "", description: "" })
+        setSelectedLearners(new Set())
+        setSelectedCourses(new Set())
+        setSelectedFacilitators(new Set())
+        setSearchQuery("")
+        setCourseSearchQuery("")
+        setCurrentCoursePage(1)
+        setAllCourses([])
+        setFacilitatorSearchQuery("")
+        setCurrentFacilitatorPage(1)
+        setAllFacilitators([])
+        onOpenChange(false)
+        setShowSuccessModal(true)
+        return
       } else {
         // Create new team
         const teamNameToSave = formData.teamName
@@ -497,6 +512,7 @@ export default function CreateTeamDialog({ open, onOpenChange, team }: CreateTea
         }).unwrap()
 
         setSuccessTeamName(teamNameToSave)
+        setSuccessModalType("create")
         // Reset form
         setFormData({ teamName: "", description: "" })
         setSelectedLearners(new Set())
@@ -980,8 +996,8 @@ export default function CreateTeamDialog({ open, onOpenChange, team }: CreateTea
     <SuccessModal
       open={showSuccessModal}
       onOpenChange={setShowSuccessModal}
-      title="Team Created"
-      message="The team has been created successfully."
+      title={successModalType === "update" ? "Team Updated" : "Team Created"}
+      message={successModalType === "update" ? "The team has been updated successfully." : "The team has been created successfully."}
       userName={successTeamName}
       buttonText="Done"
     />
