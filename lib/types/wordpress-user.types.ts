@@ -274,3 +274,171 @@ export interface FilterUsersByCsvResponse {
   users: CsvFilteredUser[];
   not_found: CsvNotFoundUser[];
 }
+
+/**
+ * Learner Achievements API Response
+ * From /custom-api/v1/learner-achievements endpoint
+ */
+export interface AchievementStat {
+  label: string;
+  value: string;
+}
+
+export interface NextGoal {
+  title: string;
+  description: string;
+  progress: number;
+  total: number;
+}
+
+export interface LatestGoal {
+  id: number;
+  title: string;
+  description: string;
+  icon: string;
+  color: string;
+  status: string;
+}
+
+export interface WizardBadge {
+  id: number;
+  title: string;
+  description: string;
+  icon: string;
+  color: string;
+  progress: number;
+  required: number;
+  unlocked: boolean;
+}
+
+export interface Achievement {
+  id: number;
+  title: string;
+  description: string;
+  date: string;
+  icon: string;
+  color: string;
+  category: string;
+  categoryColor: string;
+}
+
+export interface LearnerAchievementsResponse {
+  success: boolean;
+  data: {
+    stats: AchievementStat[];
+    next_goal: NextGoal;
+    latest_goals: LatestGoal[];
+    wizard_badges: WizardBadge[];
+    achievements: Achievement[];
+  };
+}
+
+/**
+ * Learner Certificates API Response
+ * From /custom-api/v1/learner-certificates endpoint
+ */
+export interface Certificate {
+  id: string;
+  certificate_id: number;
+  course_id: number;
+  title: string;
+  certificate_code: string;
+  instructor: string;
+  score: string;
+  issue_date: string;
+  color: string;
+  view_url: string;
+  download_url: string;
+}
+
+export interface LearnerCertificatesResponse {
+  success: boolean;
+  data: {
+    certificates: Certificate[];
+    total: number;
+  };
+}
+
+export interface CertificateDetailsResponse {
+  success: boolean;
+  data: Certificate;
+}
+
+export interface CertificateDownloadResponse {
+  success: boolean;
+  data: {
+    download_url: string;
+    filename: string;
+  };
+}
+
+export interface CertificateViewResponse {
+  success: boolean;
+  data: {
+    certificate_url: string;
+    title: string;
+  };
+}
+
+/**
+ * Learner Settings API Types
+ * From /custom-api/v1/learner-settings endpoint
+ */
+export interface PersonalInfo {
+  full_name: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone: string;
+  department: string;
+  avatar_url: string;
+}
+
+export interface LearningPreferences {
+  preferred_language: string;
+  learning_goal: string;
+}
+
+export interface NotificationSettings {
+  course_reminders: boolean;
+  achievement_notifications: boolean;
+  weekly_report: boolean;
+}
+
+export interface SelectOption {
+  value: string;
+  label: string;
+}
+
+export interface AvailableOptions {
+  departments: SelectOption[];
+  languages: SelectOption[];
+  learning_goals: SelectOption[];
+}
+
+export interface LearnerSettingsResponse {
+  success: boolean;
+  data: {
+    personal_info: PersonalInfo;
+    learning_preferences: LearningPreferences;
+    notifications: NotificationSettings;
+    available_options: AvailableOptions;
+  };
+}
+
+export interface UpdateLearnerSettingsRequest {
+  personal_info?: Partial<Omit<PersonalInfo, 'avatar_url'>>;
+  learning_preferences?: Partial<LearningPreferences>;
+  notifications?: Partial<NotificationSettings>;
+}
+
+export interface UpdateLearnerSettingsResponse {
+  success: boolean;
+  message: string;
+  updated_fields: string[];
+  data: {
+    personal_info: PersonalInfo;
+    learning_preferences: LearningPreferences;
+    notifications: NotificationSettings;
+  };
+}

@@ -3,129 +3,60 @@
 import { Card, CardContent } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { Badge } from "@/components/ui/badge"
-import { Trophy, Check, User, Wrench, Globe, Users, BookOpen, Heart, Zap, Star, Calendar as CalendarIcon } from "lucide-react"
+import { Skeleton } from "@/components/ui/skeleton"
+import { Trophy, Check, User, Wrench, Globe, Users, BookOpen, Heart, Zap, Star, Calendar as CalendarIcon, Award, GraduationCap } from "lucide-react"
+import type { LucideProps } from "lucide-react"
+import { useGetLearnerAchievementsQuery } from "@/lib/store/api/userApi"
+import { ComponentType } from "react"
 
-const stats = [
-  { label: "Total Badges", value: "12" },
-  { label: "This Month", value: "8" },
-  { label: "Completion Rate", value: "95%" },
-]
+// Icon component type
+type IconComponent = ComponentType<LucideProps>
 
-const nextGoal = {
-  title: "Your next goal!",
-  description: "Complete 5 more courses to unlock the Expert badge",
-  progress: 3,
-  total: 5,
+// Map icon strings from API to Lucide components
+const iconMap: Record<string, IconComponent> = {
+  Trophy,
+  Check,
+  User,
+  Wrench,
+  Globe,
+  Users,
+  BookOpen,
+  Heart,
+  Zap,
+  Star,
+  Calendar: CalendarIcon,
+  Award,
+  GraduationCap,
 }
 
-const latestGoals = [
-  {
-    id: 1,
-    title: "Veteran",
-    description: "Logged in 10 times",
-    icon: Check,
-    color: "bg-green-600",
-    status: "Completed",
-  },
-  {
-    id: 2,
-    title: "Rookie",
-    description: "First time logged in",
-    icon: User,
-    color: "bg-blue-600",
-    status: "Completed",
-  },
-]
-
-const wizardBadges = [
-  {
-    id: 1,
-    title: "Seed Wizard",
-    description: "Completed 3 courses on Sustainable Food Security",
-    icon: Trophy,
-    color: "bg-yellow-500",
-  },
-  {
-    id: 2,
-    title: "Builder Wizard",
-    description: "Completed 3 courses on Community Strengthening",
-    icon: Wrench,
-    color: "bg-purple-400",
-  },
-  {
-    id: 3,
-    title: "Earth Wizard",
-    description: "Completed 3 courses on Climate Resilience",
-    icon: Globe,
-    color: "bg-blue-600",
-  },
-  {
-    id: 4,
-    title: "Youth Wizard",
-    description: "Completed 3 courses on Early Childhood Development",
-    icon: Users,
-    color: "bg-cyan-400",
-  },
-  {
-    id: 5,
-    title: "Knowledge Wizard",
-    description: "Completed 3 courses on Education",
-    icon: BookOpen,
-    color: "bg-orange-500",
-  },
-  {
-    id: 6,
-    title: "Life Wizard",
-    description: "Completed 3 courses on Health and Nutrition",
-    icon: Heart,
-    color: "bg-pink-600",
-  },
-]
-
-const achievements = [
-  {
-    id: 1,
-    title: "First Course Completed",
-    description: "Completed your first course successfully",
-    date: "2024-10-22",
-    icon: Trophy,
-    color: "bg-blue-600",
-    category: "Milestone",
-    categoryColor: "bg-blue-100 text-blue-700",
-  },
-  {
-    id: 2,
-    title: "Quick Learner",
-    description: "Completed a course in under 2 weeks",
-    date: "2024-11-15",
-    icon: Zap,
-    color: "bg-cyan-400",
-    category: "Speed",
-    categoryColor: "bg-cyan-100 text-cyan-700",
-  },
-  {
-    id: 3,
-    title: "High Achiever",
-    description: "Scored 90% or higher on 3 courses",
-    date: "2024-12-08",
-    icon: Star,
-    color: "bg-orange-500",
-    category: "Performance",
-    categoryColor: "bg-orange-100 text-orange-700",
-  },
-  {
-    id: 4,
-    title: "Consistent Learner",
-    description: "Logged in for 30 consecutive days",
-    date: "2024-12-01",
-    icon: CalendarIcon,
-    color: "bg-pink-600",
-    category: "Consistency",
-    categoryColor: "bg-pink-100 text-pink-700",
-  },
-]
+// Get icon component from string name
+const getIcon = (iconName: string): IconComponent => {
+  return iconMap[iconName] || Trophy
+}
 
 export default function AchievementsContent() {
+  const { data, isLoading, error } = useGetLearnerAchievementsQuery()
+
+  const stats = data?.data?.stats || []
+  const nextGoal = data?.data?.next_goal || { title: "", description: "", progress: 0, total: 1 }
+  const latestGoals = data?.data?.latest_goals || []
+  const wizardBadges = data?.data?.wizard_badges || []
+  const achievements = data?.data?.achievements || []
+
+  if (isLoading) {
+    return <AchievementsLoadingSkeleton />
+  }
+
+  if (error) {
+    return (
+      <div className="p-4 lg:p-6">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
+          <p className="text-red-600">Failed to load achievements. Please try again later.</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="p-4 lg:p-6 space-y-6">
       {/* Hero Section */}
@@ -177,79 +108,203 @@ export default function AchievementsContent() {
       </Card>
 
       {/* Latest Goals */}
-      <div className="mb-6">
-        <h2 className="text-xl font-bold mb-4">My Latest Goals!</h2>
-        <div className="space-y-3">
-          {latestGoals.map((goal) => {
-            const Icon = goal.icon
-            return (
-              <Card key={goal.id} className={goal.id === 1 ? "bg-green-50 border-green-200" : "bg-blue-50 border-blue-200"}>
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-10 h-10 ${goal.color} rounded-lg flex items-center justify-center`}>
-                        <Icon className="w-5 h-5 text-white" />
+      {latestGoals.length > 0 && (
+        <div className="mb-6">
+          <h2 className="text-xl font-bold mb-4">My Latest Goals!</h2>
+          <div className="space-y-3">
+            {latestGoals.map((goal, index) => {
+              const Icon = getIcon(goal.icon)
+              return (
+                <Card key={goal.id} className={index === 0 ? "bg-green-50 border-green-200" : "bg-blue-50 border-blue-200"}>
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-10 h-10 ${goal.color} rounded-lg flex items-center justify-center`}>
+                          <Icon className="w-5 h-5 text-white" />
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-sm">{goal.title}</h3>
+                          <p className="text-xs text-muted-foreground">{goal.description}</p>
+                        </div>
                       </div>
-                      <div>
-                        <h3 className="font-semibold text-sm">{goal.title}</h3>
-                        <p className="text-xs text-muted-foreground">{goal.description}</p>
-                      </div>
+                      <Badge className={index === 0 ? "bg-green-100 text-green-700 hover:bg-green-100" : "bg-blue-100 text-blue-700 hover:bg-blue-100"}>
+                        {goal.status}
+                      </Badge>
                     </div>
-                    <Badge className={goal.id === 1 ? "bg-green-100 text-green-700 hover:bg-green-100" : "bg-blue-100 text-blue-700 hover:bg-blue-100"}>
-                      {goal.status}
-                    </Badge>
-                  </div>
-                </CardContent>
-              </Card>
-            )
-          })}
+                  </CardContent>
+                </Card>
+              )
+            })}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Wizard Badges */}
-      <div className="mb-6">
-        <h2 className="text-xl font-bold mb-4">Achievements</h2>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-          {wizardBadges.map((badge) => {
-            const Icon = badge.icon
-            return (
-              <div key={badge.id} className="text-center">
-                <div className={`w-20 h-20 ${badge.color} rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-lg`}>
-                  <Icon className="w-10 h-10 text-white" />
+      {wizardBadges.length > 0 && (
+        <div className="mb-6">
+          <h2 className="text-xl font-bold mb-4">Wizard Badges</h2>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            {wizardBadges.map((badge) => {
+              const Icon = getIcon(badge.icon)
+              return (
+                <div key={badge.id} className={`text-center ${!badge.unlocked ? 'opacity-50' : ''}`}>
+                  <div className={`w-20 h-20 ${badge.color} rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-lg relative`}>
+                    <Icon className="w-10 h-10 text-white" />
+                    {badge.unlocked && (
+                      <div className="absolute -top-1 -right-1 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+                        <Check className="w-4 h-4 text-white" />
+                      </div>
+                    )}
+                  </div>
+                  <h3 className="font-semibold text-sm mb-1">{badge.title}</h3>
+                  <p className="text-xs text-muted-foreground leading-tight">{badge.description}</p>
+                  {!badge.unlocked && (
+                    <p className="text-xs text-orange-600 mt-1">{badge.progress}/{badge.required} courses</p>
+                  )}
                 </div>
-                <h3 className="font-semibold text-sm mb-1">{badge.title}</h3>
-                <p className="text-xs text-muted-foreground leading-tight">{badge.description}</p>
-              </div>
-            )
-          })}
+              )
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Achievement Cards */}
+      {achievements.length > 0 && (
+        <div>
+          <h2 className="text-xl font-bold mb-4">Achievements</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {achievements.map((achievement) => {
+              const Icon = getIcon(achievement.icon)
+              return (
+                <Card key={achievement.id} className="hover:shadow-md transition-shadow">
+                  <CardContent className="p-5 text-center">
+                    <div className={`w-16 h-16 ${achievement.color} rounded-2xl flex items-center justify-center mx-auto mb-4`}>
+                      <Icon className="w-8 h-8 text-white" />
+                    </div>
+                    <h3 className="font-semibold text-base mb-2">{achievement.title}</h3>
+                    <p className="text-xs text-muted-foreground mb-3 min-h-[2.5rem]">{achievement.description}</p>
+                    <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground mb-3">
+                      <CalendarIcon className="w-3 h-3" />
+                      <span>{achievement.date}</span>
+                    </div>
+                    <Badge className={achievement.categoryColor}>
+                      {achievement.category}
+                    </Badge>
+                  </CardContent>
+                </Card>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Empty State */}
+      {achievements.length === 0 && latestGoals.length === 0 && (
+        <div className="text-center py-12">
+          <Trophy className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-gray-600 mb-2">No achievements yet</h3>
+          <p className="text-sm text-muted-foreground">Complete courses to earn badges and achievements!</p>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// Loading Skeleton Component
+function AchievementsLoadingSkeleton() {
+  return (
+    <div className="p-4 lg:p-6 space-y-6">
+      {/* Hero Section Skeleton */}
+      <div className="bg-gradient-to-r from-blue-400 to-blue-500 rounded-2xl p-8 mb-6">
+        <div className="flex items-center gap-3 mb-6">
+          <Skeleton className="w-12 h-12 rounded-xl bg-white/20" />
+          <div>
+            <Skeleton className="h-7 w-40 bg-white/20 mb-2" />
+            <Skeleton className="h-4 w-48 bg-white/20" />
+          </div>
+        </div>
+        <div className="grid grid-cols-3 gap-4">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="bg-white/10 backdrop-blur-sm rounded-xl p-4 text-center">
+              <Skeleton className="h-9 w-16 mx-auto mb-2 bg-white/20" />
+              <Skeleton className="h-4 w-20 mx-auto bg-white/20" />
+            </div>
+          ))}
         </div>
       </div>
 
-      {/* Achievement Cards */}
+      {/* Next Goal Skeleton */}
+      <Card className="mb-6 bg-gradient-to-r from-yellow-50 to-orange-50 border-yellow-200">
+        <CardContent className="p-5">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Skeleton className="w-12 h-12 rounded-xl" />
+              <div>
+                <Skeleton className="h-5 w-32 mb-2" />
+                <Skeleton className="h-4 w-64" />
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <Skeleton className="w-24 h-2" />
+              <Skeleton className="h-6 w-10" />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Latest Goals Skeleton */}
+      <div className="mb-6">
+        <Skeleton className="h-7 w-40 mb-4" />
+        <div className="space-y-3">
+          {[1, 2].map((i) => (
+            <Card key={i}>
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Skeleton className="w-10 h-10 rounded-lg" />
+                    <div>
+                      <Skeleton className="h-4 w-24 mb-2" />
+                      <Skeleton className="h-3 w-32" />
+                    </div>
+                  </div>
+                  <Skeleton className="h-6 w-20 rounded-full" />
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+
+      {/* Wizard Badges Skeleton */}
+      <div className="mb-6">
+        <Skeleton className="h-7 w-36 mb-4" />
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <div key={i} className="text-center">
+              <Skeleton className="w-20 h-20 rounded-2xl mx-auto mb-3" />
+              <Skeleton className="h-4 w-24 mx-auto mb-2" />
+              <Skeleton className="h-3 w-full" />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Achievement Cards Skeleton */}
       <div>
-        <h2 className="text-xl font-bold mb-4">Achievements</h2>
+        <Skeleton className="h-7 w-32 mb-4" />
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {achievements.map((achievement) => {
-            const Icon = achievement.icon
-            return (
-              <Card key={achievement.id} className="hover:shadow-md transition-shadow">
-                <CardContent className="p-5 text-center">
-                  <div className={`w-16 h-16 ${achievement.color} rounded-2xl flex items-center justify-center mx-auto mb-4`}>
-                    <Icon className="w-8 h-8 text-white" />
-                  </div>
-                  <h3 className="font-semibold text-base mb-2">{achievement.title}</h3>
-                  <p className="text-xs text-muted-foreground mb-3 min-h-[2.5rem]">{achievement.description}</p>
-                  <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground mb-3">
-                    <CalendarIcon className="w-3 h-3" />
-                    <span>{achievement.date}</span>
-                  </div>
-                  <Badge className={achievement.categoryColor}>
-                    {achievement.category}
-                  </Badge>
-                </CardContent>
-              </Card>
-            )
-          })}
+          {[1, 2, 3, 4].map((i) => (
+            <Card key={i}>
+              <CardContent className="p-5 text-center">
+                <Skeleton className="w-16 h-16 rounded-2xl mx-auto mb-4" />
+                <Skeleton className="h-5 w-32 mx-auto mb-2" />
+                <Skeleton className="h-3 w-full mb-1" />
+                <Skeleton className="h-3 w-3/4 mx-auto mb-3" />
+                <Skeleton className="h-3 w-20 mx-auto mb-3" />
+                <Skeleton className="h-6 w-24 mx-auto rounded-full" />
+              </CardContent>
+            </Card>
+          ))}
         </div>
       </div>
     </div>

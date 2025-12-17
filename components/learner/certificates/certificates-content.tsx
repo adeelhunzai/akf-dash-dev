@@ -2,49 +2,105 @@
 
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { Skeleton } from "@/components/ui/skeleton"
 import { Award, Download, Eye } from "lucide-react"
-
-interface Certificate {
-  id: number
-  title: string
-  certificateId: string
-  instructor: string
-  score: string
-  issueDate: string
-  color: string
-}
-
-const certificates: Certificate[] = [
-  {
-    id: 1,
-    title: "Digital Marketing Fundamentals",
-    certificateId: "Certificate ID: DM-2024-001",
-    instructor: "Michael Chen",
-    score: "95%",
-    issueDate: "2024-12-08",
-    color: "bg-yellow-500",
-  },
-  {
-    id: 2,
-    title: "Customer Service Excellence",
-    certificateId: "Certificate ID: CS-2024-002",
-    instructor: "Lisa Wang",
-    score: "88%",
-    issueDate: "2024-11-15",
-    color: "bg-purple-500",
-  },
-  {
-    id: 3,
-    title: "Time Management Skills",
-    certificateId: "Certificate ID: TM-2024-003",
-    instructor: "John Smith",
-    score: "92%",
-    issueDate: "2024-10-22",
-    color: "bg-blue-600",
-  },
-]
+import { useGetLearnerCertificatesQuery } from "@/lib/store/api/userApi"
+import { Certificate } from "@/lib/types/wordpress-user.types"
+import { useState } from "react"
+import { useToast } from "@/hooks/use-toast"
+import { getTokenCookie } from "@/lib/utils/cookies"
 
 export default function CertificatesContent() {
+  const { data, isLoading, error } = useGetLearnerCertificatesQuery()
+  const [loadingCertId, setLoadingCertId] = useState<string | null>(null)
+  const { toast } = useToast()
+
+  const certificates = data?.data?.certificates || []
+
+  // Fetch certificate URL from API and open it
+  const fetchCertificateUrl = async (certificate: Certificate, action: 'view' | 'download') => {
+    const token = getTokenCookie()
+    if (!token) {
+      toast({
+        title: "Authentication required",
+        description: "Please log in to access certificates.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    const endpoint = action === 'view' ? 'view' : 'download'
+    const apiUrl = process.env.NEXT_PUBLIC_WORDPRESS_API_URL || 'https://akfhub-dev.inspirartweb.com/wp-json'
+    const url = `${apiUrl}/custom-api/v1/learner-certificates/${certificate.id}/${endpoint}`
+
+    try {
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null)
+        throw new Error(errorData?.message || 'Failed to fetch certificate')
+      }
+
+      const jsonData = await response.json()
+      
+      if (jsonData.success) {
+        // Get the signed URL from response
+        const certUrl = action === 'view' 
+          ? jsonData.data?.certificate_url 
+          : jsonData.data?.download_url
+        
+        if (certUrl) {
+          // Open the signed URL in a new tab
+          window.open(certUrl, '_blank')
+        } else {
+          throw new Error('Certificate URL not found in response')
+        }
+      } else {
+        throw new Error(jsonData.message || 'Failed to generate certificate')
+      }
+    } catch (err) {
+      console.error(`Failed to ${action} certificate:`, err)
+      toast({
+        title: "Error",
+        description: err instanceof Error ? err.message : `Failed to ${action} certificate`,
+        variant: "destructive",
+      })
+    }
+  }
+
+  // Handle view certificate
+  const handleView = async (certificate: Certificate) => {
+    setLoadingCertId(certificate.id + '_view')
+    await fetchCertificateUrl(certificate, 'view')
+    setLoadingCertId(null)
+  }
+
+  // Handle download certificate
+  const handleDownload = async (certificate: Certificate) => {
+    setLoadingCertId(certificate.id + '_download')
+    await fetchCertificateUrl(certificate, 'download')
+    setLoadingCertId(null)
+  }
+
+  if (isLoading) {
+    return <CertificatesLoadingSkeleton />
+  }
+
+  if (error) {
+    return (
+      <div className="p-4 lg:p-6">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
+          <p className="text-red-600">Failed to load certificates. Please try again later.</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="p-4 lg:p-6 space-y-6">
       {/* Header */}
@@ -67,7 +123,7 @@ export default function CertificatesContent() {
 
               {/* Certificate Title */}
               <h3 className="font-semibold text-base mb-1">{certificate.title}</h3>
-              <p className="text-xs text-muted-foreground mb-4">{certificate.certificateId}</p>
+              <p className="text-xs text-muted-foreground mb-4">{certificate.certificate_code}</p>
 
               {/* Certificate Details */}
               <div className="space-y-2 mb-4">
@@ -81,7 +137,7 @@ export default function CertificatesContent() {
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Issue Date:</span>
-                  <span className="font-medium">{certificate.issueDate}</span>
+                  <span className="font-medium">{certificate.issue_date}</span>
                 </div>
               </div>
 
@@ -91,16 +147,20 @@ export default function CertificatesContent() {
                   variant="outline"
                   className="flex-1 text-sm"
                   size="sm"
+                  onClick={() => handleView(certificate)}
+                  disabled={loadingCertId === certificate.id + '_view'}
                 >
                   <Eye className="w-4 h-4 mr-1" />
-                  View
+                  {loadingCertId === certificate.id + '_view' ? 'Loading...' : 'View'}
                 </Button>
                 <Button
                   className="flex-1 bg-green-600 hover:bg-green-700 text-white text-sm"
                   size="sm"
+                  onClick={() => handleDownload(certificate)}
+                  disabled={loadingCertId === certificate.id + '_download'}
                 >
                   <Download className="w-4 h-4 mr-1" />
-                  Download
+                  {loadingCertId === certificate.id + '_download' ? 'Loading...' : 'Download'}
                 </Button>
               </div>
             </CardContent>
@@ -118,6 +178,50 @@ export default function CertificatesContent() {
           </p>
         </div>
       )}
+    </div>
+  )
+}
+
+// Loading Skeleton Component
+function CertificatesLoadingSkeleton() {
+  return (
+    <div className="p-4 lg:p-6 space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6">
+        <Skeleton className="h-8 w-40" />
+        <Skeleton className="h-10 w-28" />
+      </div>
+
+      {/* Certificates Grid Skeleton */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {[1, 2, 3].map((i) => (
+          <Card key={i}>
+            <CardContent className="p-6">
+              <Skeleton className="w-12 h-12 rounded-lg mb-4" />
+              <Skeleton className="h-5 w-3/4 mb-2" />
+              <Skeleton className="h-3 w-1/2 mb-4" />
+              <div className="space-y-2 mb-4">
+                <div className="flex justify-between">
+                  <Skeleton className="h-4 w-20" />
+                  <Skeleton className="h-4 w-24" />
+                </div>
+                <div className="flex justify-between">
+                  <Skeleton className="h-4 w-16" />
+                  <Skeleton className="h-4 w-12" />
+                </div>
+                <div className="flex justify-between">
+                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="h-4 w-20" />
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <Skeleton className="h-9 flex-1" />
+                <Skeleton className="h-9 flex-1" />
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
     </div>
   )
 }

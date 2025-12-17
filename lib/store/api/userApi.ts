@@ -1,11 +1,11 @@
 import { createApi } from '@reduxjs/toolkit/query/react';
 import { createWordpressBaseQuery } from '@/lib/api/wordpressBaseQuery';
-import { WordPressUserResponse, UsersCountResponse, CourseCompletionRateResponse, TopCoursesResponse, UsersListResponse, UserDetailsResponse, CreateUserRequest, CreateUserResponse, UpdateUserRequest, UpdateUserResponse, DeleteUserRequest, DeleteUserResponse, LearnerDashboardResponse, FilterUsersByCsvResponse } from '@/lib/types/wordpress-user.types';
+import { WordPressUserResponse, UsersCountResponse, CourseCompletionRateResponse, TopCoursesResponse, UsersListResponse, UserDetailsResponse, CreateUserRequest, CreateUserResponse, UpdateUserRequest, UpdateUserResponse, DeleteUserRequest, DeleteUserResponse, LearnerDashboardResponse, FilterUsersByCsvResponse, LearnerAchievementsResponse, LearnerCertificatesResponse, CertificateDownloadResponse, CertificateViewResponse, LearnerSettingsResponse, UpdateLearnerSettingsRequest, UpdateLearnerSettingsResponse } from '@/lib/types/wordpress-user.types';
 
 export const usersApi = createApi({
   reducerPath: 'usersApi',
   baseQuery: createWordpressBaseQuery('token'),
-  tagTypes: ['CurrentUser', 'UsersCount', 'CourseCompletionRate', 'TopCourses', 'UsersList', 'UserDetails', 'LearnerDashboard'],
+  tagTypes: ['CurrentUser', 'UsersCount', 'CourseCompletionRate', 'TopCourses', 'UsersList', 'UserDetails', 'LearnerDashboard', 'LearnerAchievements', 'LearnerCertificates', 'LearnerSettings'],
   endpoints: (build) => ({
     getCurrentUser: build.query<WordPressUserResponse, void>({
       query: () => '/wp/v2/users/me?context=edit',
@@ -105,6 +105,34 @@ export const usersApi = createApi({
       // Keep cached data for 5 minutes to prevent unnecessary refetches
       keepUnusedDataFor: 300,
     }),
+    getLearnerAchievements: build.query<LearnerAchievementsResponse, void>({
+      query: () => '/custom-api/v1/learner-achievements',
+      providesTags: ['LearnerAchievements'],
+      keepUnusedDataFor: 300,
+    }),
+    getLearnerCertificates: build.query<LearnerCertificatesResponse, void>({
+      query: () => '/custom-api/v1/learner-certificates',
+      providesTags: ['LearnerCertificates'],
+      keepUnusedDataFor: 300,
+    }),
+    getCertificateDownload: build.query<CertificateDownloadResponse, string>({
+      query: (certificateId) => `/custom-api/v1/learner-certificates/${certificateId}/download`,
+    }),
+    getCertificateView: build.query<CertificateViewResponse, string>({
+      query: (certificateId) => `/custom-api/v1/learner-certificates/${certificateId}/view`,
+    }),
+    getLearnerSettings: build.query<LearnerSettingsResponse, void>({
+      query: () => '/custom-api/v1/learner-settings',
+      providesTags: ['LearnerSettings'],
+    }),
+    updateLearnerSettings: build.mutation<UpdateLearnerSettingsResponse, UpdateLearnerSettingsRequest>({
+      query: (body) => ({
+        url: '/custom-api/v1/learner-settings',
+        method: 'PUT',
+        body,
+      }),
+      invalidatesTags: ['LearnerSettings', 'CurrentUser'],
+    }),
     filterUsersByCsv: build.mutation<FilterUsersByCsvResponse, FormData>({
       query: (formData) => ({
         url: '/custom-api/v1/users/filter-by-csv',
@@ -127,5 +155,9 @@ export const {
   useCreateUserMutation, 
   useDeleteUserMutation, 
   useGetLearnerDashboardQuery, 
+  useGetLearnerAchievementsQuery,
+  useGetLearnerCertificatesQuery,
+  useGetLearnerSettingsQuery,
+  useUpdateLearnerSettingsMutation,
   useFilterUsersByCsvMutation 
 } = usersApi;
