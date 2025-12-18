@@ -14,25 +14,12 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { useDeleteUserMutation } from "@/lib/store/api/userApi"
 import { SuccessModal } from "@/components/ui/success-modal"
-
-interface User {
-  id: string
-  name: string
-  email: string
-  avatar: string
-  role: "Learner" | "Facilitator" | "Manager"
-  team: string
-  country: string
-  teamsCount: number
-  coursesCount: number
-  status: "Active" | "Inactive"
-  department: string
-}
+import { UserRow } from "./user-table"
 
 interface DeleteUserDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  user?: User
+  user?: UserRow
 }
 
 export default function DeleteUserDialog({ open, onOpenChange, user }: DeleteUserDialogProps) {

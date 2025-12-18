@@ -29,9 +29,10 @@ const getInitials = (name: string) => {
 }
 
 // Helper function to map WordPress roles to display roles
+// Correct mappings: group_leader = Facilitator, group_leader_clone = Manager
 const mapRole = (roles: string[]): string => {
-  if (roles.includes('group_leader')) return "Manager"
-  if (roles.includes('group_leader_clone')) return "Facilitator"
+  if (roles.includes('group_leader')) return "Facilitator"
+  if (roles.includes('group_leader_clone')) return "Manager"
   return "Learner"
 }
 

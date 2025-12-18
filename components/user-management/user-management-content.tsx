@@ -41,11 +41,11 @@ export default function UserManagementContent() {
       return;
     }
 
-    const headers = ["Name", "Email", "Role", "Team", "Teams", "Courses"];
+    const headers = ["Name", "Email", "Roles", "Team", "Teams", "Courses"];
     const rows = visibleRows.map((row) => [
       row.name,
       row.email,
-      row.role,
+      row.roles.join(", "),
       row.team,
       row.teamsCount.toString(),
       row.coursesCount.toString(),
@@ -138,6 +138,7 @@ export default function UserManagementContent() {
                 <SelectItem value="learner">Learner</SelectItem>
                 <SelectItem value="facilitator">Facilitator</SelectItem>
                 <SelectItem value="manager">Manager</SelectItem>
+                <SelectItem value="akdn">AKDN</SelectItem>
               </SelectContent>
             </Select>
           </div>

@@ -189,15 +189,12 @@ export default function DashboardContent() {
           value = formatNumber(usersCount.total_users_for_period || usersCount.total_users);
           break;
         case "managers":
-          // Use period-specific count if available
-          const managersForPeriod = usersCount.group_leader_for_period || usersCount.group_leader;
-          const managersCloneForPeriod = usersCount.group_leader_clone_for_period || usersCount.group_leader_clone;
-          const totalManagers = managersForPeriod + managersCloneForPeriod;
-          value = formatNumber(totalManagers);
+          // Manager = group_leader_clone in WordPress
+          value = formatNumber(usersCount.group_leader_clone_for_period || usersCount.group_leader_clone);
           break;
         case "facilitators":
-          // Use period-specific count if available
-          value = formatNumber(usersCount.group_leader_clone_for_period || usersCount.group_leader_clone);
+          // Facilitator = group_leader in WordPress
+          value = formatNumber(usersCount.group_leader_for_period || usersCount.group_leader);
           break;
         case "learners":
           // Use period-specific count if available

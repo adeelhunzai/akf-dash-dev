@@ -11,13 +11,15 @@ import ViewUserDialog from "./view-user-dialog"
 import { useState, useEffect, useMemo, useRef } from "react"
 import { useGetUsersListQuery } from "@/lib/store/api/userApi"
 
+export type UserRoleDisplay = "Learner" | "Facilitator" | "Manager" | "AKDN" | "Admin"
+
 export interface UserRow {
   id: string
   name: string
   email: string
   avatar: string
   avatarUrl?: string | null
-  role: "Learner" | "Facilitator" | "Manager"
+  roles: UserRoleDisplay[]
   team: string
   country: string
   teamsCount: number
@@ -36,10 +38,21 @@ const getInitials = (name: string) => {
 }
 
 // Helper function to map WordPress roles to display roles
-const mapRole = (roles: string[]): "Learner" | "Facilitator" | "Manager" => {
-  if (roles.includes('group_leader')) return "Manager"
-  if (roles.includes('group_leader_clone')) return "Facilitator"
-  return "Learner"
+// Correct mappings: group_leader = Facilitator, group_leader_clone = Manager
+const mapRoles = (wpRoles: string[]): UserRoleDisplay[] => {
+  const displayRoles: UserRoleDisplay[] = []
+  
+  // Map WordPress roles to display roles
+  if (wpRoles.includes('administrator')) displayRoles.push("Admin")
+  if (wpRoles.includes('group_leader')) displayRoles.push("Facilitator")
+  if (wpRoles.includes('group_leader_clone')) displayRoles.push("Manager")
+  if (wpRoles.includes('subscriber')) displayRoles.push("Learner")
+  if (wpRoles.includes('akdn')) displayRoles.push("AKDN")
+  
+  // If no recognized roles, default to Learner
+  if (displayRoles.length === 0) displayRoles.push("Learner")
+  
+  return displayRoles
 }
 
 // Helper function to check if avatar URL is a Gravatar default
@@ -83,14 +96,18 @@ function TableRowSkeleton() {
   )
 }
 
-const getRoleBadgeColor = (role: string) => {
+const getRoleBadgeColor = (role: UserRoleDisplay) => {
   switch (role) {
+    case "Admin":
+      return "bg-[#FEE2E2] text-[#991B1B]"
     case "Learner":
       return "bg-[#DBEAFE] text-[#1E40AF]"
     case "Facilitator":
       return "bg-[#DCFCE7] text-[#166534]"
     case "Manager":
       return "bg-[#F3E8FF] text-[#6B21A8]"
+    case "AKDN":
+      return "bg-[#FEF3C7] text-[#92400E]"
     default:
       return "bg-gray-100 text-gray-700"
   }
@@ -145,7 +162,7 @@ export default function UserTable({ searchQuery, roleFilter, statusFilter, onVis
         email: user.user_email,
         avatar: getInitials(user.display_name),
         avatarUrl: isGravatarDefault(user.avatar_url) ? null : user.avatar_url,
-        role: mapRole(user.roles),
+        roles: mapRoles(user.roles),
         team: user.teams.length > 0 ? user.teams.join(', ') : 'Unassigned',
         country: '', // Not available in API
         teamsCount: user.team_count,
@@ -309,11 +326,16 @@ export default function UserTable({ searchQuery, roleFilter, statusFilter, onVis
 
                   {/* Role Column */}
                   <td className="px-6 py-4">
-                    <span
-                      className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${getRoleBadgeColor(user.role)}`}
-                    >
-                      {user.role}
-                    </span>
+                    <div className="flex flex-wrap gap-1">
+                      {user.roles.map((role, index) => (
+                        <span
+                          key={index}
+                          className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${getRoleBadgeColor(role)}`}
+                        >
+                          {role}
+                        </span>
+                      ))}
+                    </div>
                   </td>
 
                   {/* Team Column */}

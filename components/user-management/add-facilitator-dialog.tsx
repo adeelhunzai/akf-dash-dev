@@ -84,7 +84,8 @@ export default function AddFacilitatorDialog({
         first_name: formData.firstName,
         last_name: formData.lastName,
         ...(formData.organization ? { organization: formData.organization } : {}),
-        roles: ["group_leader_clone"],
+        // Facilitator = group_leader in WordPress
+        roles: ["group_leader"],
       }).unwrap();
 
       if (formData.organization) {

@@ -19,16 +19,18 @@ interface EditUserDialogProps {
 }
 
 // Helper function to map WordPress roles to display roles
+// Correct mappings: group_leader = Facilitator, group_leader_clone = Manager
 const mapRole = (roles: string[]): string => {
-  if (roles.includes('group_leader')) return "Manager"
-  if (roles.includes('group_leader_clone')) return "Facilitator"
+  if (roles.includes('group_leader')) return "Facilitator"
+  if (roles.includes('group_leader_clone')) return "Manager"
   return "Learner"
 }
 
 // Helper function to map display role to WordPress role
+// Correct mappings: Facilitator = group_leader, Manager = group_leader_clone
 const mapToWordPressRole = (role: string): string => {
-  if (role === "Manager") return "group_leader"
-  if (role === "Facilitator") return "group_leader_clone"
+  if (role === "Facilitator") return "group_leader"
+  if (role === "Manager") return "group_leader_clone"
   return "subscriber"
 }
 
