@@ -180,7 +180,16 @@ export function CoursesReportTable({
               coursesData.map((course) => (
                 <TableRow key={course.id} className="border-b border-gray-200 hover:bg-gray-50">
                   <TableCell className="font-normal text-sm text-gray-900 py-4 px-4">{course.id}</TableCell>
-                  <TableCell className="font-normal text-sm text-gray-900 py-4 px-4">{course.name}</TableCell>
+                  <TableCell className="font-normal text-sm py-4 px-4">
+                    <a 
+                      href={course.url} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-gray-900 hover:text-[#00B140] hover:underline transition-colors"
+                    >
+                      {course.name}
+                    </a>
+                  </TableCell>
                   <TableCell className="text-center text-sm text-gray-900 py-4 px-4">{course.enrolled.toLocaleString()}</TableCell>
                   <TableCell className="text-center text-sm text-gray-900 py-4 px-4">{course.notStarted.toLocaleString()}</TableCell>
                   <TableCell className="text-center text-sm text-gray-900 py-4 px-4">{course.inProgress.toLocaleString()}</TableCell>
