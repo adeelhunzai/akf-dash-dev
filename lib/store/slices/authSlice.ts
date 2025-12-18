@@ -54,6 +54,18 @@ const authSlice = createSlice({
       state.wordpressUrl = null;
       removeTokenCookie();
     },
+    // Clear auth data but keep isLoggingOut true (for redirect scenarios)
+    clearAuthForRedirect: (state) => {
+      state.user = null;
+      state.isAuthenticated = false;
+      state.loading = false;
+      state.token = null;
+      state.isInitializing = false;
+      state.wordpressUrl = null;
+      // Keep isLoggingOut TRUE so RouteGuard shows loader during redirect
+      state.isLoggingOut = true;
+      removeTokenCookie();
+    },
     setWordpressUrl: (state, action: PayloadAction<string | null>) => {
       state.wordpressUrl = action.payload;
     },
@@ -81,5 +93,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { setUser, setToken, setRole, updateUserAvatar, logout, setLoading, initializeAuth, setLoggingOut, setInitializing, setWordpressUrl } = authSlice.actions;
+export const { setUser, setToken, setRole, updateUserAvatar, logout, clearAuthForRedirect, setLoading, initializeAuth, setLoggingOut, setInitializing, setWordpressUrl } = authSlice.actions;
 export default authSlice.reducer;

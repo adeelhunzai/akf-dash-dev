@@ -61,8 +61,6 @@ export default function Sidebar({ isOpen, isMobile, onClose }: SidebarProps) {
       <div className={`${isMobile ? "px-6 min-h-[72px]" : "px-6 min-h-[72px] flex justify-center items-end "}`}>
         <a 
           href={wordpressUrl || '#'} 
-          target="_blank" 
-          rel="noopener noreferrer"
           className="cursor-pointer"
         >
           <Image 

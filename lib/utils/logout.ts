@@ -1,14 +1,14 @@
 import { AppDispatch } from '@/lib/store';
-import { logout, setLoggingOut } from '@/lib/store/slices/authSlice';
+import { logout, setLoggingOut, clearAuthForRedirect } from '@/lib/store/slices/authSlice';
 import { authApi } from '@/lib/store/api/authApi';
 import { WORDPRESS_API_URL } from '@/lib/config/wordpress.config';
 
 /**
  * Handles user logout:
  * 1. Sets logging out state to prevent showing ForbiddenAccess
- * 2. Redirects to WordPress immediately
- * 3. Revokes the JWT token on WordPress backend (optional, in background)
- * 4. Clears Redux auth state and token cookie
+ * 2. Clears auth state and cookie (prevents back navigation access)
+ * 3. Redirects to WordPress
+ * 4. Revokes the JWT token on WordPress backend (optional, in background)
  * 5. Resets RTK Query cache
  */
 export async function handleLogout(
@@ -20,61 +20,48 @@ export async function handleLogout(
   // Set logging out state immediately to prevent RouteGuard from showing ForbiddenAccess
   dispatch(setLoggingOut(true));
   
-  // Redirect to WordPress immediately (before clearing token to avoid ForbiddenAccess flash)
-  if (redirectToWordPress) {
-    try {
-      // Use WordPress URL from Redux state if available
-      let wpBaseUrl = wordpressUrl || '';
-      
-      // Fallback: Extract WordPress base URL from API URL
-      if (!wpBaseUrl && WORDPRESS_API_URL) {
-        const extractedUrl = WORDPRESS_API_URL.replace('/wp-json', '');
-        if (extractedUrl && extractedUrl !== WORDPRESS_API_URL) {
-          wpBaseUrl = extractedUrl;
-        }
-      }
-      
-      // Final fallback if no URL available
-      if (!wpBaseUrl) {
-        console.warn('No WordPress URL available for redirect');
-        wpBaseUrl = '/';
-      }
-      
-      // Redirect to WordPress website immediately
-      window.location.href = wpBaseUrl;
-    } catch (error) {
-      console.error('Failed to redirect to WordPress:', error);
-      // Fallback: try to extract from API URL
-      const fallbackUrl = WORDPRESS_API_URL?.replace('/wp-json', '') || '/';
-      window.location.href = fallbackUrl;
-    }
-  }
-  
-  // Clear Redux state and cookie after redirect is initiated
-  // This happens in the background while redirect is processing
-  dispatch(logout());
-  
-  // Reset all RTK Query caches
+  // Reset all RTK Query caches first
   dispatch(authApi.util.resetApiState());
   
-  // Try to revoke the token on WordPress backend (optional, but good practice)
-  // This happens in the background and won't block the redirect
+  // Try to revoke the token on WordPress backend (fire and forget)
+  // Do this before clearing the token so we still have it
   if (token) {
-    try {
-      // Use RTK Query's initiate method to call the mutation
-      const result = await dispatch(
-        authApi.endpoints.revokeToken.initiate({ token })
-      );
-      
-      // Check if the result is an error
-      if ('error' in result) {
-        console.warn('Failed to revoke token on backend:', result.error);
-      }
-    } catch (error) {
-      // If revoke fails, continue with logout anyway
-      // Token will expire naturally, and we're clearing it from client
-      console.warn('Error during token revocation:', error);
-    }
+    dispatch(authApi.endpoints.revokeToken.initiate({ token })).catch(() => {
+      // Ignore errors - token will expire naturally
+    });
   }
+  
+  // Redirect to WordPress
+  if (redirectToWordPress) {
+    // Use clearAuthForRedirect which clears auth data but keeps isLoggingOut=true
+    // This ensures:
+    // 1. Cookie is removed (user can't navigate back and access dashboard)
+    // 2. RouteGuard shows "Logging out..." loader (not "Access Forbidden")
+    dispatch(clearAuthForRedirect());
+    
+    // Determine redirect URL
+    let wpBaseUrl = wordpressUrl || '';
+    
+    // Fallback: Extract WordPress base URL from API URL
+    if (!wpBaseUrl && WORDPRESS_API_URL) {
+      const extractedUrl = WORDPRESS_API_URL.replace('/wp-json', '');
+      if (extractedUrl && extractedUrl !== WORDPRESS_API_URL) {
+        wpBaseUrl = extractedUrl;
+      }
+    }
+    
+    // Final fallback if no URL available
+    if (!wpBaseUrl) {
+      console.warn('No WordPress URL available for redirect');
+      wpBaseUrl = '/';
+    }
+    
+    // Redirect to WordPress website
+    window.location.href = wpBaseUrl;
+    return;
+  }
+  
+  // If NOT redirecting to WordPress, use regular logout
+  dispatch(logout());
 }
 
