@@ -41,6 +41,7 @@ export default function AddLearnerDialog({
   const { toast } = useToast();
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successUserData, setSuccessUserData] = useState({ name: "", email: "" });
+  const [emailError, setEmailError] = useState("");
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -61,6 +62,7 @@ export default function AddLearnerDialog({
   const resetForm = () => {
     setFormData({ firstName: "", lastName: "", email: "", organization: "" });
     setPassword("");
+    setEmailError("");
   };
 
   const sanitizeUsername = (email: string) => {
@@ -71,6 +73,8 @@ export default function AddLearnerDialog({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setEmailError(""); // Clear previous email error
+    
     if (!password) {
       toast({
         variant: "destructive",
@@ -109,10 +113,27 @@ export default function AddLearnerDialog({
       resetForm();
       onOpenChange(false);
       setShowSuccessModal(true);
-    } catch (error) {
-      const message =
-        (error as { data?: { message?: string } })?.data?.message ??
-        "Something went wrong while creating the learner.";
+    } catch (error: any) {
+      // RTK Query error structure: error.data contains the API response
+      const code = error?.data?.code;
+      const message = error?.data?.message ?? "Something went wrong while creating the learner.";
+      
+      // Show inline error for email-related errors
+      if (code === "existing_user_email" || code === "invalid_email" || code === "empty_user_email") {
+        setEmailError(message);
+        return;
+      }
+      
+      // Username collision - retry with different timestamp (rare edge case)
+      if (code === "existing_user_login") {
+        toast({
+          variant: "destructive",
+          title: "Please try again",
+          description: "A temporary conflict occurred. Please submit again.",
+        });
+        return;
+      }
+      
       toast({
         variant: "destructive",
         title: "Unable to create learner",
@@ -211,9 +232,16 @@ export default function AddLearnerDialog({
               type="email"
               placeholder="Enter Email address"
               value={formData.email}
-              onChange={handleChange}
+              onChange={(e) => {
+                handleChange(e);
+                if (emailError) setEmailError(""); // Clear error when user types
+              }}
               required
+              className={emailError ? "border-red-500 focus-visible:ring-red-500" : ""}
             />
+            {emailError && (
+              <p className="text-sm text-red-500">{emailError}</p>
+            )}
           </div>
 
           {/* Password */}

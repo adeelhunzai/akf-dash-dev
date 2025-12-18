@@ -13,8 +13,7 @@ import {
   UserRoundPlus,
   Check,
   ChevronDown,
-  Calendar,
-  ScrollText
+  Calendar
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -23,10 +22,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { DropdownMenuLabel } from "@radix-ui/react-dropdown-menu";
 import { Button } from "../ui/button";
-import { useGetUsersCountQuery } from "@/lib/store/api/userApi";
+import { useGetUsersCountQuery, useGetCourseCompletionRateQuery, useGetTopCoursesQuery } from "@/lib/store/api/userApi";
+import { useToast } from "@/hooks/use-toast";
+import { RefreshCw } from "lucide-react";
 
 // Skeleton component for metric cards
 function MetricCardSkeleton() {
@@ -127,6 +128,7 @@ const getMetricsConfig = () => [
 export default function DashboardContent() {
   const [selectedPeriod, setSelectedPeriod] = useState("All Time");
   const periods = ["1 Month", "3 Months", "6 Months", "1 Year", "All Time"];
+  const { toast } = useToast();
   
   // Map frontend period to API period format
   const getPeriodParam = (period: string): string | undefined => {
@@ -142,7 +144,32 @@ export default function DashboardContent() {
   
   // Fetch users count from WordPress API with period parameter
   const periodParam = getPeriodParam(selectedPeriod);
-  const { data: usersCount, isLoading, isError } = useGetUsersCountQuery(periodParam);
+  const { data: usersCount, isLoading, isError: isUsersError, refetch: refetchUsers } = useGetUsersCountQuery(periodParam);
+  
+  // Fetch course completion rate and top courses for retry functionality
+  const { isError: isCompletionError, refetch: refetchCompletion } = useGetCourseCompletionRateQuery(periodParam);
+  const { isError: isTopCoursesError, refetch: refetchTopCourses } = useGetTopCoursesQuery(periodParam);
+  
+  // Combined error state
+  const hasAnyError = isUsersError || isCompletionError || isTopCoursesError;
+  
+  // Retry all failed queries
+  const handleRetryAll = () => {
+    if (isUsersError) refetchUsers();
+    if (isCompletionError) refetchCompletion();
+    if (isTopCoursesError) refetchTopCourses();
+  };
+  
+  // Show toast when any API fails
+  useEffect(() => {
+    if (hasAnyError) {
+      toast({
+        variant: "destructive",
+        title: "Unable to load metrics",
+        description: "Some data couldn't be loaded. Click retry to try again.",
+      });
+    }
+  }, [hasAnyError, toast]);
   
   // Format number with commas
   const formatNumber = (num: number) => {
@@ -188,8 +215,8 @@ export default function DashboardContent() {
       }
     }
     
-    if (isError) {
-      value = "Error";
+    if (isUsersError) {
+      value = "--";
     }
     
     return {
@@ -270,6 +297,21 @@ export default function DashboardContent() {
           ))
         )}
       </div>
+      
+      {/* Retry button when any error occurs */}
+      {hasAnyError && !isLoading && (
+        <div className="flex justify-center">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleRetryAll}
+            className="flex items-center gap-2"
+          >
+            <RefreshCw className="w-4 h-4" />
+            Retry loading data
+          </Button>
+        </div>
+      )}
       
 
       {/* Charts Section */}

@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useAppDispatch, useAppSelector } from '@/lib/store/hooks';
-import { setToken, setUser, initializeAuth, setInitializing } from '@/lib/store/slices/authSlice';
+import { setToken, setUser, initializeAuth, setInitializing, setWordpressUrl } from '@/lib/store/slices/authSlice';
 import { useExchangeSSOTokenMutation } from '@/lib/store/api/authApi';
 import { UserRole } from '@/lib/types/roles';
 import { hasRouteAccess, getDefaultDashboardPath } from '@/lib/utils/auth';
@@ -121,6 +121,11 @@ export default function AuthCallbackPage() {
           if (response.success) {
             // Store JWT token
             dispatch(setToken(response.token));
+            
+            // Store WordPress URL for logo link and logout redirect
+            if (response.wordpress_url) {
+              dispatch(setWordpressUrl(response.wordpress_url));
+            }
             
             // Transform and set user
             const user = {

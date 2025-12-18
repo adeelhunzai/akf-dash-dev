@@ -9,6 +9,7 @@ const initialState: AuthState = {
   token: null,
   isLoggingOut: false,
   isInitializing: true, // Start as true - will be set to false after initialization
+  wordpressUrl: null,
 };
 
 const authSlice = createSlice({
@@ -33,9 +34,10 @@ const authSlice = createSlice({
     updateUserAvatar: (state, action: PayloadAction<string | null>) => {
       if (state.user) {
         // Create a new user object to ensure React detects the change
+        // Convert null to undefined for avatar (User type expects string | undefined)
         state.user = {
           ...state.user,
-          avatar: action.payload,
+          avatar: action.payload ?? undefined,
         };
       }
     },
@@ -49,7 +51,11 @@ const authSlice = createSlice({
       state.token = null;
       state.isLoggingOut = false;
       state.isInitializing = false;
+      state.wordpressUrl = null;
       removeTokenCookie();
+    },
+    setWordpressUrl: (state, action: PayloadAction<string | null>) => {
+      state.wordpressUrl = action.payload;
     },
     setLoading: (state, action: PayloadAction<boolean>) => {
       state.loading = action.payload;
@@ -75,5 +81,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { setUser, setToken, setRole, updateUserAvatar, logout, setLoading, initializeAuth, setLoggingOut, setInitializing } = authSlice.actions;
+export const { setUser, setToken, setRole, updateUserAvatar, logout, setLoading, initializeAuth, setLoggingOut, setInitializing, setWordpressUrl } = authSlice.actions;
 export default authSlice.reducer;

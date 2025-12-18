@@ -9,6 +9,7 @@ export interface SSOExchangeResponse {
   success: boolean;
   token: string;
   expires_in: number;
+  wordpress_url?: string;
   user: {
     id: number;
     email: string;
@@ -21,6 +22,7 @@ export interface SSOExchangeResponse {
 export interface ValidateTokenResponse {
   success: boolean;
   valid: boolean;
+  wordpress_url?: string;
   user: {
     id: number;
     email: string;

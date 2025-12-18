@@ -161,7 +161,18 @@ export function CoursePopularityTable() {
                   
                   {/* Course Info */}
                   <div className="flex-1 min-w-0">
-                    <h5 className="font-semibold text-foreground text-base mb-1 truncate">{course.name}</h5>
+                    {course.url ? (
+                      <a 
+                        href={course.url} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="font-semibold text-foreground text-base mb-1 truncate block hover:text-primary hover:underline transition-colors"
+                      >
+                        {course.name}
+                      </a>
+                    ) : (
+                      <h5 className="font-semibold text-foreground text-base mb-1 truncate">{course.name}</h5>
+                    )}
                     <p className="text-sm text-muted-foreground">{course.enrolled.toLocaleString()} enrolled</p>
                   </div>
                   

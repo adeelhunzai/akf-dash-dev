@@ -5,6 +5,12 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 import { BookOpen, Loader2, AlertCircle } from "lucide-react"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 import { useGetMyCoursesQuery } from "@/lib/store/api/coursesApi"
 import { MyCourse } from "@/lib/types/courses.types"
 
@@ -249,9 +255,24 @@ export default function MyCoursesContent() {
                   )}
 
                   {/* Course Title */}
-                  <h3 className="font-semibold text-sm mb-1 line-clamp-1">
-                    {course.title}
-                  </h3>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <a
+                          href={course.link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="font-semibold text-sm mb-1 line-clamp-1 block hover:text-primary hover:underline transition-colors"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          {course.title}
+                        </a>
+                      </TooltipTrigger>
+                      <TooltipContent side="top" className="max-w-[300px]">
+                        <p>{course.title}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
 
                   {/* Instructor */}
                   {course.instructor && (

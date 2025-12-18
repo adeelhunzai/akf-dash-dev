@@ -26,4 +26,5 @@ export interface AuthState {
   token: string | null;
   isLoggingOut: boolean;
   isInitializing: boolean;
+  wordpressUrl: string | null;
 }

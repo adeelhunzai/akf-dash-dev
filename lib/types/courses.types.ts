@@ -25,6 +25,7 @@ export interface MyCourse {
   status: 'completed' | 'in-progress';
   color: string;
   thumbnail: string;
+  link: string;
 }
 
 export interface MyCoursesResponse {

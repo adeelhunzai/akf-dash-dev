@@ -44,7 +44,7 @@ const getAchievementColor = (type: string) => {
 }
 
 export default function LearnerDashboardContent() {
-  const [selectedPeriod, setSelectedPeriod] = useState<string>("1year")
+  const [selectedPeriod, setSelectedPeriod] = useState<string>("all")
   
   // Map frontend period to API period format
   const getPeriodParam = (period: string): string | undefined => {
@@ -53,6 +53,7 @@ export default function LearnerDashboardContent() {
       "3months": "3months",
       "6months": "6months",
       "1year": "1year",
+      "all": "all",
     }
     return periodMap[period] || undefined
   }
@@ -84,6 +85,7 @@ export default function LearnerDashboardContent() {
             <SelectValue placeholder="Select period" />
           </SelectTrigger>
           <SelectContent>
+            <SelectItem value="all">All Time</SelectItem>
             <SelectItem value="1year">1 Year</SelectItem>
             <SelectItem value="6months">6 Months</SelectItem>
             <SelectItem value="3months">3 Months</SelectItem>

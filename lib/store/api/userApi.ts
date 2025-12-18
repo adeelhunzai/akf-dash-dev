@@ -55,6 +55,7 @@ export const usersApi = createApi({
         return `/custom-api/v1/users/list?${params.toString()}`;
       },
       providesTags: ['UsersList'],
+      keepUnusedDataFor: 300,
     }),
     getUserDetails: build.query<UserDetailsResponse, number>({
       query: (userId) => `/custom-api/v1/users/${userId}`,

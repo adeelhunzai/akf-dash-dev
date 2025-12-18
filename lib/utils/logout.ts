@@ -14,7 +14,8 @@ import { WORDPRESS_API_URL } from '@/lib/config/wordpress.config';
 export async function handleLogout(
   dispatch: AppDispatch,
   token: string | null,
-  redirectToWordPress: boolean = true
+  redirectToWordPress: boolean = true,
+  wordpressUrl?: string | null
 ): Promise<void> {
   // Set logging out state immediately to prevent RouteGuard from showing ForbiddenAccess
   dispatch(setLoggingOut(true));
@@ -22,24 +23,30 @@ export async function handleLogout(
   // Redirect to WordPress immediately (before clearing token to avoid ForbiddenAccess flash)
   if (redirectToWordPress) {
     try {
-      // Extract WordPress base URL from API URL
-      // e.g., "https://example.com/wp-json" -> "https://example.com"
-      let wpBaseUrl = 'https://akfhub-dev.inspirartweb.com';
+      // Use WordPress URL from Redux state if available
+      let wpBaseUrl = wordpressUrl || '';
       
-      if (WORDPRESS_API_URL) {
-        // Try to extract from API URL as fallback
+      // Fallback: Extract WordPress base URL from API URL
+      if (!wpBaseUrl && WORDPRESS_API_URL) {
         const extractedUrl = WORDPRESS_API_URL.replace('/wp-json', '');
         if (extractedUrl && extractedUrl !== WORDPRESS_API_URL) {
           wpBaseUrl = extractedUrl;
         }
       }
       
+      // Final fallback if no URL available
+      if (!wpBaseUrl) {
+        console.warn('No WordPress URL available for redirect');
+        wpBaseUrl = '/';
+      }
+      
       // Redirect to WordPress website immediately
       window.location.href = wpBaseUrl;
     } catch (error) {
       console.error('Failed to redirect to WordPress:', error);
-      // Fallback: redirect to WordPress website directly
-      window.location.href = 'https://akfhub-dev.inspirartweb.com/';
+      // Fallback: try to extract from API URL
+      const fallbackUrl = WORDPRESS_API_URL?.replace('/wp-json', '') || '/';
+      window.location.href = fallbackUrl;
     }
   }
   

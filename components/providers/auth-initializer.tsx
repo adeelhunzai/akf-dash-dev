@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { useAppDispatch, useAppSelector } from '@/lib/store/hooks';
-import { setUser, setLoading, initializeAuth, setInitializing, setToken } from '@/lib/store/slices/authSlice';
+import { setUser, setLoading, initializeAuth, setInitializing, setToken, setWordpressUrl } from '@/lib/store/slices/authSlice';
 import { useGetCurrentUserQuery } from '@/lib/store/api/userApi';
 import { useValidateTokenMutation } from '@/lib/store/api/authApi';
 import { useGetGeneralSettingsQuery } from '@/lib/store/api/settingsApi';
@@ -120,6 +120,11 @@ export function AuthInitializer({ children }: AuthInitializerProps) {
         .unwrap()
         .then((response) => {
           if (response.success && response.valid) {
+            // Store WordPress URL for logo link and logout redirect
+            if (response.wordpress_url) {
+              dispatch(setWordpressUrl(response.wordpress_url));
+            }
+            
             // Set user immediately with token validation response
             // Don't wait for generalSettings - we'll update avatar later if needed
             // setUser automatically sets loading to false

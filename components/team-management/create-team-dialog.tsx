@@ -94,7 +94,6 @@ export default function CreateTeamDialog({ open, onOpenChange, team }: CreateTea
     },
     {
       skip: !open,
-      refetchOnMountOrArgChange: true,
     },
   )
 
@@ -109,7 +108,6 @@ export default function CreateTeamDialog({ open, onOpenChange, team }: CreateTea
     search: debouncedCourseSearch
   }, {
     skip: !open,
-    refetchOnMountOrArgChange: true,
   })
 
   // Fetch facilitators (users with facilitator role) - 10 per page
@@ -126,7 +124,6 @@ export default function CreateTeamDialog({ open, onOpenChange, team }: CreateTea
     },
     {
       skip: !open,
-      refetchOnMountOrArgChange: true,
     },
   )
 
@@ -178,9 +175,9 @@ export default function CreateTeamDialog({ open, onOpenChange, team }: CreateTea
     return () => clearTimeout(timer)
   }, [facilitatorSearchQuery, debouncedFacilitatorSearch])
 
-  // Update learners list when new data arrives
+  // Update learners list when new data arrives or modal opens with cached data
   useEffect(() => {
-    if (usersData?.users) {
+    if (usersData?.users && open) {
       // Filter out CSV-imported users from API results
       const newLearners = usersData.users
         .filter((user) => !csvImportedIds.has(user.ID))
@@ -210,11 +207,11 @@ export default function CreateTeamDialog({ open, onOpenChange, team }: CreateTea
       // Clear searching state when data arrives
       setIsSearching(false)
     }
-  }, [usersData, currentPage, selectedLearners, csvImportedUsers, csvImportedIds])
+  }, [usersData, currentPage, selectedLearners, csvImportedUsers, csvImportedIds, open])
 
-  // Update courses list when new data arrives
+  // Update courses list when new data arrives or modal opens with cached data
   useEffect(() => {
-    if (coursesData) {
+    if (coursesData && open) {
       if (currentCoursePage === 1) {
         // Replace list on first page or new search
         setAllCourses(coursesData.courses)
@@ -230,11 +227,11 @@ export default function CreateTeamDialog({ open, onOpenChange, team }: CreateTea
       // Check if there are more courses to load
       setHasMoreCourses(currentCoursePage < coursesData.total_pages)
     }
-  }, [coursesData, currentCoursePage])
+  }, [coursesData, currentCoursePage, open])
 
-  // Update facilitators list when new data arrives
+  // Update facilitators list when new data arrives or modal opens with cached data
   useEffect(() => {
-    if (facilitatorsData?.users) {
+    if (facilitatorsData?.users && open) {
       const newFacilitators = facilitatorsData.users.map((user) => ({
         id: user.ID,
         name: user.display_name,
@@ -261,7 +258,7 @@ export default function CreateTeamDialog({ open, onOpenChange, team }: CreateTea
       // Clear searching state when data arrives
       setIsSearchingFacilitators(false)
     }
-  }, [facilitatorsData, currentFacilitatorPage, selectedFacilitators])
+  }, [facilitatorsData, currentFacilitatorPage, selectedFacilitators, open])
 
   // Reset form when team changes (switching between different teams)
   useEffect(() => {

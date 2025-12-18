@@ -82,6 +82,7 @@ export interface TopCourse {
   id: string;
   rank: number;
   name: string;
+  url: string;
   enrolled: number;
   completed: number;
   completionRate: number;

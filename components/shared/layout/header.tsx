@@ -48,6 +48,7 @@ export default function Header({
   const pathname = usePathname();
   const user = useAppSelector((state) => state.auth.user);
   const token = useAppSelector((state) => state.auth.token);
+  const wordpressUrl = useAppSelector((state) => state.auth.wordpressUrl);
   const tHeader = useTranslations('header');
   const tRoles = useTranslations('roles');
   const tAuth = useTranslations('auth');
@@ -98,7 +99,7 @@ export default function Header({
   };
 
   const handleLogoutClick = async () => {
-    await handleLogout(dispatch, token, true);
+    await handleLogout(dispatch, token, true, wordpressUrl);
   };
 
   const getRoleIcon = (role: UserRole) => {

@@ -17,6 +17,8 @@ export const coursesApi = createApi({
         return `/custom-api/v1/courses?${params.toString()}`;
       },
       providesTags: ['CoursesList'],
+      // Keep cached data for 5 minutes
+      keepUnusedDataFor: 300,
     }),
     getMyCourses: build.query<MyCoursesResponse, { 
       page?: number; 

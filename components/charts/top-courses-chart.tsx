@@ -2,23 +2,45 @@
 
 import { useGetTopCoursesQuery } from "@/lib/store/api/userApi";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface CourseBarProps {
   name: string;
+  fullName: string;
+  link: string;
   enrollments: number;
   maxEnrollments: number;
   color: string;
 }
 
-function CourseBar({ name, enrollments, maxEnrollments, color }: CourseBarProps) {
+function CourseBar({ name, fullName, link, enrollments, maxEnrollments, color }: CourseBarProps) {
   const percentage = (enrollments / maxEnrollments) * 100;
   
   return (
     <div className="space-y-1.5">
       <div className="flex items-center gap-3">
-        <span className="text-sm font-medium text-foreground min-w-[140px] truncate">
-          {name}
-        </span>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <a
+                href={link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm font-medium text-foreground min-w-[140px] truncate hover:text-primary hover:underline transition-colors cursor-pointer"
+              >
+                {name}
+              </a>
+            </TooltipTrigger>
+            <TooltipContent side="top" className="max-w-[300px]">
+              <p>{fullName}</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
         <div className="relative w-full bg-gray-200 rounded-full h-7 overflow-visible">
           <div 
             className="h-full rounded-full flex items-center justify-end pr-3 transition-all duration-1000 ease-out"
@@ -73,6 +95,8 @@ export default function TopCoursesChart({ period }: TopCoursesChartProps) {
 
   const courses = data.top_courses.map((course, index) => ({
     name: course.title.length > 25 ? course.title.substring(0, 25) + "..." : course.title,
+    fullName: course.title,
+    link: course.link,
     enrollments: course.enrollments,
     color: colors[index % colors.length],
   }));
@@ -85,6 +109,8 @@ export default function TopCoursesChart({ period }: TopCoursesChartProps) {
         <CourseBar
           key={index}
           name={course.name}
+          fullName={course.fullName}
+          link={course.link}
           enrollments={course.enrollments}
           maxEnrollments={maxEnrollments}
           color={course.color}

@@ -24,6 +24,7 @@ export default function Sidebar({ isOpen, isMobile, onClose }: SidebarProps) {
   const tNav = useTranslations("navigation")
   const tCommon = useTranslations("common")
   const token = useAppSelector((state) => state.auth.token)
+  const wordpressUrl = useAppSelector((state) => state.auth.wordpressUrl)
 
   // Get current user role from Redux store (default to ADMIN for now)
   const reduxRole = useAppSelector((state) => state.auth.user?.role) || UserRole.ADMIN
@@ -43,7 +44,7 @@ export default function Sidebar({ isOpen, isMobile, onClose }: SidebarProps) {
   const navItems = navigationConfig[currentRole] || navigationConfig[UserRole.ADMIN]
 
   const handleLogoutClick = async () => {
-    await handleLogout(dispatch, token, true);
+    await handleLogout(dispatch, token, true, wordpressUrl);
   };
 
   return (
@@ -58,14 +59,21 @@ export default function Sidebar({ isOpen, isMobile, onClose }: SidebarProps) {
 
       {/* Logo */}
       <div className={`${isMobile ? "px-6 min-h-[72px]" : "px-6 min-h-[72px] flex justify-center items-end "}`}>
-        <Image 
-          src="/AKF-logo.svg" 
-          alt="AKF Logo" 
-          width={200} 
-          height={100} 
-          priority 
-          style={{ width: 'auto', height: 'auto' }}
-        />
+        <a 
+          href={wordpressUrl || '#'} 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="cursor-pointer"
+        >
+          <Image 
+            src="/AKF-logo.svg" 
+            alt="AKF Logo" 
+            width={200} 
+            height={100} 
+            priority 
+            style={{ width: 'auto', height: 'auto' }}
+          />
+        </a>
       </div>
 
       {/* Navigation */}
