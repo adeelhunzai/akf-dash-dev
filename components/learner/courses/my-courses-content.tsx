@@ -201,7 +201,7 @@ export default function MyCoursesContent() {
               <Card key={`skeleton-${index}`} className="hover:shadow-md transition-shadow">
                 <CardContent className="p-5">
                   {/* Course Icon Skeleton */}
-                  <Skeleton className="w-10 h-10 rounded-md mb-3" />
+                  <Skeleton className="w-16 h-16 rounded-md mb-3" />
                   
                   {/* Course Title Skeleton */}
                   <Skeleton className="h-4 w-3/4 mb-2" />
@@ -238,7 +238,7 @@ export default function MyCoursesContent() {
                 <CardContent className="p-5">
                   {/* Course Icon/Thumbnail */}
                   {course.thumbnail ? (
-                    <div className="w-10 h-10 rounded-md overflow-hidden mb-3">
+                    <div className="w-16 h-16 rounded-md overflow-hidden mb-3">
                       <img 
                         src={course.thumbnail} 
                         alt={course.title}
@@ -247,7 +247,7 @@ export default function MyCoursesContent() {
                     </div>
                   ) : (
                     <div 
-                      className="w-10 h-10 rounded-md flex items-center justify-center mb-3"
+                      className="w-16 h-16 rounded-md flex items-center justify-center mb-3"
                       style={{ backgroundColor: bgColor }}
                     >
                       <Icon className="w-5 h-5 text-white" />
@@ -275,10 +275,6 @@ export default function MyCoursesContent() {
                   </TooltipProvider>
 
                   {/* Instructor */}
-                  {course.instructor && (
-                    <p className="text-xs text-muted-foreground mb-3">{course.instructor}</p>
-                  )}
-
                   {/* Progress Section */}
                   <div className="space-y-1.5 mb-3">
                     <div className="flex items-center justify-between text-xs">

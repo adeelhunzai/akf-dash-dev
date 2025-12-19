@@ -144,20 +144,6 @@ export default function ViewUserDialog({ open, onOpenChange, userId, onEditClick
               </div>
             </div>
 
-            {/* Course Completion Rate */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <p className="text-sm text-muted-foreground">Course Completion Rate</p>
-                <p className="text-base font-semibold text-foreground">{userDetails.completion_rate}%</p>
-              </div>
-              <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
-                <div 
-                  className="h-full bg-[#00B140] transition-all duration-300" 
-                  style={{ width: `${userDetails.completion_rate}%` }}
-                ></div>
-              </div>
-            </div>
-
             {/* Activity Information */}
             <div className="space-y-3 bg-muted/30 rounded-lg p-4 border border-border">
               <div className="flex items-center gap-2">

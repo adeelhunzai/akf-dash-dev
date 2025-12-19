@@ -77,14 +77,14 @@ const getMetricsConfig = () => [
   },
   {
     key: "active_courses",
-    title: "Active Courses",
+    title: "Courses",
     icon: Book,
     bgColor: "bg-[#1275DB]",
     iconColor: "text-[#fff]",
   },
   {
     key: "active_teams",
-    title: "Active Teams",
+    title: "Teams",
     icon: UserGroupIcon,
     bgColor: "bg-[#3FBEF4]",
     iconColor: "text-[#fff]",

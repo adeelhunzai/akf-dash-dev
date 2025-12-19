@@ -61,7 +61,7 @@ export const navigationConfig: Record<UserRole, NavItem[]> = {
     },
     {
       icon: Trophy,
-      labelKey: 'achievements',
+      labelKey: 'myBadges',
       path: '/learner/achievements',
     },
     {

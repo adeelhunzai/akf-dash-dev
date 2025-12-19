@@ -58,7 +58,7 @@ export function CoursePopularityTable() {
 
   const metrics = [
     {
-      label: "Total Course",
+      label: "Total Courses",
       value: metrics_data.totalCourses.toLocaleString(),
       change: "",
       icon: Laptop,

@@ -138,7 +138,7 @@ export default function LearnerDashboardContent() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-muted-foreground mb-1">Certificate</p>
+                    <p className="text-sm text-muted-foreground mb-1">Certificates</p>
                     <p className="text-3xl font-bold">{summary?.certificates ?? 0}</p>
                   </div>
                   <div className="w-12 h-12 rounded-lg bg-purple-500 flex items-center justify-center">
@@ -221,10 +221,10 @@ export default function LearnerDashboardContent() {
           </CardContent>
         </Card>
 
-        {/* Recent Achievements */}
+        {/* My Badges */}
         <Card>
           <CardContent className="p-6">
-            <h2 className="text-xl font-semibold mb-6">Recent Achievements</h2>
+            <h2 className="text-xl font-semibold mb-6">My Badges</h2>
             {isLoading ? (
               <div className="space-y-4">
                 {Array.from({ length: 3 }).map((_, idx) => (

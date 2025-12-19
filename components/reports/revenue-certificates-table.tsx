@@ -69,7 +69,7 @@ export function RevenueCertificatesTable({ onVisibleRowsChange, onLoadingChange 
     return (
       <div className="space-y-6 rounded-md border border-gray-200 bg-white p-6">
         <div>
-          <h3 className="mb-6 text-xl font-semibold text-foreground">Certificates Sale</h3>
+          <h3 className="mb-6 text-xl font-semibold text-foreground">Certificates Report</h3>
           <div className="space-y-4">
             {[1, 2, 3, 4, 5].map((i) => (
               <Skeleton key={i} className="h-12 w-full" />
@@ -85,7 +85,7 @@ export function RevenueCertificatesTable({ onVisibleRowsChange, onLoadingChange 
     return (
       <div className="space-y-6 rounded-md border border-gray-200 bg-white p-6">
         <div>
-          <h3 className="mb-6 text-xl font-semibold text-foreground">Certificates Sale</h3>
+          <h3 className="mb-6 text-xl font-semibold text-foreground">Certificates Report</h3>
           <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
@@ -102,7 +102,7 @@ export function RevenueCertificatesTable({ onVisibleRowsChange, onLoadingChange 
       <div>
         {/* Title and Filters */}
         <div className="mb-6 flex items-center justify-between">
-          <h3 className="text-xl font-semibold text-foreground">Certificates Sale</h3>
+          <h3 className="text-xl font-semibold text-foreground">Certificates Report</h3>
           <Select value={monthsBack} onValueChange={setMonthsBack}>
             <SelectTrigger className="w-40 border-gray-200">
               <SelectValue />

@@ -5,7 +5,6 @@ import { Search, Download, Users } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card } from "@/components/ui/card"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import TeamTable from "./team-table"
 import CreateTeamDialog from "./create-team-dialog"
 import type { Team } from "@/lib/types/team.types"
@@ -13,7 +12,6 @@ import type { Team } from "@/lib/types/team.types"
 export default function TeamManagementContent() {
   const [searchInput, setSearchInput] = useState("")
   const [debouncedSearch, setDebouncedSearch] = useState("")
-  const [statusFilter, setStatusFilter] = useState("all")
   const [isCreateTeamOpen, setIsCreateTeamOpen] = useState(false)
   const [visibleTeams, setVisibleTeams] = useState<Team[]>([])
 
@@ -85,7 +83,7 @@ export default function TeamManagementContent() {
 
       {/* Filters Card */}
       <Card className="p-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Search */}
           <div className="col-span-1">
             <label className="text-sm font-medium text-foreground mb-2 block">Search Teams</label>
@@ -100,20 +98,6 @@ export default function TeamManagementContent() {
             </div>
           </div>
 
-          {/* Status Filter */}
-          <div>
-            <label className="text-sm font-medium text-foreground mb-2 block">Status</label>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="All Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="inactive">Inactive</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
         {/* Export Button */}
         <div className="col-span-1 flex flex-col justify-end">
           <Button
@@ -135,7 +119,6 @@ export default function TeamManagementContent() {
       <Card>
         <TeamTable
           searchQuery={debouncedSearch}
-          statusFilter={statusFilter}
           onVisibleRowsChange={handleVisibleTeamsChange}
         />
       </Card>

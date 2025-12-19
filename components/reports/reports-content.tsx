@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ReportCards } from "./report-cards"
 import { CoursesReportTable } from "./courses-report-table"
 import { LearnerReportTable } from "./learner-report-table"
-import { Download, Filter } from "lucide-react"
+import { Download } from "lucide-react"
 import { TeamPerformanceTable } from "./team-performance-table"
 import { CoursePopularityTable } from "./course-popularity-table"
 import { RevenueCertificatesTable } from "./revenue-certificates-table"
@@ -467,10 +467,6 @@ export function ReportsContent() {
                 onChange={(e) => setSearchInput(e.target.value)}
                 className="border-gray-200 w-64"
               />
-              <Button variant="outline" className="border-gray-200 bg-transparent">
-                <Filter className="mr-2 h-4 w-4" />
-                Team Filter
-              </Button>
               <Select value={dateRange} onValueChange={setDateRange}>
                 <SelectTrigger className="w-40 border-gray-200">
                   <SelectValue />

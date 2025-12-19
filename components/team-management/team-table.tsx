@@ -16,11 +16,10 @@ import type { Team } from "@/lib/types/team.types"
 
 interface TeamTableProps {
   searchQuery: string
-  statusFilter: string
   onVisibleRowsChange?: (teams: Team[]) => void
 }
 
-export default function TeamTable({ searchQuery, statusFilter, onVisibleRowsChange }: TeamTableProps) {
+export default function TeamTable({ searchQuery, onVisibleRowsChange }: TeamTableProps) {
   const [currentPage, setCurrentPage] = useState(1)
   const [perPage, setPerPage] = useState(5)
   const [teamDetailsDialogOpen, setTeamDetailsDialogOpen] = useState(false)
@@ -34,7 +33,6 @@ export default function TeamTable({ searchQuery, statusFilter, onVisibleRowsChan
     page: currentPage,
     per_page: perPage,
     search: searchQuery,
-    status: statusFilter,
   })
 
   const teams = useMemo(() => data?.teams || [], [data?.teams])
