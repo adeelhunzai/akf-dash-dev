@@ -461,12 +461,12 @@ export function ReportsContent() {
           <div className="mb-4 flex items-center justify-between">
             <h3 className="text-xl font-semibold text-foreground">User Enrollment & Completion Report</h3>
             <div className="flex gap-3">
-              <Input
+{/* <Input
                 placeholder="Search..."
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
                 className="border-gray-200 w-64"
-              />
+              /> */}
               <Select value={dateRange} onValueChange={setDateRange}>
                 <SelectTrigger className="w-40 border-gray-200">
                   <SelectValue />
