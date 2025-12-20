@@ -37,7 +37,12 @@ const getIcon = (iconName: string): IconComponent => {
 export default function AchievementsContent() {
   const { data, isLoading, error } = useGetLearnerAchievementsQuery()
 
-  const stats = data?.data?.stats || []
+  const allStats = data?.data?.stats || []
+  // Filter out "This Month" and "Completion Rate" stats
+  const stats = allStats.filter((stat: { label: string }) => 
+    !stat.label.toLowerCase().includes('this month') && 
+    !stat.label.toLowerCase().includes('completion rate')
+  )
   const nextGoal = data?.data?.next_goal || { title: "", description: "", progress: 0, total: 1 }
   const latestGoals = data?.data?.latest_goals || []
   const wizardBadges = data?.data?.wizard_badges || []
@@ -59,7 +64,7 @@ export default function AchievementsContent() {
 
   return (
     <div className="p-4 lg:p-6 space-y-6">
-      {/* Hero Section */}
+      {/* Hero Section with Goals */}
       <div className="bg-gradient-to-r from-blue-400 to-blue-500 rounded-2xl p-8 mb-6">
         <div className="flex items-center gap-3 mb-6">
           <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
@@ -72,72 +77,72 @@ export default function AchievementsContent() {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-3 gap-4">
-          {stats.map((stat, index) => (
-            <div key={index} className="bg-white/10 backdrop-blur-sm rounded-xl p-4 text-center">
-              <div className="text-3xl font-bold text-white mb-1">{stat.value}</div>
-              <div className="text-sm text-white/80">{stat.label}</div>
-            </div>
-          ))}
-        </div>
-      </div>
+        {stats.length > 0 && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-6">
+            {stats.map((stat: { value: string | number; label: string }, index: number) => (
+              <div key={index} className="bg-white/10 backdrop-blur-sm rounded-xl p-4 text-center">
+                <div className="text-3xl font-bold text-white mb-1">{stat.value}</div>
+                <div className="text-sm text-white/80">{stat.label}</div>
+              </div>
+            ))}
+          </div>
+        )}
 
-      {/* Next Goal */}
-      <Card className="mb-6 bg-gradient-to-r from-yellow-50 to-orange-50 border-yellow-200">
-        <CardContent className="p-5">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-yellow-500 rounded-xl flex items-center justify-center flex-shrink-0">
-                <Trophy className="w-6 h-6 text-white" />
+        {/* Next Goal - Inside Blue Container */}
+        {nextGoal.title && (
+          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-5 mb-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-yellow-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <Trophy className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-base mb-1 text-white">Your Next Goal</h3>
+                  <p className="text-sm text-white/80">{nextGoal.description}</p>
+                </div>
               </div>
-              <div>
-                <h3 className="font-semibold text-base mb-1">{nextGoal.title}</h3>
-                <p className="text-sm text-muted-foreground">{nextGoal.description}</p>
+              <div className="flex items-center gap-3">
+                <div className="w-24">
+                  <Progress value={(nextGoal.progress / nextGoal.total) * 100} className="h-2 bg-white/20" />
+                </div>
+                <span className="text-lg font-bold text-yellow-300">
+                  {nextGoal.progress}/{nextGoal.total}
+                </span>
               </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="w-24">
-                <Progress value={(nextGoal.progress / nextGoal.total) * 100} className="h-2" />
-              </div>
-              <span className="text-lg font-bold text-orange-600">
-                {nextGoal.progress}/{nextGoal.total}
-              </span>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        )}
 
-      {/* Latest Goals */}
-      {latestGoals.length > 0 && (
-        <div className="mb-6">
-          <h2 className="text-xl font-bold mb-4">My Latest Goals!</h2>
-          <div className="space-y-3">
-            {latestGoals.map((goal, index) => {
-              const Icon = getIcon(goal.icon)
-              return (
-                <Card key={goal.id} className={index === 0 ? "bg-green-50 border-green-200" : "bg-blue-50 border-blue-200"}>
-                  <CardContent className="p-4">
+        {/* Latest Goals - Inside Blue Container */}
+        {latestGoals.length > 0 && (
+          <div>
+            <h2 className="text-lg font-bold mb-3 text-white">My Latest Goals!</h2>
+            <div className="space-y-3">
+              {latestGoals.map((goal, index) => {
+                const Icon = getIcon(goal.icon)
+                return (
+                  <div key={goal.id} className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <div className={`w-10 h-10 ${goal.color} rounded-lg flex items-center justify-center`}>
                           <Icon className="w-5 h-5 text-white" />
                         </div>
                         <div>
-                          <h3 className="font-semibold text-sm">{goal.title}</h3>
-                          <p className="text-xs text-muted-foreground">{goal.description}</p>
+                          <h3 className="font-semibold text-sm text-white">{goal.title}</h3>
+                          <p className="text-xs text-white/70">{goal.description}</p>
                         </div>
                       </div>
-                      <Badge className={index === 0 ? "bg-green-100 text-green-700 hover:bg-green-100" : "bg-blue-100 text-blue-700 hover:bg-blue-100"}>
+                      <Badge className={index === 0 ? "bg-green-500/80 text-white hover:bg-green-500/80" : "bg-blue-300/50 text-white hover:bg-blue-300/50"}>
                         {goal.status}
                       </Badge>
                     </div>
-                  </CardContent>
-                </Card>
-              )
-            })}
+                  </div>
+                )
+              })}
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* Wizard Badges */}
       {wizardBadges.length > 0 && (

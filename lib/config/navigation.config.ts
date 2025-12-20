@@ -66,7 +66,7 @@ export const navigationConfig: Record<UserRole, NavItem[]> = {
     },
     {
       icon: Award,
-      labelKey: 'certificates',
+      labelKey: 'myCertificates',
       path: '/learner/certificates',
     },
   ],
