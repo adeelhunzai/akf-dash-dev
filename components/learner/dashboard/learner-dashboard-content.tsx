@@ -1,20 +1,15 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import { BookOpen, Award, Clock, GraduationCap, Trophy, Zap, Star } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { Button } from "@/components/ui/button"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import { useGetLearnerDashboardQuery } from "@/lib/store/api/userApi"
 import { Skeleton } from "@/components/ui/skeleton"
 import Image from "next/image"
+import DateRangePicker from "@/components/ui/date-range-picker"
+import { type DateRange } from "react-day-picker"
 
 // Map achievement types to icons and colors
 const getAchievementIcon = (type: string) => {
@@ -44,28 +39,38 @@ const getAchievementColor = (type: string) => {
 }
 
 export default function LearnerDashboardContent() {
-  const [selectedPeriod, setSelectedPeriod] = useState<string>("all")
+  const [selectedPeriod, setSelectedPeriod] = useState<string>("All Time")
+  const [customRange, setCustomRange] = useState<DateRange | undefined>(undefined)
+  const periods = ["1 Month", "3 Months", "6 Months", "1 Year", "All Time"]
   
   // Map frontend period to API period format
   const getPeriodParam = (period: string): string | undefined => {
     const periodMap: Record<string, string> = {
-      "1month": "1month",
-      "3months": "3months",
-      "6months": "6months",
-      "1year": "1year",
-      "all": "all",
+      "1 Month": "1month",
+      "3 Months": "3months",
+      "6 Months": "6months",
+      "1 Year": "1year",
+      "All Time": "all",
     }
-    return periodMap[period] || undefined
+    return periodMap[period]
   }
   
   const periodParam = getPeriodParam(selectedPeriod)
-  const { data: dashboardData, isLoading, isError } = useGetLearnerDashboardQuery(periodParam, {
+  const rangeStart = customRange?.from
+  const rangeEnd = customRange?.to
+  const hasCustomRange = Boolean(rangeStart && rangeEnd)
+
+  const queryArg = useMemo(() => {
+    if (hasCustomRange && rangeStart && rangeEnd) {
+      return { from: rangeStart.toISOString(), to: rangeEnd.toISOString() }
+    }
+    return periodParam
+  }, [hasCustomRange, periodParam, rangeStart, rangeEnd])
+
+  const { data: dashboardData, isLoading, isFetching, isError } = useGetLearnerDashboardQuery(queryArg, {
     // Prevent refetch on window focus or reconnect if data is already available
     refetchOnFocus: false,
     refetchOnReconnect: false,
-    // Don't automatically refetch when arguments change - use cached data if available
-    // This ensures we use cached data when switching between periods or revisiting the dashboard
-    refetchOnMountOrArgChange: false,
   })
   
   const summary = dashboardData?.data?.summary
@@ -75,28 +80,28 @@ export default function LearnerDashboardContent() {
   return (
     <div className="p-4 lg:p-6 space-y-6">
       {/* Header */}
-      <div className="flex items-start justify-between mb-8">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Learner Overview</h1>
-          <p className="mt-2 text-sm text-muted-foreground">Monitor your platform performance and key metrics</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-foreground">Learner Overview</h1>
+          <p className="mt-1 text-sm text-muted-foreground">Monitor your platform performance and key metrics</p>
         </div>
-        <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
-          <SelectTrigger className="w-[140px]">
-            <SelectValue placeholder="Select period" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Time</SelectItem>
-            <SelectItem value="1year">1 Year</SelectItem>
-            <SelectItem value="6months">6 Months</SelectItem>
-            <SelectItem value="3months">3 Months</SelectItem>
-            <SelectItem value="1month">1 Month</SelectItem>
-          </SelectContent>
-        </Select>
+        <DateRangePicker
+          selectedPeriod={selectedPeriod}
+          customRange={customRange}
+          onRangeApply={range => setCustomRange(range)}
+          onPeriodSelect={period => {
+            setSelectedPeriod(period)
+            if (period !== "Custom Range") {
+              setCustomRange(undefined)
+            }
+          }}
+          quickRanges={periods}
+        />
       </div>
 
       {/* Metric Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        {isLoading ? (
+        {isLoading || isFetching ? (
           Array.from({ length: 4 }).map((_, idx) => (
             <Card key={idx}>
               <CardContent className="p-6">
@@ -171,7 +176,7 @@ export default function LearnerDashboardContent() {
         <Card className="lg:col-span-2">
           <CardContent className="p-6">
             <h2 className="text-xl font-semibold mb-6">Current Progress</h2>
-            {isLoading ? (
+            {isLoading || isFetching ? (
               <div className="space-y-6">
                 {Array.from({ length: 3 }).map((_, idx) => (
                   <div key={idx} className="flex items-center gap-4">
@@ -201,7 +206,14 @@ export default function LearnerDashboardContent() {
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-medium text-sm mb-2 truncate">{course.title}</h3>
+                      <a 
+                        href={course.resume_url} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="font-medium text-sm mb-2 truncate block hover:text-[#00B140] hover:underline transition-colors"
+                      >
+                        {course.title}
+                      </a>
                       <div className="flex items-center gap-3">
                         <div className="flex-1 bg-gray-200 rounded-full h-2">
                           <div 
@@ -225,7 +237,7 @@ export default function LearnerDashboardContent() {
         <Card>
           <CardContent className="p-6">
             <h2 className="text-xl font-semibold mb-6">My Badges</h2>
-            {isLoading ? (
+            {isLoading || isFetching ? (
               <div className="space-y-4">
                 {Array.from({ length: 3 }).map((_, idx) => (
                   <div key={idx} className="flex items-start gap-3">

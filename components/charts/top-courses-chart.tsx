@@ -1,6 +1,6 @@
 "use client"
 
-import { useGetTopCoursesQuery } from "@/lib/store/api/userApi";
+import { type MetricsQueryArgs, useGetTopCoursesQuery } from "@/lib/store/api/userApi";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Tooltip,
@@ -61,16 +61,16 @@ function CourseBar({ name, fullName, link, enrollments, maxEnrollments, color }:
 }
 
 interface TopCoursesChartProps {
-  period?: string;
+  metricsArgs?: MetricsQueryArgs;
 }
 
-export default function TopCoursesChart({ period }: TopCoursesChartProps) {
-  const { data, isLoading, isError } = useGetTopCoursesQuery(period);
+export default function TopCoursesChart({ metricsArgs }: TopCoursesChartProps) {
+  const { data, isLoading, isFetching, isError } = useGetTopCoursesQuery(metricsArgs);
 
   // Color palette for the bars
   const colors = ["#1275DB", "#00B140", "#FDC300", "#CD1D5A", "#C4A2EA"];
 
-  if (isLoading) {
+  if (isLoading || isFetching) {
     return (
       <div className="space-y-3 md:space-y-4 w-full">
         {Array.from({ length: 5 }).map((_, index) => (

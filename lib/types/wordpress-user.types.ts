@@ -218,6 +218,7 @@ export interface LearnerDashboardCourse {
   title: string;
   progress: number;
   thumbnail: string;
+  resume_url: string;
 }
 
 export interface LearnerDashboardAchievement {

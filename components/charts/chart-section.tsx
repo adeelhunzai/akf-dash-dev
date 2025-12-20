@@ -6,11 +6,13 @@ import TopCoursesChart from "./top-courses-chart";
 import UserDistributionChart from "./user-distribution-chart";
 import { Card } from "@/components/ui/card";
 
+import { type MetricsQueryArgs } from '@/lib/store/api/userApi';
+
 interface ChartSectionProps {
-  periodParam?: string;
+  metricsArgs?: MetricsQueryArgs;
 }
 
-export default function ChartSection({ periodParam }: ChartSectionProps) {
+export default function ChartSection({ metricsArgs }: ChartSectionProps) {
   return (
     <div className="space-y-4">
       {/* Top Charts Row */}
@@ -20,7 +22,7 @@ export default function ChartSection({ periodParam }: ChartSectionProps) {
           <p className="text-sm text-muted-foreground mb-6">
             Completed vs In Progress
           </p>
-          <CourseCompletionChart period={periodParam} />
+          <CourseCompletionChart metricsArgs={metricsArgs} />
         </Card>
         <Card className="p-4 md:p-6">
           <h3 className="text-lg font-semibold mb-4">
@@ -29,7 +31,7 @@ export default function ChartSection({ periodParam }: ChartSectionProps) {
           <p className="text-sm text-muted-foreground mb-6">
             By enrollment count
           </p>
-          <TopCoursesChart period={periodParam} />
+          <TopCoursesChart metricsArgs={metricsArgs} />
         </Card>
       </div>
 

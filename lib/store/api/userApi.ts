@@ -2,6 +2,12 @@ import { createApi } from '@reduxjs/toolkit/query/react';
 import { createWordpressBaseQuery } from '@/lib/api/wordpressBaseQuery';
 import { WordPressUserResponse, UsersCountResponse, CourseCompletionRateResponse, TopCoursesResponse, UsersListResponse, UserDetailsResponse, CreateUserRequest, CreateUserResponse, UpdateUserRequest, UpdateUserResponse, DeleteUserRequest, DeleteUserResponse, LearnerDashboardResponse, FilterUsersByCsvResponse, LearnerAchievementsResponse, LearnerCertificatesResponse, CertificateDownloadResponse, CertificateViewResponse, LearnerSettingsResponse, UpdateLearnerSettingsRequest, UpdateLearnerSettingsResponse } from '@/lib/types/wordpress-user.types';
 
+export interface MetricsQueryArgs {
+  period?: string;
+  from?: string;
+  to?: string;
+}
+
 export const usersApi = createApi({
   reducerPath: 'usersApi',
   baseQuery: createWordpressBaseQuery('token'),
@@ -11,34 +17,34 @@ export const usersApi = createApi({
       query: () => '/wp/v2/users/me?context=edit',
       providesTags: ['CurrentUser'],
     }),
-    getUsersCount: build.query<UsersCountResponse, string | undefined>({
-      query: (period) => {
+    getUsersCount: build.query<UsersCountResponse, MetricsQueryArgs | void>({
+      query: ({ period, from, to } = {}) => {
         const params = new URLSearchParams();
-        if (period) {
-          params.append('period', period);
-        }
+        if (period) params.append('period', period);
+        if (from) params.append('from', from);
+        if (to) params.append('to', to);
         const queryString = params.toString();
         return `/custom-api/v1/users-count${queryString ? `?${queryString}` : ''}`;
       },
       providesTags: ['UsersCount'],
     }),
-    getCourseCompletionRate: build.query<CourseCompletionRateResponse, string | undefined>({
-      query: (period) => {
+    getCourseCompletionRate: build.query<CourseCompletionRateResponse, MetricsQueryArgs | void>({
+      query: ({ period, from, to } = {}) => {
         const params = new URLSearchParams();
-        if (period) {
-          params.append('period', period);
-        }
+        if (period) params.append('period', period);
+        if (from) params.append('from', from);
+        if (to) params.append('to', to);
         const queryString = params.toString();
         return `/custom-api/v1/course-completion-rate${queryString ? `?${queryString}` : ''}`;
       },
       providesTags: ['CourseCompletionRate'],
     }),
-    getTopCourses: build.query<TopCoursesResponse, string | undefined>({
-      query: (period) => {
+    getTopCourses: build.query<TopCoursesResponse, MetricsQueryArgs | void>({
+      query: ({ period, from, to } = {}) => {
         const params = new URLSearchParams();
-        if (period) {
-          params.append('period', period);
-        }
+        if (period) params.append('period', period);
+        if (from) params.append('from', from);
+        if (to) params.append('to', to);
         const queryString = params.toString();
         return `/custom-api/v1/top-courses${queryString ? `?${queryString}` : ''}`;
       },
@@ -87,20 +93,18 @@ export const usersApi = createApi({
       }),
       invalidatesTags: ['UsersList', 'UsersCount'],
     }),
-    getLearnerDashboard: build.query<LearnerDashboardResponse, string | undefined>({
-      query: (period) => {
+    getLearnerDashboard: build.query<LearnerDashboardResponse, string | MetricsQueryArgs | undefined>({
+      query: (arg) => {
         const params = new URLSearchParams();
-        if (period) {
-          params.append('period', period);
+        if (typeof arg === 'string') {
+          params.append('period', arg);
+        } else if (arg) {
+          if (arg.period) params.append('period', arg.period);
+          if (arg.from) params.append('from', arg.from);
+          if (arg.to) params.append('to', arg.to);
         }
         const queryString = params.toString();
         return `/custom-api/v1/learner-dashboard${queryString ? `?${queryString}` : ''}`;
-      },
-      // Serialize query args to ensure consistent caching
-      serializeQueryArgs: ({ endpointName, queryArgs }) => {
-        const period = queryArgs || '';
-        // Consistent serialization ensures RTK Query caches properly
-        return `${endpointName}(${period})`;
       },
       providesTags: ['LearnerDashboard'],
       // Keep cached data for 5 minutes to prevent unnecessary refetches

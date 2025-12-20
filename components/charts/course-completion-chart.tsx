@@ -1,6 +1,6 @@
 "use client"
 
-import { useGetCourseCompletionRateQuery } from "@/lib/store/api/userApi";
+import { type MetricsQueryArgs, useGetCourseCompletionRateQuery } from "@/lib/store/api/userApi";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface CircularProgressProps {
@@ -52,11 +52,11 @@ function CircularProgress({ value, total, color, label }: CircularProgressProps)
 }
 
 interface CourseCompletionChartProps {
-  period?: string;
+  metricsArgs?: MetricsQueryArgs;
 }
 
-export default function CourseCompletionChart({ period }: CourseCompletionChartProps) {
-  const { data, isLoading, isError } = useGetCourseCompletionRateQuery(period);
+export default function CourseCompletionChart({ metricsArgs }: CourseCompletionChartProps) {
+  const { data, isLoading, isFetching, isError } = useGetCourseCompletionRateQuery(metricsArgs);
 
   // Use API data or fallback to loading/error states
   const completed = data?.completed.count || 0;
@@ -66,7 +66,7 @@ export default function CourseCompletionChart({ period }: CourseCompletionChartP
   const completedPercentage = data?.completed.percentage || 0;
   const inProgressPercentage = data?.in_progress.percentage || 0;
 
-  if (isLoading) {
+  if (isLoading || isFetching) {
     return (
       <div className="flex flex-col md:flex-row gap-3 lg:gap-4 xl:gap-6 items-center justify-start w-full min-w-0">
         <div className="flex items-center justify-center gap-3 lg:gap-4 xl:gap-6 min-w-0 flex-shrink">

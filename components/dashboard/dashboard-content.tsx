@@ -12,20 +12,12 @@ import {
   BookText,
   UserRoundPlus,
   Check,
-  ChevronDown,
-  Calendar
 } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { useState, useEffect } from "react";
-import { DropdownMenuLabel } from "@radix-ui/react-dropdown-menu";
+import { useState, useEffect, useMemo } from "react";
 import { Button } from "../ui/button";
-import { useGetUsersCountQuery, useGetCourseCompletionRateQuery, useGetTopCoursesQuery } from "@/lib/store/api/userApi";
+import DateRangePicker from "@/components/ui/date-range-picker";
+import { type DateRange } from "react-day-picker";
+import { type MetricsQueryArgs, useGetUsersCountQuery, useGetCourseCompletionRateQuery, useGetTopCoursesQuery } from "@/lib/store/api/userApi";
 import { useToast } from "@/hooks/use-toast";
 import { RefreshCw } from "lucide-react";
 
@@ -127,6 +119,7 @@ const getMetricsConfig = () => [
 
 export default function DashboardContent() {
   const [selectedPeriod, setSelectedPeriod] = useState("All Time");
+  const [customRange, setCustomRange] = useState<DateRange | undefined>(undefined);
   const periods = ["1 Month", "3 Months", "6 Months", "1 Year", "All Time"];
   const { toast } = useToast();
   
@@ -142,13 +135,44 @@ export default function DashboardContent() {
     return periodMap[period];
   };
   
-  // Fetch users count from WordPress API with period parameter
   const periodParam = getPeriodParam(selectedPeriod);
-  const { data: usersCount, isLoading, isError: isUsersError, refetch: refetchUsers } = useGetUsersCountQuery(periodParam);
+
+  const formatDateString = (date?: Date) =>
+    date
+      ? date.toLocaleDateString(undefined, {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+        })
+      : "";
+
+  const rangeStart = customRange?.from;
+  const rangeEnd = customRange?.to;
+  const hasCustomRange = Boolean(rangeStart && rangeEnd);
+  const rangeLabel = hasCustomRange
+    ? `${formatDateString(rangeStart)} - ${formatDateString(rangeEnd)}`
+    : selectedPeriod;
+  const metricsArgs = useMemo<MetricsQueryArgs | undefined>(() => {
+    if (!hasCustomRange && !periodParam) {
+      return undefined;
+    }
+
+    const args: MetricsQueryArgs = {};
+    if (!hasCustomRange && periodParam) {
+      args.period = periodParam;
+    }
+    if (hasCustomRange && rangeStart && rangeEnd) {
+      args.from = rangeStart.toISOString();
+      args.to = rangeEnd.toISOString();
+    }
+    return args;
+  }, [hasCustomRange, periodParam, rangeStart, rangeEnd]);
+
+  const { data: usersCount, isLoading, isFetching, isError: isUsersError, refetch: refetchUsers } = useGetUsersCountQuery(metricsArgs);
   
   // Fetch course completion rate and top courses for retry functionality
-  const { isError: isCompletionError, refetch: refetchCompletion } = useGetCourseCompletionRateQuery(periodParam);
-  const { isError: isTopCoursesError, refetch: refetchTopCourses } = useGetTopCoursesQuery(periodParam);
+  const { isError: isCompletionError, refetch: refetchCompletion } = useGetCourseCompletionRateQuery(metricsArgs);
+  const { isError: isTopCoursesError, refetch: refetchTopCourses } = useGetTopCoursesQuery(metricsArgs);
   
   // Combined error state
   const hasAnyError = isUsersError || isCompletionError || isTopCoursesError;
@@ -236,55 +260,23 @@ export default function DashboardContent() {
             Monitor your platform performance and key metrics
           </p>
         </div>
-        <div>
-          {/* Period Filter Dropdown */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                className="flex items-center gap-2 h-9 bg-transparent"
-              >
-                <Calendar className="w-4 h-4 text-muted-foreground" />
-                <span className="text-sm">{selectedPeriod}</span>
-                <ChevronDown className="w-3 h-3 text-muted-foreground" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuLabel className="text-xs font-medium text-muted-foreground">
-                <span className="text-black">Filter by Period</span>
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator className="my-1" />
-              {periods.map((period) => (
-                <DropdownMenuItem
-                  key={period}
-                  onClick={() => setSelectedPeriod(period)}
-                  className="cursor-pointer"
-                >
-                  <div className="flex items-center justify-between w-full">
-                    <span
-                      className={
-                        selectedPeriod === period
-                          ? "text-[#16a34a] font-medium"
-                          : ""
-                      }
-                    >
-                      {period}
-                    </span>
-                    {selectedPeriod === period && (
-                      <Check className="w-4 h-4 text-[#16a34a]" />
-                    )}
-                  </div>
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
+        <DateRangePicker
+          selectedPeriod={selectedPeriod}
+          customRange={customRange}
+          onRangeApply={range => setCustomRange(range)}
+          onPeriodSelect={period => {
+            setSelectedPeriod(period)
+            if (period !== "Custom Range") {
+              setCustomRange(undefined)
+            }
+          }}
+          quickRanges={periods}
+        />
       </div>
 
       {/* Top Metrics Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {isLoading ? (
+        {isLoading || isFetching ? (
           Array.from({ length: 7 }).map((_, idx) => (
             <MetricCardSkeleton key={idx} />
           ))
@@ -312,7 +304,7 @@ export default function DashboardContent() {
       
 
       {/* Charts Section */}
-      <ChartSection periodParam={periodParam} />
+      <ChartSection metricsArgs={metricsArgs} />
     </div>
   );
 }
