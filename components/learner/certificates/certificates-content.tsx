@@ -6,19 +6,96 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Award, Download, Eye } from "lucide-react"
 import { useGetLearnerCertificatesQuery } from "@/lib/store/api/userApi"
 import { Certificate } from "@/lib/types/wordpress-user.types"
-import { useState } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import { useToast } from "@/hooks/use-toast"
 import { getTokenCookie } from "@/lib/utils/cookies"
+import { CertificateViewerModal } from "./certificate-viewer-modal"
+
+// Cache entry type
+interface CacheEntry {
+  pdfBlobUrl: string
+  fallbackUrl: string | null
+  timestamp: number
+}
+
+// Cache expiry time (10 minutes)
+const CACHE_EXPIRY_MS = 10 * 60 * 1000
 
 export default function CertificatesContent() {
   const { data, isLoading, error } = useGetLearnerCertificatesQuery()
   const [loadingCertId, setLoadingCertId] = useState<string | null>(null)
   const { toast } = useToast()
+  
+  // PDF cache - stores blob URLs by certificate ID
+  const pdfCacheRef = useRef<Map<string, CacheEntry>>(new Map())
+  
+  // Modal state
+  const [viewerOpen, setViewerOpen] = useState(false)
+  const [viewerUrl, setViewerUrl] = useState<string | null>(null)
+  const [viewerPdfBlobUrl, setViewerPdfBlobUrl] = useState<string | null>(null)
+  const [viewerTitle, setViewerTitle] = useState("")
+  const [viewerCertificate, setViewerCertificate] = useState<Certificate | null>(null)
+  const [viewerLoading, setViewerLoading] = useState(false)
 
   const certificates = data?.data?.certificates || []
 
-  // Fetch certificate URL from API and open it
-  const fetchCertificateUrl = async (certificate: Certificate, action: 'view' | 'download') => {
+  // Cleanup all cached blob URLs on unmount
+  useEffect(() => {
+    return () => {
+      pdfCacheRef.current.forEach((entry) => {
+        URL.revokeObjectURL(entry.pdfBlobUrl)
+      })
+      pdfCacheRef.current.clear()
+    }
+  }, [])
+
+  // Get from cache
+  const getFromCache = useCallback((certificateId: string): CacheEntry | null => {
+    const entry = pdfCacheRef.current.get(certificateId)
+    if (!entry) {
+      return null
+    }
+    // Check if entry is still valid
+    if (Date.now() - entry.timestamp < CACHE_EXPIRY_MS) {
+      return entry
+    }
+    // Remove expired entry
+    URL.revokeObjectURL(entry.pdfBlobUrl)
+    pdfCacheRef.current.delete(certificateId)
+    return null
+  }, [])
+
+  // Add to cache
+  const addToCache = useCallback((certificateId: string, pdfBlobUrl: string, fallbackUrl: string | null) => {
+    pdfCacheRef.current.set(certificateId, {
+      pdfBlobUrl,
+      fallbackUrl,
+      timestamp: Date.now(),
+    })
+  }, [])
+
+  // Get or fetch certificate PDF (with caching)
+  const getOrFetchCertificatePdf = async (certificate: Certificate): Promise<{ pdfBlobUrl: string | null, fallbackUrl: string | null }> => {
+    // Check cache first
+    const cached = getFromCache(certificate.id)
+    if (cached) {
+      console.log('Certificate PDF loaded from cache:', certificate.id)
+      return { pdfBlobUrl: cached.pdfBlobUrl, fallbackUrl: cached.fallbackUrl }
+    }
+
+    // Not in cache, fetch from API
+    const result = await fetchCertificatePdfFromApi(certificate)
+    
+    // Cache the result if we got a blob URL
+    if (result.pdfBlobUrl) {
+      addToCache(certificate.id, result.pdfBlobUrl, result.fallbackUrl)
+    }
+    
+    return result
+  }
+
+  // Fetch certificate PDF from API (returns base64 PDF)
+  const fetchCertificatePdfFromApi = async (certificate: Certificate): Promise<{ pdfBlobUrl: string | null, fallbackUrl: string | null }> => {
     const token = getTokenCookie()
     if (!token) {
       toast({
@@ -26,12 +103,11 @@ export default function CertificatesContent() {
         description: "Please log in to access certificates.",
         variant: "destructive",
       })
-      return
+      return { pdfBlobUrl: null, fallbackUrl: null }
     }
 
-    const endpoint = action === 'view' ? 'view' : 'download'
     const apiUrl = process.env.NEXT_PUBLIC_WORDPRESS_API_URL || 'https://akfhub-dev.inspirartweb.com/wp-json'
-    const url = `${apiUrl}/custom-api/v1/learner-certificates/${certificate.id}/${endpoint}`
+    const url = `${apiUrl}/custom-api/v1/learner-certificates/${certificate.id}/view?format=pdf`
 
     try {
       const response = await fetch(url, {
@@ -49,42 +125,265 @@ export default function CertificatesContent() {
       const jsonData = await response.json()
       
       if (jsonData.success) {
-        // Get the signed URL from response
-        const certUrl = action === 'view' 
-          ? jsonData.data?.certificate_url 
-          : jsonData.data?.download_url
-        
-        if (certUrl) {
-          // Open the signed URL in a new tab
-          window.open(certUrl, '_blank')
-        } else {
-          throw new Error('Certificate URL not found in response')
+        // Check if we got base64 PDF data
+        if (jsonData.data?.pdf_base64) {
+          // Convert base64 to blob
+          const byteCharacters = atob(jsonData.data.pdf_base64)
+          const byteNumbers = new Array(byteCharacters.length)
+          for (let i = 0; i < byteCharacters.length; i++) {
+            byteNumbers[i] = byteCharacters.charCodeAt(i)
+          }
+          const byteArray = new Uint8Array(byteNumbers)
+          const blob = new Blob([byteArray], { type: 'application/pdf' })
+          const blobUrl = URL.createObjectURL(blob)
+          
+          return { pdfBlobUrl: blobUrl, fallbackUrl: null }
         }
+        
+        // Fallback: got URL instead of PDF data - try to fetch PDF from that URL
+        if (jsonData.data?.certificate_url) {
+          const pdfBlobUrl = await fetchPdfFromUrl(jsonData.data.certificate_url)
+          if (pdfBlobUrl) {
+            return { pdfBlobUrl, fallbackUrl: null }
+          }
+          // If fetch failed, return the URL as fallback
+          return { pdfBlobUrl: null, fallbackUrl: jsonData.data.certificate_url }
+        }
+        
+        throw new Error('Certificate data not found in response')
       } else {
         throw new Error(jsonData.message || 'Failed to generate certificate')
       }
     } catch (err) {
-      console.error(`Failed to ${action} certificate:`, err)
+      console.error('Failed to fetch certificate PDF:', err)
       toast({
         title: "Error",
-        description: err instanceof Error ? err.message : `Failed to ${action} certificate`,
+        description: err instanceof Error ? err.message : 'Failed to fetch certificate',
         variant: "destructive",
+      })
+      return { pdfBlobUrl: null, fallbackUrl: null }
+    }
+  }
+
+  // Fetch PDF from URL and return blob URL
+  const fetchPdfFromUrl = async (pdfUrl: string): Promise<string | null> => {
+    try {
+      const response = await fetch(pdfUrl, {
+        method: 'GET',
+        credentials: 'include',
+      })
+      
+      if (!response.ok) {
+        console.error('Failed to fetch PDF from URL:', response.status)
+        return null
+      }
+      
+      const contentType = response.headers.get('content-type')
+      if (!contentType?.includes('application/pdf')) {
+        console.error('Response is not a PDF:', contentType)
+        return null
+      }
+      
+      const blob = await response.blob()
+      return URL.createObjectURL(blob)
+    } catch (err) {
+      console.error('Error fetching PDF from URL:', err)
+      return null
+    }
+  }
+
+  // Fetch certificate URL from API (for download)
+  const fetchCertificateUrl = async (certificate: Certificate): Promise<string | null> => {
+    const token = getTokenCookie()
+    if (!token) {
+      toast({
+        title: "Authentication required",
+        description: "Please log in to access certificates.",
+        variant: "destructive",
+      })
+      return null
+    }
+
+    const apiUrl = process.env.NEXT_PUBLIC_WORDPRESS_API_URL || 'https://akfhub-dev.inspirartweb.com/wp-json'
+    const url = `${apiUrl}/custom-api/v1/learner-certificates/${certificate.id}/download`
+
+    try {
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null)
+        throw new Error(errorData?.message || 'Failed to fetch certificate')
+      }
+
+      const jsonData = await response.json()
+      
+      if (jsonData.success && jsonData.data?.download_url) {
+        return jsonData.data.download_url
+      } else {
+        throw new Error(jsonData.message || 'Failed to generate certificate')
+      }
+    } catch (err) {
+      console.error('Failed to fetch certificate URL:', err)
+      toast({
+        title: "Error",
+        description: err instanceof Error ? err.message : 'Failed to fetch certificate',
+        variant: "destructive",
+      })
+      return null
+    }
+  }
+
+  // Download PDF from URL by fetching it as blob
+  // WordPress now injects cert-nonce without redirect, so CORS should work
+  const downloadPdfFromUrl = async (pdfUrl: string, filename: string) => {
+    try {
+      // Fetch the PDF with credentials for CORS
+      const response = await fetch(pdfUrl, {
+        method: 'GET',
+        credentials: 'include',
+      })
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch PDF: ${response.status}`)
+      }
+
+      // Get the blob
+      const blob = await response.blob()
+      
+      // Create a download link
+      const downloadUrl = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = downloadUrl
+      link.download = filename
+      document.body.appendChild(link)
+      link.click()
+      
+      // Cleanup
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(downloadUrl)
+      
+      toast({
+        title: "Download started",
+        description: "Your certificate is being downloaded.",
+      })
+    } catch (err) {
+      console.error('Failed to download PDF:', err)
+      // Fallback: open in new tab if fetch fails
+      window.open(pdfUrl, '_blank')
+      toast({
+        title: "Certificate opened",
+        description: "Certificate opened in new tab. Use Ctrl+S or browser menu to save as PDF.",
       })
     }
   }
 
-  // Handle view certificate
+  // Handle view certificate - opens in modal with PDF
   const handleView = async (certificate: Certificate) => {
     setLoadingCertId(certificate.id + '_view')
-    await fetchCertificateUrl(certificate, 'view')
+    
+    // Open modal immediately with loading state
+    setViewerTitle(certificate.title)
+    setViewerCertificate(certificate)
+    setViewerOpen(true)
+    setViewerLoading(true)
+    setViewerPdfBlobUrl(null)
+    setViewerUrl(null)
+    
+    // Fetch the PDF (uses cache if available)
+    const { pdfBlobUrl, fallbackUrl } = await getOrFetchCertificatePdf(certificate)
+    
+    if (pdfBlobUrl) {
+      setViewerPdfBlobUrl(pdfBlobUrl)
+    } else if (fallbackUrl) {
+      setViewerUrl(fallbackUrl)
+    }
+    
+    setViewerLoading(false)
     setLoadingCertId(null)
   }
 
-  // Handle download certificate
+  // Handle download certificate - use cached PDF if available
   const handleDownload = async (certificate: Certificate) => {
     setLoadingCertId(certificate.id + '_download')
-    await fetchCertificateUrl(certificate, 'download')
+    
+    // Check cache first
+    const cached = getFromCache(certificate.id)
+    if (cached?.pdfBlobUrl) {
+      // Download from cached blob
+      const link = document.createElement('a')
+      link.href = cached.pdfBlobUrl
+      link.download = `${certificate.title}-certificate.pdf`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      
+      toast({
+        title: "Download started",
+        description: "Your certificate is being downloaded.",
+      })
+      setLoadingCertId(null)
+      return
+    }
+    
+    // Not cached, fetch and download
+    const { pdfBlobUrl } = await getOrFetchCertificatePdf(certificate)
+    if (pdfBlobUrl) {
+      const link = document.createElement('a')
+      link.href = pdfBlobUrl
+      link.download = `${certificate.title}-certificate.pdf`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      
+      toast({
+        title: "Download started",
+        description: "Your certificate is being downloaded.",
+      })
+    }
     setLoadingCertId(null)
+  }
+
+  // Handle download from modal - use blob if available, otherwise fetch URL
+  const handleModalDownload = async () => {
+    if (!viewerCertificate) return
+    setLoadingCertId(viewerCertificate.id + '_modal_download')
+    
+    // If we have a blob URL, download directly from it
+    if (viewerPdfBlobUrl) {
+      const link = document.createElement('a')
+      link.href = viewerPdfBlobUrl
+      link.download = `${viewerCertificate.title}-certificate.pdf`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      
+      toast({
+        title: "Download started",
+        description: "Your certificate is being downloaded.",
+      })
+    } else {
+      // Fallback to fetching download URL
+      const downloadUrl = await fetchCertificateUrl(viewerCertificate)
+      if (downloadUrl) {
+        await downloadPdfFromUrl(downloadUrl, `${viewerCertificate.title}-certificate.pdf`)
+      }
+    }
+    
+    setLoadingCertId(null)
+  }
+
+  // Close modal - don't revoke blob URL since it's cached
+  const handleCloseModal = () => {
+    setViewerOpen(false)
+    setViewerUrl(null)
+    setViewerPdfBlobUrl(null)
+    setViewerCertificate(null)
+    setViewerLoading(false)
   }
 
   if (isLoading) {
@@ -178,6 +477,18 @@ export default function CertificatesContent() {
           </p>
         </div>
       )}
+
+      {/* Certificate Viewer Modal */}
+      <CertificateViewerModal
+        isOpen={viewerOpen}
+        onClose={handleCloseModal}
+        pdfBlobUrl={viewerPdfBlobUrl}
+        certificateUrl={viewerUrl}
+        certificateTitle={viewerTitle}
+        onDownload={handleModalDownload}
+        isDownloading={loadingCertId === viewerCertificate?.id + '_modal_download'}
+        isLoading={viewerLoading}
+      />
     </div>
   )
 }

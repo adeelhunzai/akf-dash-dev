@@ -26,3 +26,6 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 /wordpress-endpoints/
+
+# WordPress plugins (reference only)
+/akf-learning-hub-plugins/
