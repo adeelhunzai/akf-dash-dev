@@ -128,6 +128,16 @@ export interface UsersListResponse {
 }
 
 /**
+ * Course Detail for User
+ */
+export interface UserCourseDetail {
+  id: number;
+  title: string;
+  progress: number;
+  completed_date?: string | null;
+}
+
+/**
  * User Details API Response
  * From /custom-api/v1/users/{id} endpoint
  */
@@ -148,6 +158,8 @@ export interface UserDetailsResponse {
   total_courses: number;
   completed_courses: number;
   completion_rate: number;
+  enrolled_courses_details: UserCourseDetail[];
+  completed_courses_details: UserCourseDetail[];
 }
 
 /**

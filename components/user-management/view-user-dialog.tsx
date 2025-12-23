@@ -4,8 +4,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Edit2, Clock } from "lucide-react"
+import { Edit2, Clock, BookOpen, CheckCircle2, ChevronDown, ChevronUp } from "lucide-react"
 import { useGetUserDetailsQuery } from "@/lib/store/api/userApi"
+import { useState } from "react"
+import { Progress } from "@/components/ui/progress"
 
 interface ViewUserDialogProps {
   open: boolean
@@ -37,6 +39,9 @@ const mapRole = (roles: string[]): string => {
 }
 
 export default function ViewUserDialog({ open, onOpenChange, userId, onEditClick }: ViewUserDialogProps) {
+  const [enrolledExpanded, setEnrolledExpanded] = useState(false)
+  const [completedExpanded, setCompletedExpanded] = useState(false)
+  
   // Fetch user details from API
   const { data: userDetails, isLoading, isError } = useGetUserDetailsQuery(userId!, {
     skip: !userId || !open,
@@ -69,7 +74,7 @@ export default function ViewUserDialog({ open, onOpenChange, userId, onEditClick
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold">User Details</DialogTitle>
         </DialogHeader>
@@ -99,9 +104,9 @@ export default function ViewUserDialog({ open, onOpenChange, userId, onEditClick
             <p className="text-destructive">Failed to load user details</p>
           </div>
         ) : userDetails ? (
-          <div className="space-y-6 py-4">
-            {/* User Header */}
-            <div className="flex items-start gap-4">
+          <>
+            {/* Fixed User Header */}
+            <div className="flex items-start gap-4 pb-4 border-b border-border">
               <Avatar className="h-20 w-20 bg-[#00B140]">
                 {avatarUrl && <AvatarImage src={avatarUrl} />}
                 <AvatarFallback className="text-white text-2xl font-semibold bg-[#00B140]">
@@ -122,8 +127,10 @@ export default function ViewUserDialog({ open, onOpenChange, userId, onEditClick
               </div>
             </div>
 
-            {/* User Details Grid */}
-            <div className="grid grid-cols-2 gap-6 py-4 border-t border-border">
+            {/* Scrollable Content */}
+            <div className="flex-1 overflow-y-auto pr-2 space-y-6 py-4">
+              {/* User Details Grid */}
+              <div className="grid grid-cols-2 gap-6">
               <div>
                 <p className="text-sm text-muted-foreground mb-1">Organisation</p>
                 <p className="text-base font-semibold text-foreground">{userDetails.organization}</p>
@@ -160,8 +167,83 @@ export default function ViewUserDialog({ open, onOpenChange, userId, onEditClick
               </div>
             </div>
 
-            {/* Action Buttons */}
-            <div className="flex gap-3 pt-2">
+            {/* Enrolled Courses Section */}
+            {userDetails.enrolled_courses_details && userDetails.enrolled_courses_details.length > 0 && (
+              <div className="border border-border rounded-lg">
+                <button
+                  onClick={() => setEnrolledExpanded(!enrolledExpanded)}
+                  className="w-full flex items-center justify-between p-4 hover:bg-muted/30 transition-colors"
+                >
+                  <div className="flex items-center gap-2">
+                    <BookOpen className="w-5 h-5 text-[#00B140]" />
+                    <span className="font-semibold text-foreground">
+                      Enrolled Courses ({userDetails.enrolled_courses_details.length})
+                    </span>
+                  </div>
+                  {enrolledExpanded ? (
+                    <ChevronUp className="w-5 h-5 text-muted-foreground" />
+                  ) : (
+                    <ChevronDown className="w-5 h-5 text-muted-foreground" />
+                  )}
+                </button>
+                {enrolledExpanded && (
+                  <div className="px-4 pb-4 space-y-4">
+                    {userDetails.enrolled_courses_details.map((course: any) => (
+                      <div key={course.id} className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <h4 className="font-medium text-foreground">{course.title}</h4>
+                          <span className="text-sm font-semibold text-[#00B140]">{course.progress}%</span>
+                        </div>
+                        <Progress value={course.progress} className="h-2" />
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Completed Courses Section */}
+            {userDetails.completed_courses_details && userDetails.completed_courses_details.length > 0 && (
+              <div className="border border-border rounded-lg">
+                <button
+                  onClick={() => setCompletedExpanded(!completedExpanded)}
+                  className="w-full flex items-center justify-between p-4 hover:bg-muted/30 transition-colors"
+                >
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="w-5 h-5 text-[#00B140]" />
+                    <span className="font-semibold text-foreground">
+                      Completed Courses ({userDetails.completed_courses_details.length})
+                    </span>
+                  </div>
+                  {completedExpanded ? (
+                    <ChevronUp className="w-5 h-5 text-muted-foreground" />
+                  ) : (
+                    <ChevronDown className="w-5 h-5 text-muted-foreground" />
+                  )}
+                </button>
+                {completedExpanded && (
+                  <div className="px-4 pb-4 space-y-3">
+                    {userDetails.completed_courses_details.map((course: any) => (
+                      <div key={course.id} className="flex items-start gap-2">
+                        <CheckCircle2 className="w-5 h-5 text-[#00B140] mt-0.5 flex-shrink-0" />
+                        <div>
+                          <h4 className="font-medium text-foreground">{course.title}</h4>
+                          {course.completed_date && (
+                            <p className="text-sm text-muted-foreground mt-0.5">
+                              Completed on {course.completed_date}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+            </div>
+
+            {/* Fixed Action Buttons */}
+            <div className="flex gap-3 pt-4 border-t border-border">
               <Button
                 variant="outline"
                 onClick={() => onOpenChange(false)}
@@ -180,7 +262,7 @@ export default function ViewUserDialog({ open, onOpenChange, userId, onEditClick
                 Edit User
               </Button>
             </div>
-          </div>
+          </>
         ) : null}
       </DialogContent>
     </Dialog>
