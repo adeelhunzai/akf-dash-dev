@@ -32,22 +32,38 @@ const getInitials = (name: string) => {
 
 // Helper function to map WordPress roles to display roles
 // Correct mappings: group_leader = Facilitator, group_leader_clone = Manager
-const mapRole = (roles: string[]): string => {
-  if (roles.includes('group_leader')) return "Facilitator"
-  if (roles.includes('group_leader_clone')) return "Manager"
+const mapRole = (role: string): string => {
+  if (role === 'group_leader') return "Facilitator"
+  if (role === 'group_leader_clone') return "Manager"
+  if (role === 'administrator') return "Admin"
+  if (role === 'akdn') return "AKDN"
   return "Learner"
+}
+
+// Helper function to map all roles
+const mapRoles = (roles: string[]): string[] => {
+  return roles.map(role => mapRole(role))
 }
 
 export default function ViewUserDialog({ open, onOpenChange, userId, onEditClick }: ViewUserDialogProps) {
   const [enrolledExpanded, setEnrolledExpanded] = useState(false)
   const [completedExpanded, setCompletedExpanded] = useState(false)
+  const [previousUserId, setPreviousUserId] = useState<number | undefined>(userId)
   
   // Fetch user details from API
-  const { data: userDetails, isLoading, isError } = useGetUserDetailsQuery(userId!, {
+  const { data: userDetails, isLoading, isError, isFetching } = useGetUserDetailsQuery(userId!, {
     skip: !userId || !open,
   })
 
+  // Track when userId changes to show skeleton
+  if (userId !== previousUserId && open) {
+    setPreviousUserId(userId)
+  }
+
   if (!userId) return null
+
+  // Show skeleton if loading, fetching, or userId changed
+  const showSkeleton = isLoading || isFetching || (userId !== previousUserId)
 
   const getRoleBadgeColor = (role: string) => {
     switch (role) {
@@ -57,6 +73,10 @@ export default function ViewUserDialog({ open, onOpenChange, userId, onEditClick
         return "bg-[#DCFCE7] text-[#166534]"
       case "Manager":
         return "bg-[#F3E8FF] text-[#6B21A8]"
+      case "Admin":
+        return "bg-[#FEE2E2] text-[#991B1B]"
+      case "AKDN":
+        return "bg-[#FEF3C7] text-[#92400E]"
       default:
         return "bg-gray-100 text-gray-700"
     }
@@ -68,7 +88,7 @@ export default function ViewUserDialog({ open, onOpenChange, userId, onEditClick
       : "bg-[#fee2e2] text-[#991b1b]"
   }
 
-  const role = userDetails ? mapRole(userDetails.roles) : ""
+  const roles = userDetails ? mapRoles(userDetails.roles) : []
   const avatarUrl = userDetails && !isGravatarDefault(userDetails.avatar_url) ? userDetails.avatar_url : null
   const initials = userDetails ? getInitials(userDetails.display_name) : ""
 
@@ -79,7 +99,7 @@ export default function ViewUserDialog({ open, onOpenChange, userId, onEditClick
           <DialogTitle className="text-xl font-bold">User Details</DialogTitle>
         </DialogHeader>
 
-        {isLoading ? (
+        {showSkeleton ? (
           <div className="space-y-6 py-4">
             <div className="flex items-start gap-4">
               <Skeleton className="h-20 w-20 rounded-full" />
@@ -116,10 +136,12 @@ export default function ViewUserDialog({ open, onOpenChange, userId, onEditClick
               <div className="flex-1">
                 <h3 className="text-xl font-bold text-foreground mb-1">{userDetails.display_name}</h3>
                 <p className="text-sm text-muted-foreground mb-3">{userDetails.user_email}</p>
-                <div className="flex items-center gap-2">
-                  <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${getRoleBadgeColor(role)}`}>
-                    {role}
-                  </span>
+                <div className="flex items-center gap-2 flex-wrap">
+                  {roles.map((role, index) => (
+                    <span key={index} className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${getRoleBadgeColor(role)}`}>
+                      {role}
+                    </span>
+                  ))}
                   <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${getStatusBadgeColor(userDetails.account_status)}`}>
                     {userDetails.account_status}
                   </span>
