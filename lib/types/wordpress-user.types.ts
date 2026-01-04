@@ -40,7 +40,7 @@ export interface WordPressUserResponse {
 /**
  * Maps WordPress roles to application UserRole
  */
-export type WordPressRole = 
+export type WordPressRole =
   | 'administrator'
   | 'subscriber'
   | 'group_leader'
@@ -453,5 +453,253 @@ export interface UpdateLearnerSettingsResponse {
     personal_info: PersonalInfo;
     learning_preferences: LearningPreferences;
     notifications: NotificationSettings;
+  };
+}
+
+/**
+ * Facilitator Dashboard API Response
+ * From /custom-api/v1/facilitator-dashboard endpoint
+ */
+export interface FacilitatorDashboardSummary {
+  courses_assigned: number;
+  learners_enrolled: number;
+  certificates_issued: number;
+  completion_rate: string;
+}
+
+export interface FacilitatorCourseCompletion {
+  completed: number;
+  in_progress: number;
+  completed_percentage: number;
+  in_progress_percentage: number;
+}
+
+export interface FacilitatorUserDistributionCountry {
+  country: string;
+  users: number;
+}
+
+export interface FacilitatorUserDistribution {
+  total_users: number;
+  total_countries: number;
+  active_regions: number;
+  growth_rate: string;
+  countries: FacilitatorUserDistributionCountry[];
+}
+
+export interface FacilitatorDashboardResponse {
+  success: boolean;
+  data: {
+    summary: FacilitatorDashboardSummary;
+    course_completion: FacilitatorCourseCompletion;
+    user_distribution: FacilitatorUserDistribution;
+  };
+}
+
+/**
+ * Facilitator Courses API Response
+ * From /custom-api/v1/facilitator-courses endpoint
+ */
+export interface FacilitatorCourse {
+  id: number;
+  title: string;
+  start_date: string;
+  groups: string[];
+  total_learners: number;
+  active_learners: number;
+  completion_rate: number;
+  status: 'active' | 'completed' | 'upcoming';
+}
+
+export interface FacilitatorCoursesPagination {
+  current_page: number;
+  total_pages: number;
+  total_courses: number;
+  per_page: number;
+}
+
+export interface FacilitatorGroup {
+  id: number;
+  name: string;
+}
+
+export interface FacilitatorCoursesListResponse {
+  success: boolean;
+  data: {
+    courses: FacilitatorCourse[];
+    pagination: FacilitatorCoursesPagination;
+    filters: {
+      available_groups: FacilitatorGroup[];
+    };
+  };
+}
+
+/**
+ * Facilitator Course Details API Response
+ * From /custom-api/v1/facilitator-courses/{id} endpoint
+ */
+export interface FacilitatorCourseDetails {
+  id: number;
+  title: string;
+  description: string;
+  start_date: string;
+  end_date: string | null;
+  duration: string;
+  groups: string[];
+  completion_rate: number;
+  total_learners: number;
+  active_learners: number;
+  certificates_issued: number;
+}
+
+export interface FacilitatorCourseLearner {
+  id: number;
+  name: string;
+  email: string;
+  avatar_url: string;
+  enrolled_date: string;
+  last_active: string;
+  progress: number;
+  status: 'in_progress' | 'completed';
+}
+
+export interface FacilitatorCourseDetailsResponse {
+  success: boolean;
+  data: {
+    course: FacilitatorCourseDetails;
+    learners: FacilitatorCourseLearner[];
+  };
+}
+
+
+
+// Team Member Management Types
+export interface AddLearnersToTeamRequest {
+  user_ids: number[];
+}
+
+export interface AddLearnersToTeamResponse {
+  success: boolean;
+  message: string;
+  data?: {
+    added_count: number;
+    errors: string[];
+  };
+}
+
+export interface RemoveLearnerFromTeamRequest {
+  user_id: number;
+}
+
+
+export interface RemoveLearnerFromTeamResponse {
+  success: boolean;
+  message: string;
+}
+
+// Facilitator Certificates Types
+export interface FacilitatorCertificate {
+  id: number;
+  display_id: string;
+  learner: {
+    id: number;
+    name: string;
+    email: string;
+    avatar_url: string;
+  };
+  course: string;
+  final_grade: string;
+  completion_date: string;
+  certificate_url: string | null;
+  status: 'issued' | 'not_issued';
+}
+
+export interface FacilitatorCertificatesResponse {
+  success: boolean;
+  data: {
+    stats: {
+      total_issued: number;
+    };
+    certificates: FacilitatorCertificate[];
+    pagination: {
+      current_page: number;
+      total_pages: number;
+      total_items: number;
+      per_page: number;
+    };
+  };
+}
+
+// Facilitator Reports Types
+export interface FacilitatorReportsSummary {
+  total_learners: number;
+  total_teams: number;
+  certificates_issued: number;
+}
+
+export interface FacilitatorReportsSummaryResponse {
+  success: boolean;
+  data: FacilitatorReportsSummary;
+}
+
+export interface FacilitatorCourseReport {
+  course_id: number;
+  course_name: string;
+  team: string;
+  team_id: number;
+  enrolled: number;
+  completed: number;
+  in_progress: number;
+  not_started: number;
+  avg_score: number;
+  certificates: number;
+}
+
+export interface FacilitatorCourseReportsResponse {
+  success: boolean;
+  data: {
+    courses: FacilitatorCourseReport[];
+  };
+}
+
+export interface FacilitatorLearnerReport {
+  id: number;
+  name: string;
+  email: string;
+  courses_enrolled: number;
+  courses_completed: number;
+  courses_in_progress: number;
+  courses_not_started: number;
+}
+
+export interface FacilitatorLearnerReportsResponse {
+  success: boolean;
+  data: {
+    learners: FacilitatorLearnerReport[];
+  };
+}
+
+export interface FacilitatorTeamReport {
+  team_id: number;
+  team_name: string;
+  learners: number;
+  courses_assigned: number;
+  completed: number;
+  avg_score: number;
+  certificates: number;
+}
+
+export interface FacilitatorTeamReportsResponse {
+  success: boolean;
+  data: {
+    teams: FacilitatorTeamReport[];
+  };
+}
+
+export interface FacilitatorReportsExportResponse {
+  success: boolean;
+  data: {
+    csv: string;
+    filename: string;
   };
 }

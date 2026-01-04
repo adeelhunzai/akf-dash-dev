@@ -1,12 +1,20 @@
+import FacilitatorCertificatesContent from "@/components/facilitator/certificates/facilitator-certificates-content";
+import { useTranslations } from "next-intl";
+
 export default function FacilitatorCertificatesPage() {
+  const t = useTranslations("navigation");
+
   return (
-    <div className="p-8">
-      <h1 className="text-3xl font-semibold text-[#1a1a1a] mb-8">
-        Certificates
-      </h1>
-      <div className="bg-white rounded-lg border border-gray-200 p-8 text-center">
-        <p className="text-gray-500">Certificates page coming soon...</p>
+    <div className="p-4 lg:p-6 space-y-6">
+      <div>
+        <h1 className="text-2xl md:text-3xl font-bold text-foreground">
+          {t("certificates")}
+        </h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          View and manage learner certificates
+        </p>
       </div>
+      <FacilitatorCertificatesContent />
     </div>
   );
 }

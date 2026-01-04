@@ -2,6 +2,19 @@
 
 import Image from "next/image";
 
+interface UserDistributionData {
+  country: string;
+  users: number;
+}
+
+interface UserDistributionProps {
+  total_users?: number;
+  total_countries?: number;
+  active_regions?: number;
+  growth_rate?: string;
+  countries?: UserDistributionData[];
+}
+
 interface LocationMarkerProps {
   country: string;
   users: string;
@@ -37,39 +50,85 @@ function LocationMarker({
   );
 }
 
-export default function UserDistributionChart() {
-  const locations = [
-    {
-      country: "United Kingdom",
-      users: "450 users",
-      color: "#c4a2ea",
-      position: { top: "11%", left: "23%" },
-    },
-    {
-      country: "United States",
-      users: "1,700 users",
-      color: "#cd1d5a",
-      position: { top: "25%", left: "2%" },
-    },
-    {
-      country: "India",
-      users: "342 users",
-      color: "#fc664d",
-      position: { top: "45%", left: "46%" },
-    },
-    {
-      country: "Brazil",
-      users: "205 users",
-      color: "#00b140",
-      position: { top: "62%", left: "29%" },
-    },
-    {
-      country: "Australia",
-      users: "168 users",
-      color: "#1275db",
-      position: { top: "69%", left: "77%" },
-    },
-  ];
+interface UserDistributionChartProps {
+  data?: UserDistributionProps;
+}
+
+export default function UserDistributionChart({ data }: UserDistributionChartProps) {
+  // Country position mapping for the world map
+  const countryPositions: Record<string, { top: string; left: string }> = {
+    "United Kingdom": { top: "11%", left: "23%" },
+    "United States": { top: "25%", left: "2%" },
+    "USA": { top: "25%", left: "2%" },
+    "India": { top: "45%", left: "46%" },
+    "Brazil": { top: "62%", left: "29%" },
+    "Australia": { top: "69%", left: "77%" },
+    "Canada": { top: "20%", left: "5%" },
+    "China": { top: "35%", left: "60%" },
+    "Germany": { top: "15%", left: "28%" },
+    "France": { top: "17%", left: "25%" },
+    "Japan": { top: "35%", left: "75%" },
+    "Pakistan": { top: "35%", left: "48%" },
+    "Kenya": { top: "50%", left: "40%" },
+    "South Africa": { top: "72%", left: "36%" },
+    "Mexico": { top: "33%", left: "8%" },
+    "Argentina": { top: "68%", left: "24%" },
+    "Russia": { top: "18%", left: "50%" },
+    "Egypt": { top: "37%", left: "35%" },
+    "Nigeria": { top: "45%", left: "30%" },
+    "Turkey": { top: "30%", left: "34%" },
+  };
+
+  // Color mapping based on user count ranges
+  const getColorForUserCount = (count: number): string => {
+    if (count >= 1000) return "#cd1d5a"; // 1000+ users
+    if (count >= 500) return "#fc664d";  // 500-999 users
+    if (count >= 200) return "#c4a2ea";  // 200-499 users
+    if (count >= 100) return "#1275db";  // 100-199 users
+    return "#00b140";                    // <100 users
+  };
+
+  // Process API data or use fallback
+  const countriesData = data?.countries || [];
+  const locations = countriesData.length > 0
+    ? countriesData.map((item) => ({
+        country: item.country,
+        users: `${item.users} user${item.users !== 1 ? 's' : ''}`,
+        color: getColorForUserCount(item.users),
+        position: countryPositions[item.country] || { top: "50%", left: "50%" }, // Default to center if not mapped
+      }))
+    : [
+        {
+          country: "United Kingdom",
+          users: "450 users",
+          color: "#c4a2ea",
+          position: { top: "11%", left: "23%" },
+        },
+        {
+          country: "United States",
+          users: "1,700 users",
+          color: "#cd1d5a",
+          position: { top: "25%", left: "2%" },
+        },
+        {
+          country: "India",
+          users: "342 users",
+          color: "#fc664d",
+          position: { top: "45%", left: "46%" },
+        },
+        {
+          country: "Brazil",
+          users: "205 users",
+          color: "#00b140",
+          position: { top: "62%", left: "29%" },
+        },
+        {
+          country: "Australia",
+          users: "168 users",
+          color: "#1275db",
+          position: { top: "69%", left: "77%" },
+        },
+      ];
 
   const userRanges = [
     { label: "1000+ users", color: "#cd1d5a" },
@@ -78,6 +137,12 @@ export default function UserDistributionChart() {
     { label: "100-199 users", color: "#1275db" },
     { label: "<100 users", color: "#00b140" },
   ];
+
+  // Use metrics from API data or calculate/use defaults
+  const totalCountries = data?.total_countries || locations.length;
+  const totalUsers = data?.total_users || countriesData.reduce((sum, item) => sum + item.users, 0) || 2847;
+  const activeRegions = data?.active_regions || Math.min(8, totalCountries);
+  const growthRate = data?.growth_rate || "+12.5%";
 
   return (
     <div className="w-full inspect-[530px/296px]">
@@ -132,19 +197,19 @@ export default function UserDistributionChart() {
           <div className="space-y-1.5 text-[10px]">
             <div className="flex justify-between gap-3">
               <span className="text-muted-foreground">Total Countries:</span>
-              <span className="font-semibold">45</span>
+              <span className="font-semibold">{totalCountries}</span>
             </div>
             <div className="flex justify-between gap-3">
               <span className="text-muted-foreground">Active Regions:</span>
-              <span className="font-semibold">8</span>
+              <span className="font-semibold">{activeRegions}</span>
             </div>
             <div className="flex justify-between gap-3">
               <span className="text-muted-foreground">Total Users:</span>
-              <span className="font-semibold">2,847</span>
+              <span className="font-semibold">{totalUsers.toLocaleString()}</span>
             </div>
             <div className="flex justify-between gap-3">
               <span className="text-muted-foreground">Growth Rate:</span>
-              <span className="font-semibold text-green-600">+12.5%</span>
+              <span className="font-semibold text-green-600">{growthRate}</span>
             </div>
           </div>
         </div>

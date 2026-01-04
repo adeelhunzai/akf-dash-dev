@@ -78,13 +78,13 @@ export const navigationConfig: Record<UserRole, NavItem[]> = {
     },
     {
       icon: BookOpen,
-      labelKey: 'createCourse',
-      path: '/facilitator/create-course',
+      labelKey: 'courses',
+      path: '/facilitator/courses',
     },
     {
-      icon: UsersIcon,
-      labelKey: 'manageLearners',
-      path: '/facilitator/manage-learners',
+      icon: Users2,
+      labelKey: 'teams',
+      path: '/facilitator/teams',
     },
     {
       icon: Award,

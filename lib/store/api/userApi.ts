@@ -1,6 +1,6 @@
 import { createApi } from '@reduxjs/toolkit/query/react';
 import { createWordpressBaseQuery } from '@/lib/api/wordpressBaseQuery';
-import { WordPressUserResponse, UsersCountResponse, CourseCompletionRateResponse, TopCoursesResponse, UsersListResponse, UserDetailsResponse, CreateUserRequest, CreateUserResponse, UpdateUserRequest, UpdateUserResponse, DeleteUserRequest, DeleteUserResponse, LearnerDashboardResponse, FilterUsersByCsvResponse, LearnerAchievementsResponse, LearnerCertificatesResponse, CertificateDownloadResponse, CertificateViewResponse, LearnerSettingsResponse, UpdateLearnerSettingsRequest, UpdateLearnerSettingsResponse } from '@/lib/types/wordpress-user.types';
+import { WordPressUserResponse, UsersCountResponse, CourseCompletionRateResponse, TopCoursesResponse, UsersListResponse, UserDetailsResponse, CreateUserRequest, CreateUserResponse, UpdateUserRequest, UpdateUserResponse, DeleteUserRequest, DeleteUserResponse, LearnerDashboardResponse, FilterUsersByCsvResponse, LearnerAchievementsResponse, LearnerCertificatesResponse, CertificateDownloadResponse, CertificateViewResponse, LearnerSettingsResponse, UpdateLearnerSettingsRequest, UpdateLearnerSettingsResponse, FacilitatorDashboardResponse, FacilitatorCoursesListResponse, FacilitatorCourseDetailsResponse, FacilitatorTeamsListResponse, FacilitatorTeamDetailsResponse, FacilitatorLearnersListResponse, FacilitatorLearnerDetailsResponse, AddLearnersToTeamRequest, AddLearnersToTeamResponse, RemoveLearnerFromTeamRequest, RemoveLearnerFromTeamResponse, FacilitatorReportsSummaryResponse, FacilitatorCourseReportsResponse, FacilitatorLearnerReportsResponse, FacilitatorTeamReportsResponse, FacilitatorReportsExportResponse } from '@/lib/types/wordpress-user.types';
 
 export interface MetricsQueryArgs {
   period?: string;
@@ -11,7 +11,7 @@ export interface MetricsQueryArgs {
 export const usersApi = createApi({
   reducerPath: 'usersApi',
   baseQuery: createWordpressBaseQuery('token'),
-  tagTypes: ['CurrentUser', 'UsersCount', 'CourseCompletionRate', 'TopCourses', 'UsersList', 'UserDetails', 'LearnerDashboard', 'LearnerAchievements', 'LearnerCertificates', 'LearnerSettings'],
+  tagTypes: ['CurrentUser', 'UsersCount', 'CourseCompletionRate', 'TopCourses', 'UsersList', 'UserDetails', 'LearnerDashboard', 'LearnerAchievements', 'LearnerCertificates', 'LearnerSettings', 'FacilitatorDashboard', 'FacilitatorCourses', 'FacilitatorCourseDetails', 'FacilitatorTeams', 'FacilitatorLearners', 'FacilitatorCertificates', 'FacilitatorReports'],
   endpoints: (build) => ({
     getCurrentUser: build.query<WordPressUserResponse, void>({
       query: () => '/wp/v2/users/me?context=edit',
@@ -52,7 +52,7 @@ export const usersApi = createApi({
     }),
     getUsersList: build.query<UsersListResponse, { page: number; per_page?: number; search?: string; role?: string }>({
       query: ({ page, per_page = 5, search, role }) => {
-        const params = new URLSearchParams({ 
+        const params = new URLSearchParams({
           page: page.toString(),
           per_page: per_page.toString()
         });
@@ -146,23 +146,161 @@ export const usersApi = createApi({
         formData: true,
       }),
     }),
+    getFacilitatorDashboard: build.query<FacilitatorDashboardResponse, string | MetricsQueryArgs | undefined>({
+      query: (arg) => {
+        const params = new URLSearchParams();
+        if (typeof arg === 'string') {
+          params.append('period', arg);
+        } else if (arg) {
+          if (arg.period) params.append('period', arg.period);
+          if (arg.from) params.append('from', arg.from);
+          if (arg.to) params.append('to', arg.to);
+        }
+        const queryString = params.toString();
+        return `/custom-api/v1/facilitator-dashboard${queryString ? `?${queryString}` : ''}`;
+      },
+      providesTags: ['FacilitatorDashboard'],
+      keepUnusedDataFor: 300,
+    }),
+    getFacilitatorCourses: build.query<FacilitatorCoursesListResponse, { search?: string; team?: number; status?: string; page?: number; per_page?: number } | void>({
+      query: ({ search, team, status, page = 1, per_page = 20 } = {}) => {
+        const params = new URLSearchParams();
+        if (search) params.append('search', search);
+        if (team) params.append('team', team.toString());
+        if (status && status !== 'all') params.append('status', status);
+        params.append('page', page.toString());
+        params.append('per_page', per_page.toString());
+        const queryString = params.toString();
+        return `/custom-api/v1/facilitator-courses${queryString ? `?${queryString}` : ''}`;
+      },
+      providesTags: ['FacilitatorCourses'],
+      keepUnusedDataFor: 300,
+    }),
+    getFacilitatorCourseDetails: build.query<FacilitatorCourseDetailsResponse, number>({
+      query: (courseId) => `/custom-api/v1/facilitator-courses/${courseId}`,
+      providesTags: (result, error, courseId) => [{ type: 'FacilitatorCourseDetails', id: courseId }],
+      keepUnusedDataFor: 300,
+    }),
+    getFacilitatorTeams: build.query<FacilitatorTeamsListResponse, void>({
+      query: () => '/custom-api/v1/facilitator-teams',
+      providesTags: ['FacilitatorTeams'],
+      keepUnusedDataFor: 300,
+    }),
+    getFacilitatorTeamDetails: build.query<FacilitatorTeamDetailsResponse, number>({
+      query: (teamId) => `/custom-api/v1/facilitator-teams/${teamId}`,
+      providesTags: (result, error, teamId) => [{ type: 'FacilitatorTeams', id: teamId }],
+      keepUnusedDataFor: 300,
+    }),
+    getFacilitatorLearners: build.query<FacilitatorLearnersListResponse, { search?: string; team?: number } | void>({
+      query: ({ search, team } = {}) => {
+        const params = new URLSearchParams();
+        if (search) params.append('search', search);
+        if (team) params.append('team', team.toString());
+        const queryString = params.toString();
+        return `/custom-api/v1/facilitator-learners${queryString ? `?${queryString}` : ''}`;
+      },
+      providesTags: ['FacilitatorLearners'],
+      keepUnusedDataFor: 300,
+    }),
+    getFacilitatorLearnerDetails: build.query<FacilitatorLearnerDetailsResponse, number>({
+      query: (learnerId) => `/custom-api/v1/facilitator-learners/${learnerId}`,
+      providesTags: (result, error, learnerId) => [{ type: 'FacilitatorLearners', id: learnerId }],
+      keepUnusedDataFor: 300,
+    }),
+    addLearnersToTeam: build.mutation<AddLearnersToTeamResponse, { teamId: number; request: AddLearnersToTeamRequest }>({
+      query: ({ teamId, request }) => ({
+        url: `/custom-api/v1/facilitator-teams/${teamId}/add-learners`,
+        method: 'POST',
+        body: request,
+      }),
+      invalidatesTags: ['FacilitatorTeams', 'FacilitatorLearners'],
+    }),
+    removeLearnerFromTeam: build.mutation<RemoveLearnerFromTeamResponse, { teamId: number; userId: number }>({
+      query: ({ teamId, userId }) => ({
+        url: `/custom-api/v1/facilitator-teams/${teamId}/remove-learner`,
+        method: 'DELETE',
+        body: { user_id: userId },
+      }),
+      invalidatesTags: ['FacilitatorTeams', 'FacilitatorLearners'],
+    }),
+    getFacilitatorCertificates: build.query<FacilitatorCertificatesResponse, { page?: number; per_page?: number; search?: string; team_id?: number; course_id?: number } | void>({
+      query: ({ page = 1, per_page = 10, search, team_id, course_id } = {}) => {
+        const params = new URLSearchParams();
+        params.append('page', page.toString());
+        params.append('per_page', per_page.toString());
+        if (search) params.append('search', search);
+        if (team_id) params.append('team_id', team_id.toString());
+        if (course_id) params.append('course_id', course_id.toString());
+        const queryString = params.toString();
+        return `/custom-api/v1/facilitator-certificates${queryString ? `?${queryString}` : ''}`;
+      },
+      providesTags: ['FacilitatorCertificates'],
+      keepUnusedDataFor: 300,
+    }),
+    // Facilitator Reports endpoints
+    getFacilitatorReportsSummary: build.query<FacilitatorReportsSummaryResponse, void>({
+      query: () => '/custom-api/v1/facilitator-reports/summary',
+      providesTags: ['FacilitatorReports'],
+      keepUnusedDataFor: 300,
+    }),
+    getFacilitatorCourseReports: build.query<FacilitatorCourseReportsResponse, void>({
+      query: () => '/custom-api/v1/facilitator-reports/courses',
+      providesTags: ['FacilitatorReports'],
+      keepUnusedDataFor: 300,
+    }),
+    getFacilitatorLearnerReports: build.query<FacilitatorLearnerReportsResponse, void>({
+      query: () => '/custom-api/v1/facilitator-reports/learners',
+      providesTags: ['FacilitatorReports'],
+      keepUnusedDataFor: 300,
+    }),
+    getFacilitatorTeamReports: build.query<FacilitatorTeamReportsResponse, void>({
+      query: () => '/custom-api/v1/facilitator-reports/teams',
+      providesTags: ['FacilitatorReports'],
+      keepUnusedDataFor: 300,
+    }),
+    exportFacilitatorCourseReports: build.query<FacilitatorReportsExportResponse, void>({
+      query: () => '/custom-api/v1/facilitator-reports/export/courses',
+    }),
+    exportFacilitatorLearnerReports: build.query<FacilitatorReportsExportResponse, void>({
+      query: () => '/custom-api/v1/facilitator-reports/export/learners',
+    }),
+    exportFacilitatorTeamReports: build.query<FacilitatorReportsExportResponse, void>({
+      query: () => '/custom-api/v1/facilitator-reports/export/teams',
+    }),
   }),
 });
 
-export const { 
-  useGetCurrentUserQuery, 
-  useGetUsersCountQuery, 
-  useGetCourseCompletionRateQuery, 
-  useGetTopCoursesQuery, 
-  useGetUsersListQuery, 
-  useGetUserDetailsQuery, 
-  useUpdateUserMutation, 
-  useCreateUserMutation, 
-  useDeleteUserMutation, 
-  useGetLearnerDashboardQuery, 
+export const {
+  useGetCurrentUserQuery,
+  useGetUsersCountQuery,
+  useGetCourseCompletionRateQuery,
+  useGetTopCoursesQuery,
+  useGetUsersListQuery,
+  useGetUserDetailsQuery,
+  useUpdateUserMutation,
+  useCreateUserMutation,
+  useDeleteUserMutation,
+  useGetLearnerDashboardQuery,
   useGetLearnerAchievementsQuery,
   useGetLearnerCertificatesQuery,
   useGetLearnerSettingsQuery,
   useUpdateLearnerSettingsMutation,
-  useFilterUsersByCsvMutation 
+  useFilterUsersByCsvMutation,
+  useGetFacilitatorDashboardQuery,
+  useGetFacilitatorCoursesQuery,
+  useGetFacilitatorCourseDetailsQuery,
+  useGetFacilitatorTeamsQuery,
+  useGetFacilitatorTeamDetailsQuery,
+  useGetFacilitatorLearnersQuery,
+  useGetFacilitatorLearnerDetailsQuery,
+  useAddLearnersToTeamMutation,
+  useRemoveLearnerFromTeamMutation,
+  useGetFacilitatorCertificatesQuery,
+  useGetFacilitatorReportsSummaryQuery,
+  useGetFacilitatorCourseReportsQuery,
+  useGetFacilitatorLearnerReportsQuery,
+  useGetFacilitatorTeamReportsQuery,
+  useLazyExportFacilitatorCourseReportsQuery,
+  useLazyExportFacilitatorLearnerReportsQuery,
+  useLazyExportFacilitatorTeamReportsQuery
 } = usersApi;
