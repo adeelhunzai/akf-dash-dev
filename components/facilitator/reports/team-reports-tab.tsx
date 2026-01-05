@@ -12,12 +12,17 @@ import {
 import { Download } from "lucide-react";
 import { useGetFacilitatorTeamReportsQuery, useLazyExportFacilitatorTeamReportsQuery } from "@/lib/store/api/userApi";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useState } from "react";
+import { ReportsPagination } from "@/components/facilitator/reports/reports-pagination";
 
 export default function TeamReportsTab() {
-  const { data: reportsData, isLoading } = useGetFacilitatorTeamReportsQuery();
+  const [page, setPage] = useState(1);
+  const [perPage, setPerPage] = useState(5);
+  const { data: reportsData, isLoading, isFetching } = useGetFacilitatorTeamReportsQuery({ page, per_page: perPage });
   const [triggerExport, { isLoading: isExporting }] = useLazyExportFacilitatorTeamReportsQuery();
 
   const teams = reportsData?.data?.teams || [];
+  const pagination = reportsData?.data?.pagination;
 
   const handleExport = async () => {
     try {
@@ -68,7 +73,7 @@ export default function TeamReportsTab() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {isLoading ? (
+            {isFetching ? (
               Array.from({ length: 5 }).map((_, i) => (
                 <TableRow key={i}>
                   <TableCell><Skeleton className="h-4 w-32" /></TableCell>
@@ -112,6 +117,21 @@ export default function TeamReportsTab() {
           </TableBody>
         </Table>
       </div>
+
+      {/* Pagination */}
+      {pagination && (
+        <ReportsPagination
+          totalItems={pagination.total_items}
+          itemsPerPage={perPage}
+          currentPage={page}
+          onPageChange={setPage}
+          onRowsPerPageChange={(newPerPage) => {
+            setPerPage(newPerPage);
+            setPage(1);
+          }}
+          itemName="teams"
+        />
+      )}
     </div>
   );
 }

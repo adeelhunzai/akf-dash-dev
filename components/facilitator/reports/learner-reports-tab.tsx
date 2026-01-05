@@ -14,13 +14,18 @@ import Link from "next/link";
 import { useLocale } from "next-intl";
 import { useGetFacilitatorLearnerReportsQuery, useLazyExportFacilitatorLearnerReportsQuery } from "@/lib/store/api/userApi";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useState } from "react";
+import { ReportsPagination } from "@/components/facilitator/reports/reports-pagination";
 
 export default function LearnerReportsTab() {
   const locale = useLocale();
-  const { data: reportsData, isLoading } = useGetFacilitatorLearnerReportsQuery();
+  const [page, setPage] = useState(1);
+  const [perPage, setPerPage] = useState(5);
+  const { data: reportsData, isLoading, isFetching } = useGetFacilitatorLearnerReportsQuery({ page, per_page: perPage });
   const [triggerExport, { isLoading: isExporting }] = useLazyExportFacilitatorLearnerReportsQuery();
 
   const learners = reportsData?.data?.learners || [];
+  const pagination = reportsData?.data?.pagination;
 
   const handleExport = async () => {
     try {
@@ -71,7 +76,7 @@ export default function LearnerReportsTab() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {isLoading ? (
+            {isFetching ? (
               Array.from({ length: 5 }).map((_, i) => (
                 <TableRow key={i}>
                   <TableCell><Skeleton className="h-10 w-48" /></TableCell>
@@ -111,7 +116,7 @@ export default function LearnerReportsTab() {
                   </TableCell>
                   <TableCell>
                     <Link 
-                      href={`/${locale}/facilitator/teams?learner=${learner.id}`}
+                      href={`/${locale}/facilitator/teams?learner=${learner.id}&source=reports`}
                       className="text-sm text-[#00B140] hover:underline"
                     >
                       View Detail
@@ -123,6 +128,21 @@ export default function LearnerReportsTab() {
           </TableBody>
         </Table>
       </div>
+
+      {/* Pagination */}
+      {pagination && (
+        <ReportsPagination
+          totalItems={pagination.total_items}
+          itemsPerPage={perPage}
+          currentPage={page}
+          onPageChange={setPage}
+          onRowsPerPageChange={(newPerPage) => {
+            setPerPage(newPerPage);
+            setPage(1);
+          }}
+          itemName="learners"
+        />
+      )}
     </div>
   );
 }

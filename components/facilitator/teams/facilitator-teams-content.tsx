@@ -19,16 +19,24 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Search, Plus, Eye, Trash2, X } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useGetFacilitatorTeamsQuery, useGetFacilitatorLearnersQuery, useGetFacilitatorLearnerDetailsQuery, useGetUsersListQuery, useAddLearnersToTeamMutation, useRemoveLearnerFromTeamMutation } from "@/lib/store/api/userApi";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
+import { useLocale } from "next-intl";
 
 export default function FacilitatorTeamsContent() {
   const { toast } = useToast();
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+  const locale = useLocale();
+  const source = searchParams.get('source');
+
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTeam, setSelectedTeam] = useState<string>("all");
   
@@ -37,6 +45,15 @@ export default function FacilitatorTeamsContent() {
   const [removeModalOpen, setRemoveModalOpen] = useState(false);
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [selectedLearnerId, setSelectedLearnerId] = useState<number | null>(null);
+
+  // Open modal if learner param exists
+  useEffect(() => {
+    const learnerId = searchParams.get('learner');
+    if (learnerId) {
+      setSelectedLearnerId(parseInt(learnerId));
+      setViewModalOpen(true);
+    }
+  }, [searchParams]);
   
   // Add learner modal states
   const [userSearchQuery, setUserSearchQuery] = useState("");
@@ -79,14 +96,38 @@ export default function FacilitatorTeamsContent() {
 
   // Handlers
   const handleViewLearner = (learnerId: number) => {
+    // If we click View explicitly, update URL to reflect state (optional but good for consistency)
+    // Or just open modal
     setSelectedLearnerId(learnerId);
     setViewModalOpen(true);
+  };
+
+  const handleViewModalOpenChange = (open: boolean) => {
+    setViewModalOpen(open);
+    if (!open) {
+      setSelectedLearnerId(null);
+      
+      // Handle back navigation or URL cleanup
+      if (source === 'reports') {
+        router.push(`/${locale}/facilitator/reports`);
+      } else {
+        // Clean up URL params when closing modal if it was opened via URL
+        if (searchParams.get('learner')) {
+          const newParams = new URLSearchParams(searchParams.toString());
+          newParams.delete('learner');
+          newParams.delete('source');
+          router.replace(`${pathname}?${newParams.toString()}`);
+        }
+      }
+    }
   };
 
   const handleRemoveLearner = (learnerId: number) => {
     setSelectedLearnerId(learnerId);
     setRemoveModalOpen(true);
   };
+
+
 
   const handleConfirmRemove = async () => {
     if (!selectedLearnerId) {
@@ -349,7 +390,7 @@ export default function FacilitatorTeamsContent() {
       </Card>
 
       {/* View Learner Modal */}
-      <Dialog open={viewModalOpen} onOpenChange={setViewModalOpen}>
+      <Dialog open={viewModalOpen} onOpenChange={handleViewModalOpenChange}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Learner Details</DialogTitle>
@@ -407,7 +448,7 @@ export default function FacilitatorTeamsContent() {
               <div>
                 <h4 className="font-semibold mb-2">Recent Enrollments</h4>
                 <div className="space-y-2 max-h-60 overflow-y-auto">
-                  {learnerDetails.enrollments.slice(0, 5).map((enrollment) => (
+                  {learnerDetails.enrollments.map((enrollment) => (
                     <div key={enrollment.course_id} className="flex justify-between items-center p-2 border rounded">
                       <span className="font-medium">{enrollment.course_title}</span>
                       <span className="text-sm text-muted-foreground">

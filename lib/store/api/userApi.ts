@@ -243,18 +243,33 @@ export const usersApi = createApi({
       providesTags: ['FacilitatorReports'],
       keepUnusedDataFor: 300,
     }),
-    getFacilitatorCourseReports: build.query<FacilitatorCourseReportsResponse, void>({
-      query: () => '/custom-api/v1/facilitator-reports/courses',
+    getFacilitatorCourseReports: build.query<FacilitatorCourseReportsResponse, { page?: number; per_page?: number } | void>({
+      query: ({ page = 1, per_page = 5 } = {}) => {
+        const params = new URLSearchParams();
+        params.append('page', page.toString());
+        params.append('per_page', per_page.toString());
+        return `/custom-api/v1/facilitator-reports/courses?${params.toString()}`;
+      },
       providesTags: ['FacilitatorReports'],
       keepUnusedDataFor: 300,
     }),
-    getFacilitatorLearnerReports: build.query<FacilitatorLearnerReportsResponse, void>({
-      query: () => '/custom-api/v1/facilitator-reports/learners',
+    getFacilitatorLearnerReports: build.query<FacilitatorLearnerReportsResponse, { page?: number; per_page?: number } | void>({
+      query: ({ page = 1, per_page = 5 } = {}) => {
+        const params = new URLSearchParams();
+        params.append('page', page.toString());
+        params.append('per_page', per_page.toString());
+        return `/custom-api/v1/facilitator-reports/learners?${params.toString()}`;
+      },
       providesTags: ['FacilitatorReports'],
       keepUnusedDataFor: 300,
     }),
-    getFacilitatorTeamReports: build.query<FacilitatorTeamReportsResponse, void>({
-      query: () => '/custom-api/v1/facilitator-reports/teams',
+    getFacilitatorTeamReports: build.query<FacilitatorTeamReportsResponse, { page?: number; per_page?: number } | void>({
+      query: ({ page = 1, per_page = 5 } = {}) => {
+        const params = new URLSearchParams();
+        params.append('page', page.toString());
+        params.append('per_page', per_page.toString());
+        return `/custom-api/v1/facilitator-reports/teams?${params.toString()}`;
+      },
       providesTags: ['FacilitatorReports'],
       keepUnusedDataFor: 300,
     }),

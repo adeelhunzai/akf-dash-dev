@@ -20,26 +20,26 @@ export default function FacilitatorReportsContent() {
         Reports
       </h1>
 
-      <div className="space-y-6">
+      <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6 min-h-[calc(100vh-200px)]">
         <Tabs defaultValue="courses" className="w-full">
           <TabsList className="bg-transparent border-b border-gray-200 w-full justify-start h-auto p-0 rounded-none">
             <TabsTrigger 
               value="courses" 
-              className="data-[state=active]:border-b-2 data-[state=active]:border-[#00B140] data-[state=active]:text-[#00B140] data-[state=active]:shadow-none rounded-none px-6 py-3 text-gray-600 font-normal"
+              className="flex-none border-b-2 border-transparent data-[state=active]:border-b-[#00B140] data-[state=active]:text-[#00B140] data-[state=active]:shadow-none data-[state=active]:bg-transparent rounded-none px-6 py-3 text-gray-600 font-normal hover:text-[#00B140] transition-colors -mb-px"
             >
               <Grid2x2 className="w-4 h-4 mr-2" />
               Course Reports
             </TabsTrigger>
             <TabsTrigger 
               value="learners" 
-              className="data-[state=active]:border-b-2 data-[state=active]:border-[#00B140] data-[state=active]:text-[#00B140] data-[state=active]:shadow-none rounded-none px-6 py-3 text-gray-600 font-normal"
+              className="flex-none border-b-2 border-transparent data-[state=active]:border-b-[#00B140] data-[state=active]:text-[#00B140] data-[state=active]:shadow-none data-[state=active]:bg-transparent rounded-none px-6 py-3 text-gray-600 font-normal hover:text-[#00B140] transition-colors -mb-px"
             >
               <Users className="w-4 h-4 mr-2" />
               Learner Reports
             </TabsTrigger>
             <TabsTrigger 
               value="teams" 
-              className="data-[state=active]:border-b-2 data-[state=active]:border-[#00B140] data-[state=active]:text-[#00B140] data-[state=active]:shadow-none rounded-none px-6 py-3 text-gray-600 font-normal"
+              className="flex-none border-b-2 border-transparent data-[state=active]:border-b-[#00B140] data-[state=active]:text-[#00B140] data-[state=active]:shadow-none data-[state=active]:bg-transparent rounded-none px-6 py-3 text-gray-600 font-normal hover:text-[#00B140] transition-colors -mb-px"
             >
               <Users2 className="w-4 h-4 mr-2" />
               Team Reports

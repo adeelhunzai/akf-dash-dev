@@ -659,6 +659,12 @@ export interface FacilitatorCourseReportsResponse {
   success: boolean;
   data: {
     courses: FacilitatorCourseReport[];
+    pagination?: {
+      total_items: number;
+      total_pages: number;
+      current_page: number;
+      per_page: number;
+    };
   };
 }
 
@@ -676,6 +682,12 @@ export interface FacilitatorLearnerReportsResponse {
   success: boolean;
   data: {
     learners: FacilitatorLearnerReport[];
+    pagination?: {
+      total_items: number;
+      total_pages: number;
+      current_page: number;
+      per_page: number;
+    };
   };
 }
 
@@ -693,6 +705,12 @@ export interface FacilitatorTeamReportsResponse {
   success: boolean;
   data: {
     teams: FacilitatorTeamReport[];
+    pagination?: {
+      total_items: number;
+      total_pages: number;
+      current_page: number;
+      per_page: number;
+    };
   };
 }
 

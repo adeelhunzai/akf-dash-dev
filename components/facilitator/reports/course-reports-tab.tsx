@@ -14,13 +14,18 @@ import Link from "next/link";
 import { useLocale } from "next-intl";
 import { useGetFacilitatorCourseReportsQuery, useLazyExportFacilitatorCourseReportsQuery } from "@/lib/store/api/userApi";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useState } from "react";
+import { ReportsPagination } from "@/components/facilitator/reports/reports-pagination";
 
 export default function CourseReportsTab() {
   const locale = useLocale();
-  const { data: reportsData, isLoading } = useGetFacilitatorCourseReportsQuery();
+  const [page, setPage] = useState(1);
+  const [perPage, setPerPage] = useState(5);
+  const { data: reportsData, isLoading, isFetching } = useGetFacilitatorCourseReportsQuery({ page, per_page: perPage });
   const [triggerExport, { isLoading: isExporting }] = useLazyExportFacilitatorCourseReportsQuery();
 
   const courses = reportsData?.data?.courses || [];
+  const pagination = reportsData?.data?.pagination;
 
   const handleExport = async () => {
     try {
@@ -74,7 +79,7 @@ export default function CourseReportsTab() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {isLoading ? (
+            {isFetching ? (
               Array.from({ length: 5 }).map((_, i) => (
                 <TableRow key={i}>
                   <TableCell><Skeleton className="h-4 w-40" /></TableCell>
@@ -123,7 +128,7 @@ export default function CourseReportsTab() {
                   </TableCell>
                   <TableCell>
                     <Link 
-                      href={`/${locale}/facilitator/courses/${course.course_id}`}
+                      href={`/${locale}/facilitator/courses/${course.course_id}?source=reports`}
                       className="text-sm text-[#00B140] hover:underline"
                     >
                       View Details
@@ -135,6 +140,21 @@ export default function CourseReportsTab() {
           </TableBody>
         </Table>
       </div>
+
+      {/* Pagination */}
+      {pagination && (
+        <ReportsPagination
+          totalItems={pagination.total_items}
+          itemsPerPage={perPage}
+          currentPage={page}
+          onPageChange={setPage}
+          onRowsPerPageChange={(newPerPage) => {
+            setPerPage(newPerPage);
+            setPage(1);
+          }}
+          itemName="courses"
+        />
+      )}
     </div>
   );
 }

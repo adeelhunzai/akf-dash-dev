@@ -7,6 +7,7 @@ import { useLocale } from "next-intl";
 import { useGetFacilitatorCourseDetailsQuery } from "@/lib/store/api/userApi";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowLeft } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 
 interface CourseDetailsContentProps {
   courseId: string;
@@ -14,7 +15,13 @@ interface CourseDetailsContentProps {
 
 export default function CourseDetailsContent({ courseId }: CourseDetailsContentProps) {
   const locale = useLocale();
+  const searchParams = useSearchParams();
+  const source = searchParams.get('source');
   const courseIdNum = parseInt(courseId);
+
+  // Determine back link destination
+  const backLink = source === 'reports' ? `/${locale}/facilitator/reports` : `/${locale}/facilitator/courses`;
+  const backText = source === 'reports' ? 'Back to reports' : 'Back to courses';
 
   // Fetch course details from API
   const { data, isLoading, isError } = useGetFacilitatorCourseDetailsQuery(courseIdNum);
@@ -61,9 +68,9 @@ export default function CourseDetailsContent({ courseId }: CourseDetailsContentP
     return (
       <div className="p-6">
         <p className="text-destructive mb-4">Course not found or failed to load.</p>
-        <Link href={`/${locale}/facilitator/courses`} className="text-[#00B140] hover:underline inline-flex items-center gap-2">
+        <Link href={backLink} className="text-[#00B140] hover:underline inline-flex items-center gap-2">
           <ArrowLeft className="w-4 h-4" />
-          Back to courses
+          {backText}
         </Link>
       </div>
     );
@@ -73,11 +80,11 @@ export default function CourseDetailsContent({ courseId }: CourseDetailsContentP
     <div className="p-6 lg:p-8 space-y-6 max-w-[1400px] bg-white rounded-lg border border-gray-200 m-4">
       {/* Back Link */}
       <Link 
-        href={`/${locale}/facilitator/courses`} 
+        href={backLink} 
         className="text-[#00B140] hover:underline inline-flex items-center gap-2 mb-4"
       >
         <ArrowLeft className="w-4 h-4" />
-        Back to courses
+        {backText}
       </Link>
 
       {/* Course Header Card */}
