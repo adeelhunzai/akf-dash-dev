@@ -6,12 +6,17 @@ import {
   CourseSettings,
   CourseSettingsResponse,
   LoginSessionsResponse,
+  FacilitatorSettingsResponse,
+  FacilitatorSettingsUpdateRequest,
+  FacilitatorSettingsUpdateResponse,
+  ChangePasswordRequest,
+  ChangePasswordResponse,
 } from '@/lib/types/settings.types';
 
 export const settingsApi = createApi({
   reducerPath: 'settingsApi',
   baseQuery: createWordpressBaseQuery('token'),
-  tagTypes: ['GeneralSettings', 'CourseSettings', 'LoginSessions'],
+  tagTypes: ['GeneralSettings', 'CourseSettings', 'LoginSessions', 'FacilitatorSettings'],
   endpoints: (build) => ({
     // General Settings
     getGeneralSettings: build.query<GeneralSettingsResponse, void>({
@@ -70,6 +75,28 @@ export const settingsApi = createApi({
       }),
       invalidatesTags: ['LoginSessions'],
     }),
+
+    // Facilitator Settings
+    getFacilitatorSettings: build.query<FacilitatorSettingsResponse, void>({
+      query: () => '/custom-api/v1/facilitator-settings',
+      providesTags: ['FacilitatorSettings'],
+    }),
+    updateFacilitatorSettings: build.mutation<FacilitatorSettingsUpdateResponse, FacilitatorSettingsUpdateRequest>({
+      query: (data) => ({
+        url: '/custom-api/v1/facilitator-settings',
+        method: 'PUT',
+        body: data,
+      }),
+      invalidatesTags: ['FacilitatorSettings'],
+    }),
+    changeFacilitatorPassword: build.mutation<ChangePasswordResponse, ChangePasswordRequest>({
+      query: (data) => ({
+        url: '/custom-api/v1/facilitator-settings/change-password',
+        method: 'POST',
+        body: data,
+      }),
+      invalidatesTags: ['FacilitatorSettings'],
+    }),
   }),
 });
 
@@ -81,6 +108,7 @@ export const {
   useGetLoginSessionsQuery,
   useDeleteLoginSessionMutation,
   useLogoutAllSessionsMutation,
+  useGetFacilitatorSettingsQuery,
+  useUpdateFacilitatorSettingsMutation,
+  useChangeFacilitatorPasswordMutation,
 } = settingsApi;
-
-
