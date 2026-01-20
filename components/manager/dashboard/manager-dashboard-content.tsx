@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Users, Users2, GraduationCap, Plus, UserPlus, Eye } from "lucide-react";
@@ -8,6 +9,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import Link from "next/link";
 import { useLocale } from "next-intl";
+import CreateTeamModal from "@/components/manager/teams/create-team-modal";
+import ManagerAddFacilitatorDialog from "@/components/manager/facilitators/manager-add-facilitator-dialog";
 
 interface Facilitator {
   id: number;
@@ -33,6 +36,8 @@ interface DashboardData {
 export default function ManagerDashboardContent() {
   const locale = useLocale();
   const { data: dashboardData, isLoading, isFetching } = useGetManagerDashboardQuery();
+  const [createTeamOpen, setCreateTeamOpen] = useState(false);
+  const [addFacilitatorOpen, setAddFacilitatorOpen] = useState(false);
 
   const summary = dashboardData?.data?.summary;
   const facilitators = dashboardData?.data?.facilitators || [];
@@ -115,6 +120,7 @@ export default function ManagerDashboardContent() {
           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Button
+              onClick={() => setCreateTeamOpen(true)}
               className="h-auto py-4 px-6 bg-[#00B140] hover:bg-[#00B140]/90 text-white flex flex-col items-start justify-center gap-1"
             >
               <div className="flex items-center gap-2">
@@ -126,6 +132,7 @@ export default function ManagerDashboardContent() {
               </span>
             </Button>
             <Button
+              onClick={() => setAddFacilitatorOpen(true)}
               variant="outline"
               className="h-auto py-4 px-6 border-[#FDC300] bg-[#FDC300]/10 hover:bg-[#FDC300]/20 text-[#B8860B] flex flex-col items-start justify-center gap-1"
             >
@@ -204,6 +211,9 @@ export default function ManagerDashboardContent() {
           )}
         </CardContent>
       </Card>
+      {/* Modals */}
+      <CreateTeamModal open={createTeamOpen} onOpenChange={setCreateTeamOpen} />
+      <ManagerAddFacilitatorDialog open={addFacilitatorOpen} onOpenChange={setAddFacilitatorOpen} />
     </div>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -29,13 +29,23 @@ import ManagerAddFacilitatorDialog from "@/components/manager/facilitators/manag
 export default function FacilitatorsList() {
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(10);
-  const [search, setSearch] = useState("");
+  const [searchInput, setSearchInput] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+
+  // Debounce search input by 500ms
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchInput);
+      setPage(1); // Reset to first page on search
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchInput]);
 
   const { data, isLoading } = useGetManagerFacilitatorsQuery({
     page,
     per_page: perPage,
-    search: search || undefined
+    search: debouncedSearch || undefined
   });
 
   const facilitators = data?.data || [];
@@ -88,8 +98,8 @@ export default function FacilitatorsList() {
             <Input 
               placeholder="Search facilitator by name" 
               className="pl-10 h-11 border-gray-200"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
             />
           </div>
 

@@ -115,6 +115,9 @@ export const managerApi = createApi({
             }),
             invalidatesTags: ['ManagerTeams'],
         }),
+        generateManagerReport: build.query<{ success: boolean; filename: string; content: string; mime_type: string }, { type: string; date_range: string }>({
+            query: ({ type, date_range }) => `/custom-api/v1/manager/reports/generate?type=${type}&date_range=${date_range}`,
+        }),
     }),
 });
 
@@ -134,6 +137,7 @@ export const {
     useCreateManagerFacilitatorMutation,
     useGetFacilitatorsDropdownQuery,
     useDeleteManagerTeamMutation,
+    useLazyGenerateManagerReportQuery,
 } = managerApi;
 
 
