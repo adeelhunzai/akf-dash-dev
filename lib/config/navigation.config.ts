@@ -104,19 +104,29 @@ export const navigationConfig: Record<UserRole, NavItem[]> = {
       path: '/manager',
     },
     {
-      icon: TrendingUp,
-      labelKey: 'analytics',
-      path: '/manager/analytics',
+      icon: FileChartColumn,
+      labelKey: 'reports',
+      path: '/manager/reports',
+    },
+    {
+      icon: User,
+      labelKey: 'facilitators',
+      path: '/manager/facilitators',
     },
     {
       icon: Users2,
-      labelKey: 'team',
-      path: '/manager/team',
+      labelKey: 'teams',
+      path: '/manager/teams',
     },
     {
-      icon: Target,
-      labelKey: 'goals',
-      path: '/manager/goals',
+      icon: UsersIcon,
+      labelKey: 'learners',
+      path: '/manager/learners',
+    },
+    {
+      icon: BookOpen,
+      labelKey: 'courses',
+      path: '/manager/courses',
     },
   ],
 };

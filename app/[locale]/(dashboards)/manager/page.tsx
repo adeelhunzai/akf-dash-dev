@@ -1,8 +1,5 @@
+import ManagerDashboardContent from "@/components/manager/dashboard/manager-dashboard-content";
+
 export default function ManagerDashboardPage() {
-  return (
-    <div className="p-6">
-      <h1 className="text-3xl font-bold mb-4">Manager Dashboard</h1>
-      <p className="text-muted-foreground">View analytics, team overview, and manage goals from here.</p>
-    </div>
-  )
+  return <ManagerDashboardContent />;
 }

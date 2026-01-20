@@ -36,7 +36,7 @@ export function isPublicRoute(pathname: string): boolean {
   // Normalize pathname - remove query params for comparison
   const pathWithoutQuery = pathname.split('?')[0];
   const normalizedPath = pathWithoutQuery.startsWith('/') ? pathWithoutQuery : `/${pathWithoutQuery}`;
-  
+
   // Check if pathname matches any public route exactly or starts with it
   return PUBLIC_ROUTES.some(route => {
     // Exact match
@@ -52,9 +52,9 @@ export function isPublicRoute(pathname: string): boolean {
  */
 export function getRequiredRoleForRoute(pathname: string): UserRole | null {
   if (pathname.includes('/admin')) return UserRole.ADMIN;
-  if (pathname.includes('/learner')) return UserRole.LEARNER;
-  if (pathname.includes('/facilitator')) return UserRole.FACILITATOR;
   if (pathname.includes('/manager')) return UserRole.MANAGER;
+  if (pathname.includes('/facilitator')) return UserRole.FACILITATOR;
+  if (pathname.includes('/learner')) return UserRole.LEARNER;
   return null;
 }
 
@@ -70,20 +70,20 @@ export function getRequiredRoleForRoute(pathname: string): UserRole | null {
 export function hasRouteAccess(userRole: UserRole | null, pathname: string): boolean {
   // Public routes are accessible to everyone
   if (isPublicRoute(pathname)) return true;
-  
+
   // If no role required, allow access (e.g., root dashboard page)
   const requiredRole = getRequiredRoleForRoute(pathname);
   if (!requiredRole) return true;
-  
+
   // User must have a role
   if (!userRole) return false;
-  
+
   // Admins have access to all routes
   if (userRole === UserRole.ADMIN) return true;
-  
+
   // Learner routes are accessible to all authenticated users
   if (requiredRole === UserRole.LEARNER) return true;
-  
+
   // Check if user's role matches required role
   return userRole === requiredRole;
 }

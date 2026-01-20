@@ -7,6 +7,7 @@ import { coursesApi } from './api/coursesApi';
 import { reportsApi } from './api/reportsApi';
 import { settingsApi } from './api/settingsApi';
 import { authApi } from './api/authApi';
+import { managerApi } from './api/managerApi';
 
 export const store = configureStore({
   reducer: {
@@ -18,6 +19,7 @@ export const store = configureStore({
     [reportsApi.reducerPath]: reportsApi.reducer,
     [settingsApi.reducerPath]: settingsApi.reducer,
     [authApi.reducerPath]: authApi.reducer,
+    [managerApi.reducerPath]: managerApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(
@@ -26,7 +28,8 @@ export const store = configureStore({
       coursesApi.middleware,
       reportsApi.middleware,
       settingsApi.middleware,
-      authApi.middleware
+      authApi.middleware,
+      managerApi.middleware
     ),
 });
 

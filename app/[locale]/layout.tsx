@@ -30,7 +30,7 @@ export default async function LocaleLayout({
   const direction = 'ltr';
 
   return (
-    <html lang={locale} dir={direction} className="overflow-visible">
+    <html lang={locale} dir={direction} className="overflow-visible" suppressHydrationWarning>
       <body>
         <ReduxProvider>
           <NextIntlClientProvider messages={messages}>

@@ -32,9 +32,9 @@ export default function Sidebar({ isOpen, isMobile, onClose }: SidebarProps) {
   // Derive role from URL path (more reliable for navigation updates)
   const getRoleFromPath = (): UserRole => {
     if (pathname.includes('/admin')) return UserRole.ADMIN
-    if (pathname.includes('/learner')) return UserRole.LEARNER
-    if (pathname.includes('/facilitator')) return UserRole.FACILITATOR
     if (pathname.includes('/manager')) return UserRole.MANAGER
+    if (pathname.includes('/facilitator')) return UserRole.FACILITATOR
+    if (pathname.includes('/learner')) return UserRole.LEARNER
     return reduxRole
   }
 

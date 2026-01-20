@@ -44,7 +44,9 @@
     "analytics": "Analytics",
     "team": "Team",
     "teams": "Teams",
-    "goals": "Goals"
+    "goals": "Goals",
+    "facilitators": "Facilitators",
+    "learners": "Learners"
   },
   "dashboard": {
     "title": "Dashboard",
