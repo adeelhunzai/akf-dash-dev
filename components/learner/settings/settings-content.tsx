@@ -23,7 +23,8 @@ export default function SettingsContent() {
   const [updateSettings, { isLoading: isUpdating }] = useUpdateLearnerSettingsMutation()
 
   // Form state
-  const [fullName, setFullName] = useState("")
+  const [firstName, setFirstName] = useState("")
+  const [lastName, setLastName] = useState("")
   const [email, setEmail] = useState("")
   const [phone, setPhone] = useState("")
   const [department, setDepartment] = useState("")
@@ -37,7 +38,8 @@ export default function SettingsContent() {
   useEffect(() => {
     if (data?.data) {
       const { personal_info, learning_preferences, notifications } = data.data
-      setFullName(personal_info.full_name || "")
+      setFirstName(personal_info.first_name || personal_info.full_name?.split(' ')[0] || "")
+      setLastName(personal_info.last_name || personal_info.full_name?.split(' ').slice(1).join(' ') || "")
       setEmail(personal_info.email || "")
       setPhone(personal_info.phone || "")
       setDepartment(personal_info.department || "")
@@ -53,7 +55,9 @@ export default function SettingsContent() {
     try {
       await updateSettings({
         personal_info: {
-          full_name: fullName,
+          first_name: firstName,
+          last_name: lastName,
+          full_name: `${firstName} ${lastName}`.trim(),
           email,
           phone,
           department,
@@ -86,7 +90,8 @@ export default function SettingsContent() {
     // Reset to original values
     if (data?.data) {
       const { personal_info, learning_preferences, notifications } = data.data
-      setFullName(personal_info.full_name || "")
+      setFirstName(personal_info.first_name || personal_info.full_name?.split(' ')[0] || "")
+      setLastName(personal_info.last_name || personal_info.full_name?.split(' ').slice(1).join(' ') || "")
       setEmail(personal_info.email || "")
       setPhone(personal_info.phone || "")
       setDepartment(personal_info.department || "")
@@ -126,28 +131,40 @@ export default function SettingsContent() {
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div>
-              <Label htmlFor="fullName" className="text-sm font-medium mb-2 block">
-                Full Name
+              <Label htmlFor="firstName" className="text-sm font-medium mb-2 block">
+                First Name
               </Label>
               <Input
-                id="fullName"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
+                id="firstName"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
                 className="w-full"
               />
             </div>
             <div>
-              <Label htmlFor="email" className="text-sm font-medium mb-2 block">
-                Email Address
+              <Label htmlFor="lastName" className="text-sm font-medium mb-2 block">
+                Last Name
               </Label>
               <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                id="lastName"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
                 className="w-full"
               />
             </div>
+          </div>
+
+          <div className="mb-4">
+            <Label htmlFor="email" className="text-sm font-medium mb-2 block">
+              Email Address
+            </Label>
+            <Input
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full"
+            />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
