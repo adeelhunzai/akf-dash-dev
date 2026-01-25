@@ -65,7 +65,7 @@ export default function AchievementsContent() {
   return (
     <div className="p-4 lg:p-6 space-y-6">
       {/* Hero Section with Goals */}
-      <div className="bg-gradient-to-r from-blue-400 to-blue-500 rounded-2xl p-8 mb-6">
+      <div className="bg-[#1275db] rounded-2xl p-8 mb-6">
         <div className="flex items-center gap-3 mb-6">
           <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
             <Trophy className="w-6 h-6 text-white" />
@@ -103,7 +103,7 @@ export default function AchievementsContent() {
               </div>
               <div className="flex items-center gap-3">
                 <div className="w-24">
-                  <Progress value={(nextGoal.progress / nextGoal.total) * 100} className="h-2 bg-white/20" />
+                  <Progress value={(nextGoal.progress / nextGoal.total) * 100} className="h-2 bg-white/20 [&>*]:bg-yellow-300" />
                 </div>
                 <span className="text-lg font-bold text-yellow-300">
                   {nextGoal.progress}/{nextGoal.total}
@@ -220,7 +220,7 @@ function AchievementsLoadingSkeleton() {
   return (
     <div className="p-4 lg:p-6 space-y-6">
       {/* Hero Section Skeleton */}
-      <div className="bg-gradient-to-r from-blue-400 to-blue-500 rounded-2xl p-8 mb-6">
+      <div className="bg-[#1275db] rounded-2xl p-8 mb-6">
         <div className="flex items-center gap-3 mb-6">
           <Skeleton className="w-12 h-12 rounded-xl bg-white/20" />
           <div>
@@ -250,7 +250,7 @@ function AchievementsLoadingSkeleton() {
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <Skeleton className="w-24 h-2" />
+              <Skeleton className="w-24 h-2 bg-white/20" />
               <Skeleton className="h-6 w-10" />
             </div>
           </div>
