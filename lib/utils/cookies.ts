@@ -12,7 +12,7 @@ const TOKEN_COOKIE_NAME = 'jwt_token';
 function getCookieOptions() {
   const expirationDate = new Date();
   expirationDate.setTime(expirationDate.getTime() + 2 * 60 * 60 * 1000); // 2 hours from now
-  
+
   return {
     secure: process.env.NODE_ENV === 'production', // HTTPS only in production
     sameSite: 'lax' as const, // CSRF protection, but allows cross-tab access
@@ -27,7 +27,7 @@ function getCookieOptions() {
  */
 export function setTokenCookie(token: string | null): void {
   if (typeof window === 'undefined') return;
-  
+
   if (token) {
     Cookies.set(TOKEN_COOKIE_NAME, token, getCookieOptions());
   } else {
@@ -59,3 +59,37 @@ export function hasTokenCookie(): boolean {
   return Cookies.get(TOKEN_COOKIE_NAME) !== undefined;
 }
 
+
+/**
+ * Cookie configuration for User ID
+ */
+const USER_ID_COOKIE_NAME = 'user_id';
+
+/**
+ * Set User ID in cookie
+ */
+export function setUserIdCookie(userId: string | number | null): void {
+  if (typeof window === 'undefined') return;
+
+  if (userId) {
+    Cookies.set(USER_ID_COOKIE_NAME, String(userId), getCookieOptions());
+  } else {
+    Cookies.remove(USER_ID_COOKIE_NAME, { path: '/' });
+  }
+}
+
+/**
+ * Get User ID from cookie
+ */
+export function getUserIdCookie(): string | null {
+  if (typeof window === 'undefined') return null;
+  return Cookies.get(USER_ID_COOKIE_NAME) || null;
+}
+
+/**
+ * Remove User ID from cookie
+ */
+export function removeUserIdCookie(): void {
+  if (typeof window === 'undefined') return;
+  Cookies.remove(USER_ID_COOKIE_NAME, { path: '/' });
+}

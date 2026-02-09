@@ -10,6 +10,7 @@ import { useGetGeneralSettingsQuery } from '@/lib/store/api/settingsApi';
 import { UserRole, User } from '@/lib/types/roles';
 import { WordPressUserResponse } from '@/lib/types/wordpress-user.types';
 import { isAuthCallbackRoute } from '@/lib/utils/auth';
+import { getUserIdCookie } from '@/lib/utils/cookies';
 import { useLocale } from 'next-intl';
 
 /**
@@ -104,11 +105,29 @@ export function AuthInitializer({ children }: AuthInitializerProps) {
 
   // If we have a JWT token, validate it first
   // Skip validation on auth callback page - it handles its own authentication
+  // Also skip if there's an SSO exchange happening for a different user (SSOHandler will handle it)
+  const searchParams = useSearchParams();
+  const ssoToken = searchParams.get('sso_token');
+  const ssoUid = searchParams.get('uid');
+  
+  // Detect if SSOHandler should handle auth instead of us
+  const cookieUserId = typeof window !== 'undefined' ? getUserIdCookie() : null;
+  const isSSOUserSwitch = ssoToken && ssoUid && cookieUserId && String(cookieUserId) !== String(ssoUid);
+  
   useEffect(() => {
     // Don't validate on auth callback page
     if (isOnAuthCallback) {
       // Ensure loading is false on auth callback page
       dispatch(setLoading(false));
+      return;
+    }
+    
+    // If there's an SSO exchange for a different user, skip validation
+    // SSOHandler will clear the old session and establish a new one
+    // But we MUST set isInitializing to false so SSOHandler can proceed
+    if (isSSOUserSwitch) {
+      dispatch(setLoading(false));
+      dispatch(setInitializing(false));
       return;
     }
     
@@ -156,7 +175,7 @@ export function AuthInitializer({ children }: AuthInitializerProps) {
       dispatch(setLoading(false));
       dispatch(setInitializing(false));
     }
-  }, [token, user, validateToken, dispatch, isOnAuthCallback]);
+  }, [token, user, validateToken, dispatch, isOnAuthCallback, isSSOUserSwitch]);
   
   // Update avatar when general settings load (after user is already set)
   useEffect(() => {
@@ -173,12 +192,10 @@ export function AuthInitializer({ children }: AuthInitializerProps) {
     }
   }, [generalSettings, user, dispatch]);
 
-
   // Check if we are in the middle of an SSO exchange
   // If sso_token is present, we should wait for SSOHandler to exchange it
   // and not try to fetch the current user yet (which would fail with 401)
-  const searchParams = useSearchParams();
-  const isSSOExchange = !!searchParams.get('sso_token');
+  const isSSOExchange = !!ssoToken;
 
   // Fetch current user from WordPress API (fallback if no JWT)
   // Only skip if we already have user data loaded, have a token, are on auth callback,

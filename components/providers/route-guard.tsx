@@ -8,6 +8,7 @@ import { hasRouteAccess, getDefaultDashboardPath, isPublicRoute, isAuthCallbackR
 import { useLocale } from 'next-intl';
 import { ForbiddenAccess } from '@/components/ui/forbidden-access';
 import { DashboardSkeleton } from '@/components/shared/layout/dashboard-skeleton';
+import { getUserIdCookie } from '@/lib/utils/cookies';
 
 interface RouteGuardProps {
   children: React.ReactNode;
@@ -64,8 +65,16 @@ export function RouteGuard({ children }: RouteGuardProps) {
     }
 
     // Wait while initializing - don't make access decisions yet
+    // EXCEPTION: If we have a token AND matching user_id cookie, trust the session
     if (isInitializing) {
-      return { canAccess: false, reason: 'initializing' };
+      const urlUid = searchParams.get('uid');
+      const cookieUserId = typeof window !== 'undefined' ? getUserIdCookie() : null;
+      const hasTrustedSession = token && cookieUserId && (!urlUid || String(cookieUserId) === String(urlUid));
+      
+      if (!hasTrustedSession) {
+        return { canAccess: false, reason: 'initializing' };
+      }
+      // Otherwise, fall through and allow access with trusted session
     }
     
     // If SSO token is present in URL, we are likely in the middle of an exchange
@@ -108,7 +117,17 @@ export function RouteGuard({ children }: RouteGuardProps) {
     }
 
     // If we have a token but no user yet, wait for AuthInitializer to load user
+    // EXCEPTION: If we have a trusted session (token + matching user_id cookie), allow access
     if (token && !user) {
+      const urlUid = searchParams.get('uid');
+      const cookieUserId = typeof window !== 'undefined' ? getUserIdCookie() : null;
+      const hasTrustedSession = cookieUserId && (!urlUid || String(cookieUserId) === String(urlUid));
+      
+      if (hasTrustedSession) {
+        // Trust the session - allow access while user data loads in background
+        return { canAccess: true, reason: 'trusted_session' };
+      }
+      
       if (isLoading && !loadingTimeout) {
         return { canAccess: false, reason: 'loading' };
       }

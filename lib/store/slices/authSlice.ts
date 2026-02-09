@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { User, AuthState, UserRole } from '@/lib/types/roles';
-import { setTokenCookie, getTokenCookie, removeTokenCookie } from '@/lib/utils/cookies';
+import { setTokenCookie, getTokenCookie, removeTokenCookie, setUserIdCookie, removeUserIdCookie } from '@/lib/utils/cookies';
 
 const initialState: AuthState = {
   user: null,
@@ -20,6 +20,8 @@ const authSlice = createSlice({
       state.user = action.payload;
       state.isAuthenticated = true;
       state.loading = false;
+      // Store user ID in cookie for SSO validation on refresh
+      setUserIdCookie(action.payload.id);
     },
     setToken: (state, action: PayloadAction<string | null>) => {
       state.token = action.payload;
@@ -53,6 +55,7 @@ const authSlice = createSlice({
       state.isInitializing = false;
       state.wordpressUrl = null;
       removeTokenCookie();
+      removeUserIdCookie();
     },
     // Clear auth data but keep isLoggingOut true (for redirect scenarios)
     clearAuthForRedirect: (state) => {
@@ -65,6 +68,7 @@ const authSlice = createSlice({
       // Keep isLoggingOut TRUE so RouteGuard shows loader during redirect
       state.isLoggingOut = true;
       removeTokenCookie();
+      removeUserIdCookie();
     },
     setWordpressUrl: (state, action: PayloadAction<string | null>) => {
       state.wordpressUrl = action.payload;
