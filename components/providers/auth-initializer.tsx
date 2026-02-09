@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { useAppDispatch, useAppSelector } from '@/lib/store/hooks';
 import { setUser, setLoading, initializeAuth, setInitializing, setToken, setWordpressUrl } from '@/lib/store/slices/authSlice';
 import { useGetCurrentUserQuery } from '@/lib/store/api/userApi';
@@ -174,10 +174,17 @@ export function AuthInitializer({ children }: AuthInitializerProps) {
   }, [generalSettings, user, dispatch]);
 
 
+  // Check if we are in the middle of an SSO exchange
+  // If sso_token is present, we should wait for SSOHandler to exchange it
+  // and not try to fetch the current user yet (which would fail with 401)
+  const searchParams = useSearchParams();
+  const isSSOExchange = !!searchParams.get('sso_token');
+
   // Fetch current user from WordPress API (fallback if no JWT)
-  // Only skip if we already have user data loaded, have a token, or are on auth callback
+  // Only skip if we already have user data loaded, have a token, are on auth callback,
+  // or are in the middle of an SSO exchange
   const { data: wpUser, isLoading, isError, error } = useGetCurrentUserQuery(undefined, {
-    skip: !!user || !!token || isOnAuthCallback,
+    skip: !!user || !!token || isOnAuthCallback || isSSOExchange,
   });
 
   // Only set loading from wpUser query if we're actually trying to fetch it

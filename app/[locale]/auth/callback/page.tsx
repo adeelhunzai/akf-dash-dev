@@ -97,6 +97,9 @@ export default function AuthCallbackPage() {
 
   // Handle SSO token exchange
   useEffect(() => {
+    // Wait for auth initialization to complete
+    if (isInitializing) return;
+
     const ssoToken = searchParams.get('sso_token');
     
     console.log('Auth callback - SSO token:', ssoToken ? 'present' : 'missing');
@@ -104,9 +107,43 @@ export default function AuthCallbackPage() {
     console.log('Auth callback - Has exchanged:', hasExchanged.current);
     
     // Prevent multiple exchanges
-    if (hasExchanged.current || token) {
-      console.log('Auth callback - Skipping exchange (already exchanged or token exists)');
+    if (hasExchanged.current) {
+      console.log('Auth callback - Skipping exchange (already exchanged)');
       return;
+    }
+
+    // If we already have a token, we don't need to exchange
+    if (token) {
+        console.log('Auth callback - Token exists, redirecting immediately');
+        
+        // Determine where to redirect
+        let finalRedirectPath: string;
+        const redirectParam = searchParams.get('redirect');
+        
+        if (redirectParam) {
+            // Check if user has access to the requested path
+            // Remove locale from redirectParam for role check
+            const redirectPathWithoutLocale = redirectParam.replace(`/${locale}`, '') || redirectParam;
+            
+            if (user && hasRouteAccess(user.role, redirectPathWithoutLocale)) {
+                // User has access to the requested path
+                finalRedirectPath = redirectParam;
+            } else if (user) {
+                // User doesn't have access - redirect to their default dashboard
+                finalRedirectPath = getDefaultDashboardPath(user.role, locale);
+            } else {
+                 // Should likely not happen if token exists but user doesn't - wait for user to load
+                 return;
+            }
+        } else if (user) {
+            // No redirect param - redirect to appropriate dashboard based on role
+            finalRedirectPath = getDefaultDashboardPath(user.role, locale);
+        } else {
+            return;
+        }
+        
+        router.replace(finalRedirectPath);
+        return;
     }
     
     if (ssoToken) {
@@ -223,7 +260,7 @@ export default function AuthCallbackPage() {
         console.log('Auth callback - Direct visit without SSO token or redirect param');
       }
     }
-  }, [searchParams, exchangeToken, dispatch, router, token]);
+  }, [searchParams, exchangeToken, dispatch, router, token, isInitializing, locale, user]);
 
   // Show loading state during initialization or SSO exchange
   const ssoToken = searchParams.get('sso_token');

@@ -9,29 +9,34 @@ import { settingsApi } from './api/settingsApi';
 import { authApi } from './api/authApi';
 import { managerApi } from './api/managerApi';
 
-export const store = configureStore({
-  reducer: {
-    auth: authReducer,
-    locale: localeReducer,
-    [usersApi.reducerPath]: usersApi.reducer,
-    [teamsApi.reducerPath]: teamsApi.reducer,
-    [coursesApi.reducerPath]: coursesApi.reducer,
-    [reportsApi.reducerPath]: reportsApi.reducer,
-    [settingsApi.reducerPath]: settingsApi.reducer,
-    [authApi.reducerPath]: authApi.reducer,
-    [managerApi.reducerPath]: managerApi.reducer,
-  },
-  middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware().concat(
-      usersApi.middleware,
-      teamsApi.middleware,
-      coursesApi.middleware,
-      reportsApi.middleware,
-      settingsApi.middleware,
-      authApi.middleware,
-      managerApi.middleware
-    ),
-});
+export const makeStore = () => {
+  return configureStore({
+    reducer: {
+      auth: authReducer,
+      locale: localeReducer,
+      [usersApi.reducerPath]: usersApi.reducer,
+      [teamsApi.reducerPath]: teamsApi.reducer,
+      [coursesApi.reducerPath]: coursesApi.reducer,
+      [reportsApi.reducerPath]: reportsApi.reducer,
+      [settingsApi.reducerPath]: settingsApi.reducer,
+      [authApi.reducerPath]: authApi.reducer,
+      [managerApi.reducerPath]: managerApi.reducer,
+    },
+    middleware: (getDefaultMiddleware) =>
+      getDefaultMiddleware().concat(
+        usersApi.middleware,
+        teamsApi.middleware,
+        coursesApi.middleware,
+        reportsApi.middleware,
+        settingsApi.middleware,
+        authApi.middleware,
+        managerApi.middleware
+      ),
+  });
+};
 
-export type RootState = ReturnType<typeof store.getState>;
-export type AppDispatch = typeof store.dispatch;
+// Infers the type of the store
+export type AppStore = ReturnType<typeof makeStore>;
+// Infers the `RootState` and `AppDispatch` types from the store itself
+export type RootState = ReturnType<AppStore['getState']>;
+export type AppDispatch = AppStore['dispatch'];

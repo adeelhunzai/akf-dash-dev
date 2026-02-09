@@ -45,13 +45,13 @@ export default function DashboardsLayout({
   return (
     <div className={`${openSans.variable} font-sans antialiased`}>
       <ReduxProvider>
-        <SSOHandler>
-          <AuthInitializer>
+        <AuthInitializer>
+          <SSOHandler>
             <RouteGuard>
               {children}
             </RouteGuard>
-          </AuthInitializer>
-        </SSOHandler>
+          </SSOHandler>
+        </AuthInitializer>
       </ReduxProvider>
       <Analytics />
     </div>

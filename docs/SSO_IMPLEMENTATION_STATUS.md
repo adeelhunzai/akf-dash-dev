@@ -164,17 +164,23 @@ Current role mapping in `sso-handler.tsx`:
 4. **Session Management** - Handle multiple tabs/devices
 5. **IP Validation Bypass** - Option to disable for development
 
-## 🚀 How It Works
-
-1. User clicks `[dashboard_link]` in WordPress
-2. Shortcode generates SSO token and stores it in WordPress transients (60s expiry)
-3. User is redirected to: `http://localhost:3000/en/auth/callback?sso_token=xxx`
-4. Auth callback page detects token in URL
-5. Calls `/custom-api/v1/auth/exchange-token` with SSO token
-6. WordPress validates token, generates JWT, and returns user data
-7. Frontend stores JWT in Redux and localStorage
-8. User is redirected to appropriate dashboard based on role
-9. All subsequent API calls use JWT token in `Authorization: Bearer <token>` header
+## 🚀 How It Works (Updated)
+1. User clicks `[dashboard_link]` in WordPress (e.g. "My Courses")
+2. Javascript requests a one-time SSO token from WordPress API
+3. Javascript constructs a direct URL: `https://app.com/learner/courses?sso_token=xxx`
+4. Javascript opens this URL in a **new tab** (`_blank`)
+5. **Scenario A: User already logged in to Next.js**
+   - `AuthInitializer` loads existing token from cookies
+   - `SSOHandler` sees valid token
+   - **SKIPS** exchange
+   - Removes `sso_token` from URL
+   - Shows content immediately (Zero delay, no spinner)
+6. **Scenario B: User NOT logged in**
+   - `AuthInitializer` finds no token
+   - `SSOHandler` sees `sso_token` but no auth token
+   - Calls `/auth/exchange-token`
+   - Logs user in
+   - Reloads page with valid session
 
 ## 📚 Files Modified/Created
 

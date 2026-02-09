@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import { DashboardSkeleton } from '@/components/shared/layout/dashboard-skeleton';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useAppDispatch, useAppSelector } from '@/lib/store/hooks';
 import { setToken, setUser, initializeAuth } from '@/lib/store/slices/authSlice';
@@ -45,11 +46,28 @@ export function SSOHandler({ children }: { children: React.ReactNode }) {
     dispatch(initializeAuth());
   }, [dispatch]);
 
+  const isInitializing = useAppSelector((state) => state.auth.isInitializing);
+
   // Handle SSO token exchange
   useEffect(() => {
+    // Wait for auth initialization to complete
+    if (isInitializing) return;
+
     const ssoToken = searchParams.get('sso_token');
     
-    if (ssoToken && !token) {
+    // If we already have a valid token, we don't need to exchange
+    // This prevents the "authenticating..." spinner for logged-in users
+    if (token) {
+      if (ssoToken) {
+        // Just clean up the URL
+        const newUrl = new URL(window.location.href);
+        newUrl.searchParams.delete('sso_token');
+        router.replace(newUrl.pathname + newUrl.search);
+      }
+      return;
+    }
+    
+    if (ssoToken) {
       // Exchange SSO token for JWT
       exchangeToken({ token: ssoToken })
         .unwrap()
@@ -82,18 +100,11 @@ export function SSOHandler({ children }: { children: React.ReactNode }) {
           router.replace(newUrl.pathname + newUrl.search);
         });
     }
-  }, [searchParams, token, exchangeToken, dispatch, router]);
+  }, [searchParams, token, exchangeToken, dispatch, router, isInitializing]);
 
-  // Show loading state during SSO exchange
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Authenticating...</p>
-        </div>
-      </div>
-    );
+  // Show loading state during SSO exchange or initialization
+  if (isLoading || isInitializing) {
+    return <DashboardSkeleton />;
   }
 
   // Show error state if SSO exchange failed

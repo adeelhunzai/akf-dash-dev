@@ -1,12 +1,13 @@
 'use client';
 
 import { useEffect, useState, useMemo } from 'react';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useAppSelector } from '@/lib/store/hooks';
 import { UserRole } from '@/lib/types/roles';
 import { hasRouteAccess, getDefaultDashboardPath, isPublicRoute, isAuthCallbackRoute } from '@/lib/utils/auth';
 import { useLocale } from 'next-intl';
 import { ForbiddenAccess } from '@/components/ui/forbidden-access';
+import { DashboardSkeleton } from '@/components/shared/layout/dashboard-skeleton';
 
 interface RouteGuardProps {
   children: React.ReactNode;
@@ -22,6 +23,7 @@ interface RouteGuardProps {
  */
 export function RouteGuard({ children }: RouteGuardProps) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const router = useRouter();
   const locale = useLocale();
   const user = useAppSelector((state) => state.auth.user);
@@ -41,7 +43,7 @@ export function RouteGuard({ children }: RouteGuardProps) {
     if (isLoading) {
       const timer = setTimeout(() => {
         setLoadingTimeout(true);
-      }, 5000); // 5 second timeout
+      }, 30000); // 30 second timeout
       return () => clearTimeout(timer);
     } else {
       setLoadingTimeout(false);
@@ -64,6 +66,12 @@ export function RouteGuard({ children }: RouteGuardProps) {
     // Wait while initializing - don't make access decisions yet
     if (isInitializing) {
       return { canAccess: false, reason: 'initializing' };
+    }
+    
+    // If SSO token is present in URL, we are likely in the middle of an exchange
+    // Wait for SSOHandler to process it (or remove it if invalid)
+    if (searchParams.get('sso_token') && !token) {
+      return { canAccess: false, reason: 'sso_exchange' };
     }
 
     // Allow public routes
@@ -136,6 +144,7 @@ export function RouteGuard({ children }: RouteGuardProps) {
     user,
     isLoading,
     loadingTimeout,
+    searchParams,
   ]);
 
   // Handle redirects in useEffect (but children won't render if access is denied)
@@ -161,51 +170,28 @@ export function RouteGuard({ children }: RouteGuardProps) {
 
   // Show loading state while initializing
   if (accessStatus.reason === 'initializing') {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#16a34a] mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
-        </div>
-      </div>
-    );
+    return <DashboardSkeleton />;
   }
 
   // Show loading state during logout
   if (accessStatus.reason === 'logging_out') {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#16a34a] mx-auto"></div>
-          <p className="mt-4 text-gray-600">Logging out...</p>
-        </div>
-      </div>
-    );
+    return <DashboardSkeleton />;
+  }
+
+  // Show loading state during SSO exchange
+  if (accessStatus.reason === 'sso_exchange') {
+    return <DashboardSkeleton />;
   }
 
   // Show loading state while checking authentication
   if (accessStatus.reason === 'loading') {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#16a34a] mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
-        </div>
-      </div>
-    );
+    return <DashboardSkeleton />;
   }
 
   // Show loading state when redirecting due to role mismatch
   // This prevents showing the protected route content before redirect
   if (accessStatus.reason === 'no_access' && accessStatus.userRole) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#16a34a] mx-auto"></div>
-          <p className="mt-4 text-gray-600">Redirecting...</p>
-        </div>
-      </div>
-    );
+    return <DashboardSkeleton />;
   }
 
   // If loading timeout occurred, show forbidden access
