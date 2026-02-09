@@ -244,6 +244,7 @@ export interface LearnerDashboardAchievement {
 export interface LearnerDashboardSummary {
   courses_enrolled: number;
   courses_completed: number;
+  courses_in_progress: number;
   certificates: number;
   learning_time: string;
 }

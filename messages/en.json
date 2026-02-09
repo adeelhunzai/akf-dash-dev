@@ -81,6 +81,7 @@
     "inactive": "Inactive"
   },
   "learners": {
+    "description": "Track badges earned on The Learning Hub.",
     "title": "Manage Learners",
     "searchPlaceholder": "Search by name or email",
     "filterByCourse": "Filter by course",

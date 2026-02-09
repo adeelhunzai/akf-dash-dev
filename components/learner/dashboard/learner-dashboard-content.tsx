@@ -82,8 +82,8 @@ export default function LearnerDashboardContent() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-foreground">Learner Overview</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Monitor your platform performance and key metrics</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-foreground">My Dashboard</h1>
+          <p className="mt-1 text-sm text-muted-foreground">Track your course progress on The Learning Hub.</p>
         </div>
         <DateRangePicker
           selectedPeriod={selectedPeriod}
@@ -115,24 +115,10 @@ export default function LearnerDashboardContent() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-muted-foreground mb-1">Enrolled Courses</p>
-                    <p className="text-3xl font-bold">{summary?.courses_enrolled ?? 0}</p>
-                  </div>
-                  <div className="w-12 h-12 rounded-lg bg-green-500 flex items-center justify-center">
-                    <BookOpen className="w-6 h-6 text-white" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-muted-foreground mb-1">Completed</p>
+                    <p className="text-sm text-muted-foreground mb-1">Courses Completed</p>
                     <p className="text-3xl font-bold">{summary?.courses_completed ?? 0}</p>
                   </div>
-                  <div className="w-12 h-12 rounded-lg bg-yellow-500 flex items-center justify-center">
+                  <div className="w-12 h-12 rounded-lg bg-green-500 flex items-center justify-center">
                     <GraduationCap className="w-6 h-6 text-white" />
                   </div>
                 </div>
@@ -143,7 +129,21 @@ export default function LearnerDashboardContent() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-muted-foreground mb-1">Certificates</p>
+                    <p className="text-sm text-muted-foreground mb-1">Courses In Progress</p>
+                    <p className="text-3xl font-bold">{summary?.courses_in_progress ?? 0}</p>
+                  </div>
+                  <div className="w-12 h-12 rounded-lg bg-yellow-500 flex items-center justify-center">
+                    <BookOpen className="w-6 h-6 text-white" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground mb-1">Certificates Earned</p>
                     <p className="text-3xl font-bold">{summary?.certificates ?? 0}</p>
                   </div>
                   <div className="w-12 h-12 rounded-lg bg-purple-500 flex items-center justify-center">
@@ -157,7 +157,7 @@ export default function LearnerDashboardContent() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-muted-foreground mb-1">Learning Time</p>
+                    <p className="text-sm text-muted-foreground mb-1">Time Invested</p>
                     <p className="text-3xl font-bold">{summary?.learning_time ?? "0H"}</p>
                   </div>
                   <div className="w-12 h-12 rounded-lg bg-blue-500 flex items-center justify-center">
@@ -270,7 +270,7 @@ export default function LearnerDashboardContent() {
                 })}
               </div>
             ) : (
-              <p className="text-sm text-muted-foreground">No achievements yet</p>
+              <p className="text-sm text-muted-foreground">No badges earned yet</p>
             )}
           </CardContent>
         </Card>

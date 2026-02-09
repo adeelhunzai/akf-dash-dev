@@ -71,8 +71,8 @@ export default function AchievementsContent() {
             <Trophy className="w-6 h-6 text-white" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-white">Achievements</h1>
-            <p className="text-sm text-white/90">Keep track of your progress.</p>
+            <h1 className="text-2xl font-bold text-white">My Badges</h1>
+            <p className="text-sm text-white/90">Track badges earned on The Learning Hub.</p>
           </div>
         </div>
 
@@ -116,7 +116,7 @@ export default function AchievementsContent() {
         {/* Latest Goals - Inside Blue Container */}
         {latestGoals.length > 0 && (
           <div>
-            <h2 className="text-lg font-bold mb-3 text-white">My Latest Goals!</h2>
+            <h2 className="text-lg font-bold mb-3 text-white">My Latest Badges!</h2>
             <div className="space-y-3">
               {latestGoals.map((goal, index) => {
                 const Icon = getIcon(goal.icon)
@@ -207,7 +207,7 @@ export default function AchievementsContent() {
       {achievements.length === 0 && latestGoals.length === 0 && (
         <div className="text-center py-12">
           <Trophy className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-gray-600 mb-2">No achievements yet</h3>
+          <h3 className="text-lg font-semibold text-gray-600 mb-2">No badges earned yet</h3>
           <p className="text-sm text-muted-foreground">Complete courses to earn badges and achievements!</p>
         </div>
       )}
