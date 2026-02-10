@@ -84,7 +84,7 @@ export default function Sidebar({ isOpen, isMobile, onClose }: SidebarProps) {
             <Link key={item.labelKey} href={localizedPath}>
               <Button
                 variant={isActive ? "default" : "ghost"}
-                className={`w-full justify-start gap-3 mb-2 min-h-[50px] ${
+                className={`w-full justify-start gap-3 mb-2 min-h-[50px] cursor-pointer ${
                   isActive
                     ? "bg-[#00b140] text-white rounded-md hover:bg-[#00b140]/75"
                     : ""
@@ -103,7 +103,7 @@ export default function Sidebar({ isOpen, isMobile, onClose }: SidebarProps) {
         <Link href={`/${locale}/${currentRole}/settings`}>
           <Button
             variant={pathname.includes("/settings") ? "default" : "ghost"}
-            className={`w-full justify-start gap-3 ${
+            className={`w-full justify-start gap-3 cursor-pointer ${
               pathname.includes("/settings")
                 ? "bg-[#00b140] text-white rounded-md hover:bg-[#00b140] hover:text-black"
                 : ""
@@ -115,7 +115,7 @@ export default function Sidebar({ isOpen, isMobile, onClose }: SidebarProps) {
         </Link>
         <Button 
           variant="ghost" 
-          className="w-full justify-start gap-3 text-destructive hover:bg-destructive/10"
+          className="w-full justify-start gap-3 text-destructive hover:bg-destructive/10 cursor-pointer"
           onClick={handleLogoutClick}
         >
           <LogOut className="w-5 h-5" />
