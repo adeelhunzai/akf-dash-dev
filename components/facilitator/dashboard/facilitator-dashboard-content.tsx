@@ -8,7 +8,7 @@ import {
   Award,
   CircleCheck,
 } from "lucide-react";
-import UserDistributionChart from "@/components/charts/user-distribution-chart";
+
 import DateRangePicker from "@/components/ui/date-range-picker";
 import { type DateRange } from "react-day-picker";
 import { useGetFacilitatorDashboardQuery } from "@/lib/store/api/userApi";
@@ -50,7 +50,7 @@ export default function FacilitatorDashboardContent() {
   
   const summary = dashboardData?.data?.summary;
   const courseCompletion = dashboardData?.data?.course_completion;
-  const userDistribution = dashboardData?.data?.user_distribution;
+
   
   const stats = [
     {
@@ -85,10 +85,10 @@ export default function FacilitatorDashboardContent() {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold text-foreground">
-            Dashboard Overview
+            My Dashboard
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Monitor your platform performance and key metrics
+            Track your learners’ progress on The Learning Hub
           </p>
         </div>
         <DateRangePicker
@@ -141,7 +141,7 @@ export default function FacilitatorDashboardContent() {
         )}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 gap-6">
         {/* Course Completion Rate */}
         <Card>
           <CardContent className="p-6">
@@ -253,21 +253,6 @@ export default function FacilitatorDashboardContent() {
           </CardContent>
         </Card>
 
-        {/* Global Learners Distribution */}
-        <Card>
-          <CardContent className="p-6">
-            <h2 className="text-lg font-semibold mb-4">
-              Global Learners Distribution
-            </h2>
-            {isLoading || isFetching ? (
-              <div className="flex items-center justify-center h-40">
-                <Skeleton className="w-full h-full" />
-              </div>
-            ) : (
-              <UserDistributionChart data={userDistribution} />
-            )}
-          </CardContent>
-        </Card>
       </div>
     </div>
   );
