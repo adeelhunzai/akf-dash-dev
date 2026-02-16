@@ -48,18 +48,21 @@ export default function ManagerDashboardContent() {
       value: summary?.facilitators_count?.toString() || "0",
       icon: Users,
       iconBg: "bg-[#FDC300]",
+      href: `/${locale}/manager/facilitators`,
     },
     {
       label: "Teams",
       value: summary?.teams_count?.toString() || "0",
       icon: Users2,
       iconBg: "bg-[#00B140]",
+      href: `/${locale}/manager/teams`,
     },
     {
       label: "Learners",
       value: summary?.learners_count?.toString() || "0",
       icon: GraduationCap,
       iconBg: "bg-[#FDC300]",
+      href: `/${locale}/manager/learners`,
     },
   ];
 
@@ -71,7 +74,7 @@ export default function ManagerDashboardContent() {
       {/* Header */}
       <div className="mb-6">
         <h1 className="text-2xl md:text-3xl font-bold text-foreground">
-          Dashboard Overview
+          Manager Dashboard
         </h1>
       </div>
 
@@ -89,23 +92,25 @@ export default function ManagerDashboardContent() {
           stats.map((stat, index) => {
             const Icon = stat.icon;
             return (
-              <Card key={index} className="border border-gray-200">
-                <CardContent className="p-5">
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <p className="text-sm text-muted-foreground mb-1">
-                        {stat.label}
-                      </p>
-                      <p className="text-3xl font-bold">{stat.value}</p>
+              <Link key={index} href={stat.href} className="block h-full transition-transform hover:scale-[1.02]">
+                <Card className="h-full border border-gray-200 hover:shadow-md cursor-pointer">
+                  <CardContent className="p-5">
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <p className="text-sm text-muted-foreground mb-1">
+                          {stat.label}
+                        </p>
+                        <p className="text-3xl font-bold">{stat.value}</p>
+                      </div>
+                      <div
+                        className={`w-12 h-12 rounded-lg ${stat.iconBg} flex items-center justify-center flex-shrink-0`}
+                      >
+                        <Icon className="w-6 h-6 text-white" />
+                      </div>
                     </div>
-                    <div
-                      className={`w-12 h-12 rounded-lg ${stat.iconBg} flex items-center justify-center flex-shrink-0`}
-                    >
-                      <Icon className="w-6 h-6 text-white" />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              </Link>
             );
           })
         )}

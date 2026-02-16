@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
+import { useSearchParams } from "next/navigation"
 import { BookOpen, Loader2, AlertCircle } from "lucide-react"
 import {
   Tooltip,
@@ -17,7 +18,11 @@ import { MyCourse } from "@/lib/types/courses.types"
 type CourseStatus = "all" | "in-progress" | "completed"
 
 export default function MyCoursesContent() {
-  const [activeFilter, setActiveFilter] = useState<CourseStatus>("all")
+  const searchParams = useSearchParams()
+  const statusParam = searchParams.get('status')
+  const initialFilter: CourseStatus = (statusParam === 'in-progress' || statusParam === 'completed') ? statusParam : 'all'
+  
+  const [activeFilter, setActiveFilter] = useState<CourseStatus>(initialFilter)
   const [page, setPage] = useState(1)
   const [allCourses, setAllCourses] = useState<MyCourse[]>([])
   const [hasMore, setHasMore] = useState(true)
@@ -43,6 +48,16 @@ export default function MyCoursesContent() {
   // Use currentData if available, otherwise fall back to data
   // currentData is the most recent data for the current query arguments
   const displayData = currentData || data
+
+  // Sync filter with search params
+  useEffect(() => {
+    const status = searchParams.get('status')
+    if (status === 'in-progress' || status === 'completed') {
+      setActiveFilter(status)
+    } else if (status === 'all') {
+      setActiveFilter('all')
+    }
+  }, [searchParams])
 
   // Reset page when filter changes
   useEffect(() => {

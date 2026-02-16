@@ -20,6 +20,7 @@ import { type DateRange } from "react-day-picker";
 import { type MetricsQueryArgs, useGetUsersCountQuery, useGetCourseCompletionRateQuery, useGetTopCoursesQuery } from "@/lib/store/api/userApi";
 import { useToast } from "@/hooks/use-toast";
 import { RefreshCw } from "lucide-react";
+import { CoursePopularityTable } from "../reports/course-popularity-table";
 
 // Skeleton component for metric cards
 function MetricCardSkeleton() {
@@ -305,6 +306,11 @@ export default function DashboardContent() {
 
       {/* Charts Section */}
       <ChartSection metricsArgs={metricsArgs} />
+
+      {/* Course Popularity Section */}
+      <div className="mt-8">
+        <CoursePopularityTable />
+      </div>
     </div>
   );
 }

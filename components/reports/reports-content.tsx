@@ -9,7 +9,7 @@ import { CoursesReportTable } from "./courses-report-table"
 import { LearnerReportTable } from "./learner-report-table"
 import { Download } from "lucide-react"
 import { TeamPerformanceTable } from "./team-performance-table"
-import { CoursePopularityTable } from "./course-popularity-table"
+
 import { RevenueCertificatesTable } from "./revenue-certificates-table"
 import { DemographicBreakdownTable } from "./demographic-breakdown-table"
 import { CertificateSalesData, CourseReportItem, LearnerReportItem, TeamReportItem } from "@/lib/types/reports.types"
@@ -20,8 +20,8 @@ Font.register({ family: "NotoSansArabic", src: "/fonts/NotoSansArabic-Regular.tt
 Font.register({ family: "NotoSans", src: "/fonts/NotoSans-Regular.ttf" })
 
 export function ReportsContent() {
-  const [activeTab, setActiveTab] = useState<"courses" | "learner" | "team">("courses")
-  const [selectedReport, setSelectedReport] = useState("user-enrollment")
+  const [activeTab, setActiveTab] = useState<"courses" | "learner" | "team" | "certificates">("courses")
+  const [selectedReport, setSelectedReport] = useState("all-reports")
   const [dateRange, setDateRange] = useState("0")
   const [searchInput, setSearchInput] = useState("")
   const [searchQuery, setSearchQuery] = useState("")
@@ -205,11 +205,7 @@ export function ReportsContent() {
   }
 
   const buildExportContext = (): ExportContext | null => {
-    if (selectedReport === "course-popularity") {
-      return null
-    }
-
-    if (selectedReport === "revenue-certificates") {
+    if (activeTab === "certificates") {
       const headers = ["Month", "Certificates Issued"]
       const rows = visibleCertificates.map((row) => [row.month, row.sold.toString()])
       const title = `Certificate Sales (${certificateActiveTab === "cpd" ? "CPD" : "Other"})`
@@ -455,11 +451,11 @@ export function ReportsContent() {
       </div>
 
       {/* Report Content */}
-      {selectedReport === "user-enrollment" && (
+      {selectedReport === "all-reports" && (
         <div className="rounded-md border border-gray-200 bg-white p-6">
           {/* Filters */}
           <div className="mb-4 flex items-center justify-between">
-            <h3 className="text-xl font-semibold text-foreground">User Enrollment & Completion Report</h3>
+            <h3 className="text-xl font-semibold text-foreground">All Reports</h3>
             <div className="flex gap-3">
               <Input
                 placeholder="Search..."
@@ -514,6 +510,16 @@ export function ReportsContent() {
             >
               Team Report
             </Button>
+            <Button
+              onClick={() => setActiveTab("certificates")}
+              className={`w-[140px] ${
+                activeTab === "certificates"
+                  ? "bg-green-600 text-white hover:bg-green-700"
+                  : "bg-transparent text-gray-700 hover:bg-gray-200"
+              }`}
+            >
+              Certificates
+            </Button>
           </div>
 
           {/* Table */}
@@ -541,18 +547,13 @@ export function ReportsContent() {
               onLoadingChange={handleTeamsLoadingChange}
             />
           )}
+          {activeTab === "certificates" && (
+            <RevenueCertificatesTable
+              onVisibleRowsChange={handleVisibleCertificateRowsChange}
+              onLoadingChange={handleCertificatesLoadingChange}
+            />
+          )}
         </div>
-      )}
-
-      {/* Course Popularity Report */}
-      {selectedReport === "course-popularity" && <CoursePopularityTable />}
-
-      {/* Revenue & Certificates Report */}
-      {selectedReport === "revenue-certificates" && (
-        <RevenueCertificatesTable
-          onVisibleRowsChange={handleVisibleCertificateRowsChange}
-          onLoadingChange={handleCertificatesLoadingChange}
-        />
       )}
     </div>
   )

@@ -35,8 +35,8 @@ export function RevenueCertificatesTable({ onVisibleRowsChange, onLoadingChange 
     ? data?.data?.cpd_certificates || []
     : data?.data?.other_certificates || []
 
-  // Use raw data directly (no search filter)
-  const filteredData = rawData
+  // Use raw data directly (no search filter), reversed so latest is first
+  const filteredData = [...rawData].reverse()
 
   const prevContextRef = useRef<{ rows: CertificateSalesData[]; activeTab: "cpd" | "other" } | null>(null)
 
@@ -146,6 +146,7 @@ export function RevenueCertificatesTable({ onVisibleRowsChange, onLoadingChange 
             <thead>
               <tr style={{ backgroundColor: '#F3F4F6' }}>
                 <th className="px-6 py-4 text-left text-xs font-medium uppercase text-gray-500">MONTHS</th>
+                <th className="px-6 py-4 text-left text-xs font-medium uppercase text-gray-500">YEAR</th>
                 <th className="px-6 py-4 text-right text-xs font-medium uppercase text-gray-500">CERTIFICATES ISSUED</th>
               </tr>
             </thead>
@@ -154,12 +155,13 @@ export function RevenueCertificatesTable({ onVisibleRowsChange, onLoadingChange 
                 filteredData.map((row, idx) => (
                   <tr key={idx} className="border-b border-gray-100 hover:bg-gray-50">
                     <td className="px-6 py-4 text-sm text-foreground">{row.month}</td>
+                    <td className="px-6 py-4 text-sm text-foreground">{row.month_key ? row.month_key.split("-")[0] : ""}</td>
                     <td className="px-6 py-4 text-sm text-foreground text-right">{row.sold}</td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan={2} className="px-6 py-8 text-center text-sm text-muted-foreground">
+                  <td colSpan={3} className="px-6 py-8 text-center text-sm text-muted-foreground">
                     No certificate data available
                   </td>
                 </tr>

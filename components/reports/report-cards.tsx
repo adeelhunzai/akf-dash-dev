@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { Users, Monitor, Globe } from "lucide-react"
+import { Users } from "lucide-react"
 
 interface ReportCard {
   id: string
@@ -11,19 +11,9 @@ interface ReportCard {
 
 const reports: ReportCard[] = [
   {
-    id: "user-enrollment",
-    title: "User Enrollment & Completion",
+    id: "all-reports",
+    title: "All Reports",
     icon: <Users className="h-5 w-5" />,
-  },
-  {
-    id: "course-popularity",
-    title: "Course Popularity",
-    icon: <Monitor className="h-5 w-5" />,
-  },
-  {
-    id: "revenue-certificates",
-    title: "Certificates",
-    icon: <Globe className="h-5 w-5" />,
   },
 ]
 

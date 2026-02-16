@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button"
 import { useGetLearnerDashboardQuery } from "@/lib/store/api/userApi"
 import { Skeleton } from "@/components/ui/skeleton"
 import Image from "next/image"
+import Link from "next/link"
+import { useLocale } from "next-intl"
 import DateRangePicker from "@/components/ui/date-range-picker"
 import { type DateRange } from "react-day-picker"
 
@@ -42,6 +44,7 @@ export default function LearnerDashboardContent() {
   const [selectedPeriod, setSelectedPeriod] = useState<string>("All Time")
   const [customRange, setCustomRange] = useState<DateRange | undefined>(undefined)
   const periods = ["1 Month", "3 Months", "6 Months", "1 Year", "All Time"]
+  const locale = useLocale()
   
   // Map frontend period to API period format
   const getPeriodParam = (period: string): string | undefined => {
@@ -111,49 +114,55 @@ export default function LearnerDashboardContent() {
           ))
         ) : (
           <>
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-muted-foreground mb-1">Courses Completed</p>
-                    <p className="text-3xl font-bold">{summary?.courses_completed ?? 0}</p>
+            <Link href={`/${locale}/learner/courses?status=completed`} className="block h-full">
+              <Card className="h-full hover:shadow-md transition-shadow cursor-pointer">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-muted-foreground mb-1">Courses Completed</p>
+                      <p className="text-3xl font-bold">{summary?.courses_completed ?? 0}</p>
+                    </div>
+                    <div className="w-12 h-12 rounded-lg bg-green-500 flex items-center justify-center">
+                      <GraduationCap className="w-6 h-6 text-white" />
+                    </div>
                   </div>
-                  <div className="w-12 h-12 rounded-lg bg-green-500 flex items-center justify-center">
-                    <GraduationCap className="w-6 h-6 text-white" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </Link>
 
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-muted-foreground mb-1">Courses In Progress</p>
-                    <p className="text-3xl font-bold">{summary?.courses_in_progress ?? 0}</p>
+            <Link href={`/${locale}/learner/courses?status=in-progress`} className="block h-full">
+              <Card className="h-full hover:shadow-md transition-shadow cursor-pointer">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-muted-foreground mb-1">Courses In Progress</p>
+                      <p className="text-3xl font-bold">{summary?.courses_in_progress ?? 0}</p>
+                    </div>
+                    <div className="w-12 h-12 rounded-lg bg-yellow-500 flex items-center justify-center">
+                      <BookOpen className="w-6 h-6 text-white" />
+                    </div>
                   </div>
-                  <div className="w-12 h-12 rounded-lg bg-yellow-500 flex items-center justify-center">
-                    <BookOpen className="w-6 h-6 text-white" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </Link>
 
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-muted-foreground mb-1">Certificates Earned</p>
-                    <p className="text-3xl font-bold">{summary?.certificates ?? 0}</p>
+            <Link href={`/${locale}/learner/certificates`} className="block h-full">
+              <Card className="h-full hover:shadow-md transition-shadow cursor-pointer">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-muted-foreground mb-1">Certificates Earned</p>
+                      <p className="text-3xl font-bold">{summary?.certificates ?? 0}</p>
+                    </div>
+                    <div className="w-12 h-12 rounded-lg bg-purple-500 flex items-center justify-center">
+                      <Award className="w-6 h-6 text-white" />
+                    </div>
                   </div>
-                  <div className="w-12 h-12 rounded-lg bg-purple-500 flex items-center justify-center">
-                    <Award className="w-6 h-6 text-white" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </Link>
 
-            <Card>
+            <Card className="h-full">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
