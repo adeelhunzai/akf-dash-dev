@@ -32,7 +32,7 @@
     "reports": "التقارير",
     "settings": "الإعدادات",
     "teamManagement": "إدارة الفريق",
-    "userManagement": "إدارة المستخدمين",
+    "userManagement": "User Management",
     "createCourse": "إنشاء دورة",
     "manageLearners": "إدارة المتعلمين",
     "certificates": "الشهادات",
@@ -78,7 +78,7 @@
     "inactive": "غير نشط"
   },
   "learners": {
-    "title": "إدارة المتعلمين",
+    "title": "User Management",
     "searchPlaceholder": "البحث بالاسم أو البريد الإلكتروني",
     "filterByCourse": "تصفية حسب الدورة",
     "filterByStatus": "تصفية حسب الحالة",

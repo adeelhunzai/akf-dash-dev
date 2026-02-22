@@ -170,25 +170,6 @@ export function RevenueCertificatesTable({ onVisibleRowsChange, onLoadingChange 
           </table>
         </div>
 
-        {/* Totals Summary */}
-        {data?.data?.totals && (
-          <div className="mt-6 rounded-lg bg-gray-50 p-4">
-            <div className="grid grid-cols-3 gap-4 text-center">
-              <div>
-                <p className="text-sm text-muted-foreground">Total CPD Issued</p>
-                <p className="text-lg font-semibold text-foreground">{data.data.totals.total_cpd_issued}</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Total Other Issued</p>
-                <p className="text-lg font-semibold text-foreground">{data.data.totals.total_other_issued}</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Total Certificates</p>
-                <p className="text-lg font-semibold text-foreground">{data.data.totals.total_certificates_issued}</p>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   )

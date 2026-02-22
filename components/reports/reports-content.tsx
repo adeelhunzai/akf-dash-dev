@@ -13,6 +13,7 @@ import { TeamPerformanceTable } from "./team-performance-table"
 import { RevenueCertificatesTable } from "./revenue-certificates-table"
 import { DemographicBreakdownTable } from "./demographic-breakdown-table"
 import { CertificateSalesData, CourseReportItem, LearnerReportItem, TeamReportItem } from "@/lib/types/reports.types"
+import { useGetCertificateSalesQuery } from "@/lib/store/api/reportsApi"
 import { Document, Page, Text, View, StyleSheet, Font, pdf } from "@react-pdf/renderer"
 
 Font.register({ family: "DejaVuSans", src: "/fonts/DejaVuSans.ttf" })
@@ -33,6 +34,9 @@ export function ReportsContent() {
   const [isExportingPDF, setIsExportingPDF] = useState(false)
   const [isReportLoading, setIsReportLoading] = useState(false)
   const loadingSourcesRef = useRef(new Set<string>())
+
+  // Fetch certificate sales data for totals summary
+  const { data: certificateSalesData } = useGetCertificateSalesQuery({ months_back: 24 })
 
   const handleVisibleCoursesChange = useCallback((rows: CourseReportItem[]) => {
     setVisibleCourses((prev) => {
@@ -445,10 +449,11 @@ export function ReportsContent() {
           </Button>
         </div>
       </div>
-      <div className="mb-8 rounded-md border border-gray-200 bg-white p-6">
+      {/* <div className="mb-8 rounded-md border border-gray-200 bg-white p-6">
         <h2 className="mb-4 text-lg font-semibold text-foreground">Available Reports</h2>
         <ReportCards selectedReport={selectedReport} onSelectReport={setSelectedReport} />
-      </div>
+      </div> */}
+
 
       {/* Report Content */}
       {selectedReport === "all-reports" && (
@@ -477,6 +482,26 @@ export function ReportsContent() {
               </Select>
             </div>
           </div>
+
+          {/* Totals Summary */}
+          {activeTab === "certificates" && certificateSalesData?.data?.totals && (
+            <div className="mb-6 rounded-lg bg-gray-50 p-4">
+              <div className="grid grid-cols-3 gap-4 text-center">
+                <div>
+                  <p className="text-sm text-muted-foreground">Total CPD Issued</p>
+                  <p className="text-lg font-semibold text-foreground">{certificateSalesData.data.totals.total_cpd_issued}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Total Other Issued</p>
+                  <p className="text-lg font-semibold text-foreground">{certificateSalesData.data.totals.total_other_issued}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Total Certificates</p>
+                  <p className="text-lg font-semibold text-foreground">{certificateSalesData.data.totals.total_certificates_issued}</p>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Tabs */}
           <div className="mb-4 flex gap-1 rounded-md p-1" style={{ backgroundColor: '#F3F4F6' }}>

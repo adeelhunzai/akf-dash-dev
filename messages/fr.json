@@ -32,7 +32,7 @@
     "reports": "Rapports",
     "settings": "Paramètres",
     "teamManagement": "Gestion d'Équipe",
-    "userManagement": "Gestion des Utilisateurs",
+    "userManagement": "User Management",
     "createCourse": "Créer un Cours",
     "manageLearners": "Gérer les Apprenants",
     "certificates": "Certificats",
@@ -78,7 +78,7 @@
     "inactive": "Inactif"
   },
   "learners": {
-    "title": "Gérer les Apprenants",
+    "title": "User Management",
     "searchPlaceholder": "Rechercher par nom ou e-mail",
     "filterByCourse": "Filtrer par cours",
     "filterByStatus": "Filtrer par statut",

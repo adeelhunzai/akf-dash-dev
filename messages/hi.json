@@ -32,7 +32,7 @@
     "reports": "रिपोर्ट",
     "settings": "सेटिंग्स",
     "teamManagement": "टीम प्रबंधन",
-    "userManagement": "उपयोगकर्ता प्रबंधन",
+    "userManagement": "User Management",
     "createCourse": "पाठ्यक्रम बनाएं",
     "manageLearners": "शिक्षार्थियों का प्रबंधन",
     "certificates": "प्रमाणपत्र",
@@ -78,7 +78,7 @@
     "inactive": "निष्क्रिय"
   },
   "learners": {
-    "title": "शिक्षार्थियों का प्रबंधन",
+    "title": "User Management",
     "searchPlaceholder": "नाम या ईमेल से खोजें",
     "filterByCourse": "पाठ्यक्रम के अनुसार फ़िल्टर करें",
     "filterByStatus": "स्थिति के अनुसार फ़िल्टर करें",
