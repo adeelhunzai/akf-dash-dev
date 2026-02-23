@@ -6,13 +6,19 @@ import { useGetTopCoursesQuery } from "@/lib/store/api/managerApi";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useState, useEffect, useRef, useCallback } from "react";
 
-export default function TopPerformingCourses() {
+export default function TopPerformingCourses({ allReports }: { allReports?: boolean }) {
   const [page, setPage] = useState(1);
   const [allCourses, setAllCourses] = useState<any[]>([]);
   const [hasMore, setHasMore] = useState(true);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  const { data: coursesData, isLoading, isFetching } = useGetTopCoursesQuery({ page, per_page: 10 });
+  const { data: coursesData, isLoading, isFetching } = useGetTopCoursesQuery({ page, per_page: 10, all_reports: allReports });
+
+  // Reset when allReports changes
+  useEffect(() => {
+    setPage(1);
+    setAllCourses([]);
+  }, [allReports]);
 
   // Append new courses when data changes
   useEffect(() => {
@@ -65,7 +71,7 @@ export default function TopPerformingCourses() {
         </div>
       </CardHeader>
       <CardContent className="px-6 pb-6 pt-0 flex-1 overflow-hidden">
-        {isLoading && page === 1 ? (
+        {(isLoading || isFetching) && page === 1 ? (
           <div className="space-y-4">
             {[1, 2, 3, 4, 5].map((i) => (
               <Skeleton key={i} className="h-20 w-full rounded-xl" />

@@ -5,8 +5,8 @@ import { Users, Award } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useGetManagerReportsSummaryQuery } from "@/lib/store/api/managerApi";
 
-export default function ReportsSummaryCards() {
-  const { data: summaryData, isLoading } = useGetManagerReportsSummaryQuery();
+export default function ReportsSummaryCards({ allReports }: { allReports?: boolean }) {
+  const { data: summaryData, isLoading, isFetching } = useGetManagerReportsSummaryQuery({ all_reports: allReports });
   const summary = summaryData?.data;
 
   const cards = [
@@ -24,7 +24,7 @@ export default function ReportsSummaryCards() {
     },
   ];
 
-  if (isLoading) {
+  if (isLoading || isFetching) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         {[1, 2].map((i) => (

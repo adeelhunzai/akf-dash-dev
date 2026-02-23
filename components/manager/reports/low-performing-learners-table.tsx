@@ -22,19 +22,24 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import LearnerDetailsModal from "./learner-details-modal";
 
-export default function LowPerformingLearnersTable() {
+export default function LowPerformingLearnersTable({ allReports }: { allReports?: boolean }) {
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(10);
   const [selectedLearner, setSelectedLearner] = useState<any>(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
 
-  const { data: learnersData, isLoading } = useGetLowPerformingLearnersQuery({ page, per_page: perPage });
+  const { data: learnersData, isLoading, isFetching } = useGetLowPerformingLearnersQuery({ page, per_page: perPage, all_reports: allReports });
   const learners = learnersData?.data || [];
   const totalPages = learnersData?.total_pages || 1;
   const total = learnersData?.total || 0;
+
+  // Reset page when allReports changes
+  useEffect(() => {
+    setPage(1);
+  }, [allReports]);
 
   const handleViewLearner = (learner: any) => {
     setSelectedLearner(learner);
@@ -101,7 +106,7 @@ export default function LowPerformingLearnersTable() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {isLoading ? (
+              {isLoading || isFetching ? (
                 Array.from({ length: 5 }).map((_, idx) => (
                   <TableRow key={idx} className="border-b border-gray-100">
                     <TableCell className="pl-6"><Skeleton className="h-10 w-40" /></TableCell>

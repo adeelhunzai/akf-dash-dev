@@ -62,32 +62,39 @@ export const managerApi = createApi({
             providesTags: ['ManagerCourses'],
         }),
         getManagerReportsSummary: build.query({
-            query: () => '/custom-api/v1/manager/reports/summary',
+            query: ({ all_reports } = {}) => {
+                const params = new URLSearchParams();
+                if (all_reports !== undefined) params.append('all_reports', all_reports.toString());
+                return `/custom-api/v1/manager/reports/summary?${params.toString()}`;
+            },
             providesTags: ['ManagerReports'],
         }),
         getTopCourses: build.query({
-            query: ({ page = 1, per_page = 5 } = {}) => {
+            query: ({ page = 1, per_page = 5, all_reports } = {}) => {
                 const params = new URLSearchParams();
                 params.append('page', page.toString());
                 params.append('per_page', per_page.toString());
+                if (all_reports !== undefined) params.append('all_reports', all_reports.toString());
                 return `/custom-api/v1/manager/reports/top-courses?${params.toString()}`;
             },
             providesTags: ['ManagerReports'],
         }),
         getTopLearners: build.query({
-            query: ({ page = 1, per_page = 5 } = {}) => {
+            query: ({ page = 1, per_page = 5, all_reports } = {}) => {
                 const params = new URLSearchParams();
                 params.append('page', page.toString());
                 params.append('per_page', per_page.toString());
+                if (all_reports !== undefined) params.append('all_reports', all_reports.toString());
                 return `/custom-api/v1/manager/reports/top-learners?${params.toString()}`;
             },
             providesTags: ['ManagerReports'],
         }),
         getLowPerformingLearners: build.query({
-            query: ({ page = 1, per_page = 10 } = {}) => {
+            query: ({ page = 1, per_page = 10, all_reports } = {}) => {
                 const params = new URLSearchParams();
                 params.append('page', page.toString());
                 params.append('per_page', per_page.toString());
+                if (all_reports !== undefined) params.append('all_reports', all_reports.toString());
                 return `/custom-api/v1/manager/reports/low-performing-learners?${params.toString()}`;
             },
             providesTags: ['ManagerReports'],

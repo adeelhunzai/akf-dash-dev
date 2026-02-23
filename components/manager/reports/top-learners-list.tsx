@@ -7,13 +7,19 @@ import { useGetTopLearnersQuery } from "@/lib/store/api/managerApi";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useState, useEffect, useRef, useCallback } from "react";
 
-export default function TopPerformingLearners() {
+export default function TopPerformingLearners({ allReports }: { allReports?: boolean }) {
   const [page, setPage] = useState(1);
   const [allLearners, setAllLearners] = useState<any[]>([]);
   const [hasMore, setHasMore] = useState(true);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  const { data: learnersData, isLoading, isFetching } = useGetTopLearnersQuery({ page, per_page: 10 });
+  const { data: learnersData, isLoading, isFetching } = useGetTopLearnersQuery({ page, per_page: 10, all_reports: allReports });
+
+  // Reset when allReports changes
+  useEffect(() => {
+    setPage(1);
+    setAllLearners([]);
+  }, [allReports]);
 
   // Append new learners when data changes
   useEffect(() => {
@@ -72,7 +78,7 @@ export default function TopPerformingLearners() {
         </div>
       </CardHeader>
       <CardContent className="px-6 pb-6 pt-0 flex-1 overflow-hidden">
-        {isLoading && page === 1 ? (
+        {(isLoading || isFetching) && page === 1 ? (
           <div className="space-y-4">
             {[1, 2, 3, 4, 5].map((i) => (
               <Skeleton key={i} className="h-20 w-full rounded-xl" />
