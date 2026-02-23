@@ -11,11 +11,13 @@ import { TeamReportItem } from "@/lib/types/reports.types"
 interface TeamPerformanceTableProps {
   searchQuery?: string;
   dateRange?: string;
+  startDate?: string;
+  endDate?: string;
   onVisibleRowsChange?: (rows: TeamReportItem[]) => void;
   onLoadingChange?: (loading: boolean) => void;
 }
 
-export function TeamPerformanceTable({ searchQuery = "", dateRange = "0", onVisibleRowsChange, onLoadingChange }: TeamPerformanceTableProps) {
+export function TeamPerformanceTable({ searchQuery = "", dateRange = "0", startDate, endDate, onVisibleRowsChange, onLoadingChange }: TeamPerformanceTableProps) {
   const [currentPage, setCurrentPage] = useState(1)
   const [perPage, setPerPage] = useState(10)
 
@@ -27,12 +29,15 @@ export function TeamPerformanceTable({ searchQuery = "", dateRange = "0", onVisi
     page: currentPage,
     per_page: perPage,
     search: searchQuery || undefined,
+    days: days,
+    start_date: startDate,
+    end_date: endDate,
   })
 
   // Reset to page 1 when search or date range changes
   useEffect(() => {
     setCurrentPage(1)
-  }, [searchQuery, dateRange])
+  }, [searchQuery, dateRange, startDate, endDate])
 
   const teamsData = data?.data || []
   const previousTeamIds = useRef<string[]>([])
@@ -206,40 +211,45 @@ export function TeamPerformanceTable({ searchQuery = "", dateRange = "0", onVisi
 
       {/* Pagination */}
       {!isLoading && !error && totalItems > 0 && (
-        <div className="flex items-center justify-between border-t border-gray-200 pt-4">
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-600">Rows per page:</span>
-            <Select value={perPage.toString()} onValueChange={handlePerPageChange}>
-              <SelectTrigger className="w-20 h-8">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="10">10</SelectItem>
-                <SelectItem value="25">25</SelectItem>
-                <SelectItem value="50">50</SelectItem>
-                <SelectItem value="100">100</SelectItem>
-              </SelectContent>
-            </Select>
-            <span className="text-sm text-gray-600">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4 px-4 sm:px-6 py-4 border-t border-border mt-4">
+          <div className="flex flex-col sm:flex-row items-center gap-4 w-full md:w-auto">
+            <div className="text-xs sm:text-sm text-muted-foreground text-center sm:text-left">
               Showing {((currentPage - 1) * perPage) + 1} to {Math.min(currentPage * perPage, totalItems)} of {totalItems} teams
-            </span>
+            </div>
+            
+            {/* Per Page Selector */}
+            <div className="flex items-center gap-2">
+              <span className="text-xs sm:text-sm text-muted-foreground">Show:</span>
+              <Select value={perPage.toString()} onValueChange={handlePerPageChange}>
+                <SelectTrigger className="h-8 w-[60px] sm:w-[70px] text-xs sm:text-sm">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="10">10</SelectItem>
+                  <SelectItem value="25">25</SelectItem>
+                  <SelectItem value="50">50</SelectItem>
+                  <SelectItem value="100">100</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center justify-center gap-2 w-full md:w-auto">
             <Button
               variant="outline"
               size="sm"
               onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
               disabled={currentPage === 1 || isLoading || isFetching}
-              className="h-8"
+              className="h-8 px-2 sm:px-3 text-xs sm:text-sm"
             >
-              <ChevronLeft className="h-4 w-4" />
+              <ChevronLeft className="w-4 h-4 sm:mr-1" />
+              <span className="hidden sm:inline">Previous</span>
             </Button>
 
-            <div className="flex items-center gap-1">
+            <div className="flex flex-wrap items-center justify-center gap-1">
               {getPageNumbers().map((page, index) => (
                 page === '...' ? (
-                  <span key={`ellipsis-${index}`} className="px-2 text-gray-500">...</span>
+                  <span key={`ellipsis-${index}`} className="px-1 sm:px-2 text-xs sm:text-sm text-muted-foreground">...</span>
                 ) : (
                   <Button
                     key={page}
@@ -247,7 +257,7 @@ export function TeamPerformanceTable({ searchQuery = "", dateRange = "0", onVisi
                     size="sm"
                     onClick={() => setCurrentPage(page as number)}
                     disabled={isLoading || isFetching}
-                    className={`h-8 w-8 ${currentPage === page ? 'bg-green-600 text-white hover:bg-green-700' : ''}`}
+                    className={`h-8 min-w-8 px-2 text-xs sm:text-sm ${currentPage === page ? 'bg-green-600 text-white hover:bg-green-700' : ''}`}
                   >
                     {page}
                   </Button>
@@ -260,9 +270,10 @@ export function TeamPerformanceTable({ searchQuery = "", dateRange = "0", onVisi
               size="sm"
               onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
               disabled={currentPage === totalPages || isLoading || isFetching}
-              className="h-8"
+              className="h-8 px-2 sm:px-3 text-xs sm:text-sm"
             >
-              <ChevronRight className="h-4 w-4" />
+              <span className="hidden sm:inline">Next</span>
+              <ChevronRight className="w-4 h-4 sm:ml-1" />
             </Button>
           </div>
         </div>

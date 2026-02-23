@@ -16,27 +16,41 @@ interface CertificateData {
 }
 
 interface RevenueCertificatesTableProps {
+  searchQuery?: string
+  monthsBack?: number
+  startDate?: string
+  endDate?: string
   onVisibleRowsChange?: (context: { rows: CertificateSalesData[]; activeTab: "cpd" | "other" }) => void
   onLoadingChange?: (loading: boolean) => void
 }
 
-export function RevenueCertificatesTable({ onVisibleRowsChange, onLoadingChange }: RevenueCertificatesTableProps) {
+export function RevenueCertificatesTable({ searchQuery = "", monthsBack = 24, startDate, endDate, onVisibleRowsChange, onLoadingChange }: RevenueCertificatesTableProps) {
   const [activeTab, setActiveTab] = useState<"cpd" | "other">("cpd")
-  const [monthsBack, setMonthsBack] = useState("24")
-
-  // Convert monthsBack to number
-  const monthsBackNum = parseInt(monthsBack) || 24
 
   // Fetch certificate sales data
-  const { data, isLoading, error } = useGetCertificateSalesQuery({ months_back: monthsBackNum })
+  const { data, isLoading, error } = useGetCertificateSalesQuery({ 
+    months_back: monthsBack,
+    start_date: startDate,
+    end_date: endDate
+  })
 
   // Get data based on active tab
   const rawData = activeTab === "cpd" 
     ? data?.data?.cpd_certificates || []
     : data?.data?.other_certificates || []
 
-  // Use raw data directly (no search filter), reversed so latest is first
-  const filteredData = [...rawData].reverse()
+  // Sort so latest is first, then apply search if exists
+  const reversedData = [...rawData].reverse()
+
+  const filteredData = reversedData.filter((row) => {
+    if (!searchQuery) return true
+    const searchLower = searchQuery.toLowerCase()
+    const monthLower = row.month.toLowerCase()
+    const yearStr = row.month_key ? row.month_key.split("-")[0] : ""
+    const soldStr = row.sold.toString()
+    
+    return monthLower.includes(searchLower) || yearStr.includes(searchLower) || soldStr.includes(searchLower)
+  })
 
   const prevContextRef = useRef<{ rows: CertificateSalesData[]; activeTab: "cpd" | "other" } | null>(null)
 
@@ -100,29 +114,19 @@ export function RevenueCertificatesTable({ onVisibleRowsChange, onLoadingChange 
   return (
     <div className="space-y-6 rounded-md border border-gray-200 bg-white p-6">
       <div>
-        {/* Title and Filters */}
+        {/* Title */}
         <div className="mb-6 flex items-center justify-between">
           <h3 className="text-xl font-semibold text-foreground">Certificates Report</h3>
-          <Select value={monthsBack} onValueChange={setMonthsBack}>
-            <SelectTrigger className="w-40 border-gray-200">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="6">Last 6 months</SelectItem>
-              <SelectItem value="12">Last 12 months</SelectItem>
-              <SelectItem value="24">Last 24 months</SelectItem>
-              <SelectItem value="36">Last 36 months</SelectItem>
-            </SelectContent>
-          </Select>
         </div>
 
         {/* Tabs */}
-        <div className="mb-6 flex gap-1 rounded-md p-1" style={{ backgroundColor: '#F3F4F6' }}>
+        <div className="mb-6 grid grid-cols-2 sm:flex sm:flex-wrap gap-1 rounded-md p-1" style={{ backgroundColor: '#F3F4F6' }}>
           <Button
             onClick={() => setActiveTab("cpd")}
-            className={`w-[160px] ${
+            variant="ghost"
+            className={`text-xs sm:text-sm h-8 sm:h-9 px-2 sm:px-4 whitespace-nowrap ${
               activeTab === "cpd"
-                ? "bg-green-600 text-white hover:bg-green-700"
+                ? "bg-green-600 text-white hover:bg-green-700 hover:text-white"
                 : "bg-transparent text-gray-700 hover:bg-gray-200"
             }`}
           >
@@ -130,9 +134,10 @@ export function RevenueCertificatesTable({ onVisibleRowsChange, onLoadingChange 
           </Button>
           <Button
             onClick={() => setActiveTab("other")}
-            className={`w-[160px] ${
+            variant="ghost"
+            className={`text-xs sm:text-sm h-8 sm:h-9 px-2 sm:px-4 whitespace-nowrap ${
               activeTab === "other"
-                ? "bg-green-600 text-white hover:bg-green-700"
+                ? "bg-green-600 text-white hover:bg-green-700 hover:text-white"
                 : "bg-transparent text-gray-700 hover:bg-gray-200"
             }`}
           >

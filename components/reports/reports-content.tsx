@@ -15,6 +15,9 @@ import { DemographicBreakdownTable } from "./demographic-breakdown-table"
 import { CertificateSalesData, CourseReportItem, LearnerReportItem, TeamReportItem } from "@/lib/types/reports.types"
 import { useGetCertificateSalesQuery } from "@/lib/store/api/reportsApi"
 import { Document, Page, Text, View, StyleSheet, Font, pdf } from "@react-pdf/renderer"
+import DateRangePicker from "@/components/ui/date-range-picker"
+import { type DateRange } from "react-day-picker"
+import { format } from "date-fns"
 
 Font.register({ family: "DejaVuSans", src: "/fonts/DejaVuSans.ttf" })
 Font.register({ family: "NotoSansArabic", src: "/fonts/NotoSansArabic-Regular.ttf" })
@@ -23,7 +26,8 @@ Font.register({ family: "NotoSans", src: "/fonts/NotoSans-Regular.ttf" })
 export function ReportsContent() {
   const [activeTab, setActiveTab] = useState<"courses" | "learner" | "team" | "certificates">("courses")
   const [selectedReport, setSelectedReport] = useState("all-reports")
-  const [dateRange, setDateRange] = useState("0")
+  const [dateRange, setDateRange] = useState("All Time")
+  const [customRange, setCustomRange] = useState<DateRange | undefined>()
   const [searchInput, setSearchInput] = useState("")
   const [searchQuery, setSearchQuery] = useState("")
   const [visibleCourses, setVisibleCourses] = useState<CourseReportItem[]>([])
@@ -35,8 +39,57 @@ export function ReportsContent() {
   const [isReportLoading, setIsReportLoading] = useState(false)
   const loadingSourcesRef = useRef(new Set<string>())
 
+  const getMonthsBack = (period: string, range?: DateRange) => {
+    if (range?.from && range?.to) {
+      const monthsDiff = (range.to.getFullYear() - range.from.getFullYear()) * 12 + 
+                        (range.to.getMonth() - range.from.getMonth());
+      return Math.max(1, monthsDiff);
+    }
+    
+    switch (period) {
+      case "All Time": return 1200;
+      case "1 Month": return 1;
+      case "3 Months": return 3;
+      case "6 Months": return 6;
+      case "1 Year": return 12;
+      case "Last 2 years": return 24;
+      case "Last 3 years": return 36;
+      case "Last 4 years": return 48;
+      case "Last 5 years": return 60;
+      default: return 24;
+    }
+  }
+
+  const monthsBackNum = useMemo(() => getMonthsBack(dateRange, customRange), [dateRange, customRange])
+  
+  // Format dates for API if a custom range is selected
+  const startDateStr = customRange?.from ? format(customRange.from, "yyyy-MM-dd") : undefined
+  const endDateStr = customRange?.to ? format(customRange.to, "yyyy-MM-dd") : undefined
+
+  // Map period to days for API
+  const getDaysBack = (period: string) => {
+    switch (period) {
+      case "All Time": return undefined; // Let API decide or send nothing
+      case "1 Month": return 30;
+      case "3 Months": return 90;
+      case "6 Months": return 180;
+      case "1 Year": return 365;
+      case "Last 2 years": return 730;
+      case "Last 3 years": return 1095;
+      case "Last 4 years": return 1460;
+      case "Last 5 years": return 1825;
+      default: return undefined;
+    }
+  }
+  
+  const daysString = useMemo(() => getDaysBack(dateRange)?.toString() || "0", [dateRange])
+
   // Fetch certificate sales data for totals summary
-  const { data: certificateSalesData } = useGetCertificateSalesQuery({ months_back: 24 })
+  const { data: certificateSalesData } = useGetCertificateSalesQuery({ 
+    months_back: monthsBackNum,
+    start_date: startDateStr,
+    end_date: endDateStr
+  })
 
   const handleVisibleCoursesChange = useCallback((rows: CourseReportItem[]) => {
     setVisibleCourses((prev) => {
@@ -424,12 +477,12 @@ export function ReportsContent() {
   return (
     <div className="p-4 lg:p-6 space-y-6">
       {/* Header Section */}
-      <div className="mb-8 flex items-start justify-between">
+      <div className="mb-8 flex flex-col md:flex-row md:items-start justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold text-foreground">Reports</h1>
           <p className="mt-2 text-sm text-muted-foreground">Generate and view detailed analytics reports</p>
         </div>
-        <div className="flex gap-3">
+        <div className="flex flex-wrap gap-3">
           <Button
             variant="outline"
             className="border-green-600 text-green-600 hover:bg-green-50 bg-transparent"
@@ -459,27 +512,34 @@ export function ReportsContent() {
       {selectedReport === "all-reports" && (
         <div className="rounded-md border border-gray-200 bg-white p-6">
           {/* Filters */}
-          <div className="mb-4 flex items-center justify-between">
+          <div className="mb-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <h3 className="text-xl font-semibold text-foreground">All Reports</h3>
-            <div className="flex gap-3">
+            <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
               <Input
                 placeholder="Search..."
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
-                className="border-gray-200 w-64"
+                className="border-gray-200 w-full flex-1 min-w-[200px] sm:max-w-xs"
               />
-              <Select value={dateRange} onValueChange={setDateRange}>
-                <SelectTrigger className="w-40 border-gray-200">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="0">All time</SelectItem>
-                  <SelectItem value="7">Last 7 days</SelectItem>
-                  <SelectItem value="30">Last 30 days</SelectItem>
-                  <SelectItem value="90">Last 90 days</SelectItem>
-                  <SelectItem value="365">Last year</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="w-full sm:w-auto flex-1 min-w-[220px]">
+                <DateRangePicker
+                  selectedPeriod={dateRange}
+                  customRange={customRange}
+                  onPeriodSelect={setDateRange}
+                  onRangeApply={setCustomRange}
+                  quickRanges={[
+                    "1 Month",
+                    "3 Months",
+                    "6 Months",
+                    "1 Year",
+                    "Last 2 years",
+                    "Last 3 years",
+                    "Last 4 years",
+                    "Last 5 years",
+                    "All Time",
+                  ]}
+                />
+              </div>
             </div>
           </div>
 
@@ -504,12 +564,13 @@ export function ReportsContent() {
           )}
 
           {/* Tabs */}
-          <div className="mb-4 flex gap-1 rounded-md p-1" style={{ backgroundColor: '#F3F4F6' }}>
+          <div className="mb-4 grid grid-cols-2 md:flex md:flex-wrap gap-1 rounded-md p-1" style={{ backgroundColor: '#F3F4F6' }}>
             <Button
               onClick={() => setActiveTab("courses")}
-              className={`w-[140px] ${
+              variant="ghost"
+              className={`text-xs sm:text-sm h-8 sm:h-9 px-2 sm:px-4 whitespace-nowrap ${
                 activeTab === "courses"
-                  ? "bg-green-600 text-white hover:bg-green-700"
+                  ? "bg-green-600 text-white hover:bg-green-700 hover:text-white"
                   : "bg-transparent text-gray-700 hover:bg-gray-200"
               }`}
             >
@@ -517,9 +578,10 @@ export function ReportsContent() {
             </Button>
             <Button
               onClick={() => setActiveTab("learner")}
-              className={`w-[140px] ${
+              variant="ghost"
+              className={`text-xs sm:text-sm h-8 sm:h-9 px-2 sm:px-4 whitespace-nowrap ${
                 activeTab === "learner"
-                  ? "bg-green-600 text-white hover:bg-green-700"
+                  ? "bg-green-600 text-white hover:bg-green-700 hover:text-white"
                   : "bg-transparent text-gray-700 hover:bg-gray-200"
               }`}
             >
@@ -527,9 +589,10 @@ export function ReportsContent() {
             </Button>
             <Button
               onClick={() => setActiveTab("team")}
-              className={`w-[140px] ${
+              variant="ghost"
+              className={`text-xs sm:text-sm h-8 sm:h-9 px-2 sm:px-4 whitespace-nowrap ${
                 activeTab === "team"
-                  ? "bg-green-600 text-white hover:bg-green-700"
+                  ? "bg-green-600 text-white hover:bg-green-700 hover:text-white"
                   : "bg-transparent text-gray-700 hover:bg-gray-200"
               }`}
             >
@@ -537,9 +600,10 @@ export function ReportsContent() {
             </Button>
             <Button
               onClick={() => setActiveTab("certificates")}
-              className={`w-[140px] ${
+              variant="ghost"
+              className={`text-xs sm:text-sm h-8 sm:h-9 px-2 sm:px-4 whitespace-nowrap ${
                 activeTab === "certificates"
-                  ? "bg-green-600 text-white hover:bg-green-700"
+                  ? "bg-green-600 text-white hover:bg-green-700 hover:text-white"
                   : "bg-transparent text-gray-700 hover:bg-gray-200"
               }`}
             >
@@ -551,7 +615,9 @@ export function ReportsContent() {
           {activeTab === "courses" && (
             <CoursesReportTable
               searchQuery={searchQuery}
-              dateRange={dateRange}
+              dateRange={daysString}
+              startDate={startDateStr}
+              endDate={endDateStr}
               onVisibleRowsChange={handleVisibleCoursesChange}
               onLoadingChange={handleCoursesLoadingChange}
             />
@@ -559,7 +625,9 @@ export function ReportsContent() {
           {activeTab === "learner" && (
             <LearnerReportTable
               searchQuery={searchQuery}
-              dateRange={dateRange}
+              dateRange={daysString}
+              startDate={startDateStr}
+              endDate={endDateStr}
               onVisibleRowsChange={handleVisibleLearnersChange}
               onLoadingChange={handleLearnersLoadingChange}
             />
@@ -567,13 +635,17 @@ export function ReportsContent() {
           {activeTab === "team" && (
             <TeamPerformanceTable
               searchQuery={searchQuery}
-              dateRange={dateRange}
+              dateRange={daysString}
               onVisibleRowsChange={handleVisibleTeamsChange}
               onLoadingChange={handleTeamsLoadingChange}
             />
           )}
           {activeTab === "certificates" && (
             <RevenueCertificatesTable
+              searchQuery={searchQuery}
+              monthsBack={monthsBackNum}
+              startDate={startDateStr}
+              endDate={endDateStr}
               onVisibleRowsChange={handleVisibleCertificateRowsChange}
               onLoadingChange={handleCertificatesLoadingChange}
             />

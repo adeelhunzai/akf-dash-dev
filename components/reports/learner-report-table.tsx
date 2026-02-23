@@ -13,6 +13,8 @@ import { LearnerReportItem } from "@/lib/types/reports.types"
 interface LearnerReportTableProps {
   searchQuery?: string;
   dateRange?: string;
+  startDate?: string;
+  endDate?: string;
   onVisibleRowsChange?: (rows: LearnerReportItem[]) => void;
   onLoadingChange?: (loading: boolean) => void;
 }
@@ -20,6 +22,8 @@ interface LearnerReportTableProps {
 export function LearnerReportTable({
   searchQuery = "",
   dateRange = "0",
+  startDate,
+  endDate,
   onVisibleRowsChange,
   onLoadingChange,
 }: LearnerReportTableProps) {
@@ -37,12 +41,14 @@ export function LearnerReportTable({
     per_page: perPage,
     search: searchQuery || undefined,
     days: days,
+    start_date: startDate,
+    end_date: endDate,
   })
 
   // Reset to page 1 when search or date range changes
   useEffect(() => {
     setCurrentPage(1)
-  }, [searchQuery, dateRange])
+  }, [searchQuery, dateRange, startDate, endDate])
 
   const learnersData = useMemo(() => data?.data || [], [data?.data])
   const totalItems = data?.total || 0
@@ -206,17 +212,17 @@ export function LearnerReportTable({
 
       {/* Pagination */}
       {totalPages > 0 && (
-        <div className="flex items-center justify-between px-6 py-4 border-t border-border">
-          <div className="flex items-center gap-4">
-            <div className="text-sm text-muted-foreground">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4 px-4 sm:px-6 py-4 border-t border-border mt-4">
+          <div className="flex flex-col sm:flex-row items-center gap-4 w-full md:w-auto">
+            <div className="text-xs sm:text-sm text-muted-foreground text-center sm:text-left">
               Showing {startIndex + 1} to {Math.min(endIndex, totalItems)} of {totalItems} learners
             </div>
             
             {/* Per Page Selector */}
             <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Show:</span>
+              <span className="text-xs sm:text-sm text-muted-foreground">Show:</span>
               <Select value={perPage.toString()} onValueChange={handlePerPageChange}>
-                <SelectTrigger className="h-8 w-[70px]">
+                <SelectTrigger className="h-8 w-[60px] sm:w-[70px] text-xs sm:text-sm">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -230,24 +236,24 @@ export function LearnerReportTable({
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center justify-center gap-2 w-full md:w-auto">
             <Button
               variant="outline"
               size="sm"
               onClick={() => setCurrentPage(currentPage - 1)}
               disabled={currentPage === 1}
-              className="h-8"
+              className="h-8 px-2 sm:px-3 text-xs sm:text-sm"
             >
-              <ChevronLeft className="w-4 h-4" />
-              Previous
+              <ChevronLeft className="w-4 h-4 sm:mr-1" />
+              <span className="hidden sm:inline">Previous</span>
             </Button>
 
             {/* Page Numbers with Ellipsis */}
-            <div className="flex items-center gap-1">
+            <div className="flex flex-wrap items-center justify-center gap-1">
               {getPageNumbers().map((page, index) => {
                 if (page === '...') {
                   return (
-                    <span key={`ellipsis-${index}`} className="px-2 text-muted-foreground">
+                    <span key={`ellipsis-${index}`} className="px-1 sm:px-2 text-xs sm:text-sm text-muted-foreground">
                       ...
                     </span>
                   )
@@ -258,7 +264,7 @@ export function LearnerReportTable({
                     variant="outline"
                     size="sm"
                     onClick={() => setCurrentPage(page as number)}
-                    className={`h-8 min-w-8 px-2 ${
+                    className={`h-8 min-w-8 px-2 text-xs sm:text-sm ${
                       currentPage === page
                         ? "bg-[#16a34a] text-white hover:bg-[#15803d] border-[#16a34a]"
                         : ""
@@ -275,10 +281,10 @@ export function LearnerReportTable({
               size="sm"
               onClick={() => setCurrentPage(currentPage + 1)}
               disabled={currentPage === totalPages}
-              className="h-8"
+              className="h-8 px-2 sm:px-3 text-xs sm:text-sm"
             >
-              Next
-              <ChevronRight className="w-4 h-4" />
+              <span className="hidden sm:inline">Next</span>
+              <ChevronRight className="w-4 h-4 sm:ml-1" />
             </Button>
           </div>
         </div>

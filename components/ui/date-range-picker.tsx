@@ -77,11 +77,13 @@ export default function DateRangePicker({
         <Button
           variant="default"
           size="sm"
-          className="flex items-center justify-center gap-2 h-9 rounded-md border border-[#e5e7eb] bg-white px-4 text-sm font-medium text-[#111827] transition-colors duration-150 hover:border-transparent hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 focus-visible:ring-sidebar-accent/80 focus-visible:ring-offset-2"
+          className="w-full flex items-center justify-between gap-2 h-9 rounded-md border border-[#e5e7eb] bg-white px-3 text-sm font-medium text-[#111827] transition-colors duration-150 hover:border-transparent hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 focus-visible:ring-sidebar-accent/80 focus-visible:ring-offset-2"
         >
-          <CalendarDays className="w-4 h-4 text-current" />
-          <span className="text-sm text-current">{rangeLabel}</span>
-          <ChevronDownIcon className="w-3 h-3 text-current" />
+          <div className="flex items-center gap-2 overflow-hidden">
+            <CalendarDays className="min-w-4 w-4 h-4 text-current flex-shrink-0" />
+            <span className="text-sm text-current truncate">{rangeLabel}</span>
+          </div>
+          <ChevronDownIcon className="min-w-3 w-3 h-3 text-current flex-shrink-0" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[300px] p-4" align="end">
