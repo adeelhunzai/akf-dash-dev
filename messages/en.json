@@ -46,7 +46,8 @@
     "teams": "My Teams",
     "goals": "Goals",
     "facilitators": "Facilitators",
-    "learners": "Learners"
+    "learners": "Learners",
+    "pricingManagement": "Pricing Management"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -103,7 +104,17 @@
     "generateReport": "Generate Report",
     "exportReport": "Export Report",
     "dateRange": "Date Range",
-    "reportType": "Report Type"
+    "reportType": "Report Type",
+    "revenueCertificatesTable": {
+      "title": "Certificates Report",
+      "failedToLoad": "Failed to load certificate sales data. Please try again later.",
+      "cpdCertificates": "CPD Certificates",
+      "otherCertificates": "Other Certificates",
+      "months": "MONTHS",
+      "year": "YEAR",
+      "certificatesIssued": "CERTIFICATES ISSUED",
+      "noData": "No certificate data available"
+    }
   },
   "settings": {
     "title": "Settings",

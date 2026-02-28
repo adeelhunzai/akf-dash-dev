@@ -8,6 +8,8 @@ import { reportsApi } from './api/reportsApi';
 import { settingsApi } from './api/settingsApi';
 import { authApi } from './api/authApi';
 import { managerApi } from './api/managerApi';
+import { certificatesApi } from './api/certificatesApi';
+import { pricingApi } from './api/pricingApi';
 
 export const makeStore = () => {
   return configureStore({
@@ -21,6 +23,8 @@ export const makeStore = () => {
       [settingsApi.reducerPath]: settingsApi.reducer,
       [authApi.reducerPath]: authApi.reducer,
       [managerApi.reducerPath]: managerApi.reducer,
+      [certificatesApi.reducerPath]: certificatesApi.reducer,
+      [pricingApi.reducerPath]: pricingApi.reducer,
     },
     middleware: (getDefaultMiddleware) =>
       getDefaultMiddleware().concat(
@@ -30,7 +34,9 @@ export const makeStore = () => {
         reportsApi.middleware,
         settingsApi.middleware,
         authApi.middleware,
-        managerApi.middleware
+        managerApi.middleware,
+        certificatesApi.middleware,
+        pricingApi.middleware
       ),
   });
 };

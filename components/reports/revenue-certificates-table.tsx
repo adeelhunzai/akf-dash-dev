@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
+import { useTranslations } from "next-intl"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useGetCertificateSalesQuery } from "@/lib/store/api/reportsApi"
@@ -26,6 +27,7 @@ interface RevenueCertificatesTableProps {
 
 export function RevenueCertificatesTable({ searchQuery = "", monthsBack = 24, startDate, endDate, onVisibleRowsChange, onLoadingChange }: RevenueCertificatesTableProps) {
   const [activeTab, setActiveTab] = useState<"cpd" | "other">("cpd")
+  const t = useTranslations("reports.revenueCertificatesTable")
 
   // Fetch certificate sales data
   const { data, isLoading, error } = useGetCertificateSalesQuery({ 
@@ -78,12 +80,11 @@ export function RevenueCertificatesTable({ searchQuery = "", monthsBack = 24, st
     onLoadingChange(isLoading)
   }, [isLoading, onLoadingChange])
 
-  // Loading state
   if (isLoading) {
     return (
       <div className="space-y-6 rounded-md border border-gray-200 bg-white p-6">
         <div>
-          <h3 className="mb-6 text-xl font-semibold text-foreground">Certificates Report</h3>
+          <h3 className="mb-6 text-xl font-semibold text-foreground">{t("title")}</h3>
           <div className="space-y-4">
             {[1, 2, 3, 4, 5].map((i) => (
               <Skeleton key={i} className="h-12 w-full" />
@@ -94,16 +95,15 @@ export function RevenueCertificatesTable({ searchQuery = "", monthsBack = 24, st
     )
   }
 
-  // Error state
   if (error) {
     return (
       <div className="space-y-6 rounded-md border border-gray-200 bg-white p-6">
         <div>
-          <h3 className="mb-6 text-xl font-semibold text-foreground">Certificates Report</h3>
+          <h3 className="mb-6 text-xl font-semibold text-foreground">{t("title")}</h3>
           <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
-              Failed to load certificate sales data. Please try again later.
+              {t("failedToLoad")}
             </AlertDescription>
           </Alert>
         </div>
@@ -116,7 +116,7 @@ export function RevenueCertificatesTable({ searchQuery = "", monthsBack = 24, st
       <div>
         {/* Title */}
         <div className="mb-6 flex items-center justify-between">
-          <h3 className="text-xl font-semibold text-foreground">Certificates Report</h3>
+          <h3 className="text-xl font-semibold text-foreground">{t("title")}</h3>
         </div>
 
         {/* Tabs */}
@@ -130,7 +130,7 @@ export function RevenueCertificatesTable({ searchQuery = "", monthsBack = 24, st
                 : "bg-transparent text-gray-700 hover:bg-gray-200"
             }`}
           >
-            CPD Certificates
+            {t("cpdCertificates")}
           </Button>
           <Button
             onClick={() => setActiveTab("other")}
@@ -141,7 +141,7 @@ export function RevenueCertificatesTable({ searchQuery = "", monthsBack = 24, st
                 : "bg-transparent text-gray-700 hover:bg-gray-200"
             }`}
           >
-            Other Certificates
+            {t("otherCertificates")}
           </Button>
         </div>
 
@@ -150,9 +150,9 @@ export function RevenueCertificatesTable({ searchQuery = "", monthsBack = 24, st
           <table className="w-full">
             <thead>
               <tr style={{ backgroundColor: '#F3F4F6' }}>
-                <th className="px-6 py-4 text-left text-xs font-medium uppercase text-gray-500">MONTHS</th>
-                <th className="px-6 py-4 text-left text-xs font-medium uppercase text-gray-500">YEAR</th>
-                <th className="px-6 py-4 text-right text-xs font-medium uppercase text-gray-500">CERTIFICATES ISSUED</th>
+                <th className="px-6 py-4 text-left text-xs font-medium uppercase text-gray-500">{t("months")}</th>
+                <th className="px-6 py-4 text-left text-xs font-medium uppercase text-gray-500">{t("year")}</th>
+                <th className="px-6 py-4 text-right text-xs font-medium uppercase text-gray-500">{t("certificatesIssued")}</th>
               </tr>
             </thead>
             <tbody>
@@ -167,7 +167,7 @@ export function RevenueCertificatesTable({ searchQuery = "", monthsBack = 24, st
               ) : (
                 <tr>
                   <td colSpan={3} className="px-6 py-8 text-center text-sm text-muted-foreground">
-                    No certificate data available
+                    {t("noData")}
                   </td>
                 </tr>
               )}

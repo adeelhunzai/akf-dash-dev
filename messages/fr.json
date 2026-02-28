@@ -43,7 +43,8 @@
     "myProgress": "Mon Progrès",
     "analytics": "Analyses",
     "team": "Équipe",
-    "goals": "Objectifs"
+    "goals": "Objectifs",
+    "pricingManagement": "Gestion des Prix"
   },
   "dashboard": {
     "title": "Tableau de Bord",
@@ -99,7 +100,17 @@
     "generateReport": "Générer un Rapport",
     "exportReport": "Exporter le Rapport",
     "dateRange": "Plage de Dates",
-    "reportType": "Type de Rapport"
+    "reportType": "Type de Rapport",
+    "revenueCertificatesTable": {
+      "title": "Rapport de Certificats",
+      "failedToLoad": "Échec du chargement des données de vente de certificats. Veuillez réessayer plus tard.",
+      "cpdCertificates": "Certificats DPC",
+      "otherCertificates": "Autres Certificats",
+      "months": "MOIS",
+      "year": "ANNÉE",
+      "certificatesIssued": "CERTIFICATS ÉMIS",
+      "noData": "Aucune donnée de certificat disponible"
+    }
   },
   "settings": {
     "title": "Paramètres",

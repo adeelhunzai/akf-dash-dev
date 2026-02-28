@@ -16,6 +16,7 @@ import {
   FolderKanban,
   Trophy,
   FileText,
+  BadgeDollarSign,
 } from 'lucide-react';
 import { UserRole } from '@/lib/types/roles';
 
@@ -41,6 +42,11 @@ export const navigationConfig: Record<UserRole, NavItem[]> = {
       icon: Users2,
       labelKey: 'teamManagement',
       path: '/admin/team-management',
+    },
+    {
+      icon: BadgeDollarSign,
+      labelKey: 'pricingManagement',
+      path: '/admin/pricing-management',
     },
     {
       icon: FileChartColumn,

@@ -3,13 +3,14 @@
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Award, Download, Eye } from "lucide-react"
-import { useGetLearnerCertificatesQuery } from "@/lib/store/api/userApi"
-import { Certificate } from "@/lib/types/wordpress-user.types"
+import { Award, Download, Eye, ExternalLink, ShoppingCart } from "lucide-react"
+import { useGetCPDCertificatesQuery } from "@/lib/store/api/certificatesApi"
+import { CPDCertificateItem } from "@/lib/types/cpd-certificate.types"
 import { useState, useEffect, useRef, useCallback } from "react"
 import { useToast } from "@/hooks/use-toast"
 import { getTokenCookie } from "@/lib/utils/cookies"
 import { CertificateViewerModal } from "./certificate-viewer-modal"
+import { SocialShareButtons } from "./social-share-buttons"
 
 // Cache entry type
 interface CacheEntry {
@@ -22,7 +23,8 @@ interface CacheEntry {
 const CACHE_EXPIRY_MS = 10 * 60 * 1000
 
 export default function CertificatesContent() {
-  const { data, isLoading, error } = useGetLearnerCertificatesQuery()
+  const { data: cpdData, isLoading, error: cpdError } = useGetCPDCertificatesQuery()
+  
   const [loadingCertId, setLoadingCertId] = useState<string | null>(null)
   const { toast } = useToast()
   
@@ -34,10 +36,9 @@ export default function CertificatesContent() {
   const [viewerUrl, setViewerUrl] = useState<string | null>(null)
   const [viewerPdfBlobUrl, setViewerPdfBlobUrl] = useState<string | null>(null)
   const [viewerTitle, setViewerTitle] = useState("")
-  const [viewerCertificate, setViewerCertificate] = useState<Certificate | null>(null)
   const [viewerLoading, setViewerLoading] = useState(false)
 
-  const certificates = data?.data?.certificates || []
+  const cpdCertificates = cpdData?.data || []
 
   // Cleanup all cached blob URLs on unmount
   useEffect(() => {
@@ -52,14 +53,8 @@ export default function CertificatesContent() {
   // Get from cache
   const getFromCache = useCallback((certificateId: string): CacheEntry | null => {
     const entry = pdfCacheRef.current.get(certificateId)
-    if (!entry) {
-      return null
-    }
-    // Check if entry is still valid
-    if (Date.now() - entry.timestamp < CACHE_EXPIRY_MS) {
-      return entry
-    }
-    // Remove expired entry
+    if (!entry) return null
+    if (Date.now() - entry.timestamp < CACHE_EXPIRY_MS) return entry
     URL.revokeObjectURL(entry.pdfBlobUrl)
     pdfCacheRef.current.delete(certificateId)
     return null
@@ -74,60 +69,47 @@ export default function CertificatesContent() {
     })
   }, [])
 
-  // Get or fetch certificate PDF (with caching)
-  const getOrFetchCertificatePdf = async (certificate: Certificate): Promise<{ pdfBlobUrl: string | null, fallbackUrl: string | null }> => {
-    // Check cache first
-    const cached = getFromCache(certificate.id)
-    if (cached) {
-      console.log('Certificate PDF loaded from cache:', certificate.id)
-      return { pdfBlobUrl: cached.pdfBlobUrl, fallbackUrl: cached.fallbackUrl }
-    }
 
-    // Not in cache, fetch from API
-    const result = await fetchCertificatePdfFromApi(certificate)
-    
-    // Cache the result if we got a blob URL
-    if (result.pdfBlobUrl) {
-      addToCache(certificate.id, result.pdfBlobUrl, result.fallbackUrl)
-    }
-    
-    return result
+
+  // Helper to download blob
+  const downloadBlobAsFile = (blobUrl: string, filename: string) => {
+    const link = document.createElement('a')
+    link.href = blobUrl
+    link.download = filename
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    toast({ title: "Download started", description: "Your certificate is being downloaded." })
   }
 
-  // Fetch certificate PDF from API (returns base64 PDF)
-  const fetchCertificatePdfFromApi = async (certificate: Certificate): Promise<{ pdfBlobUrl: string | null, fallbackUrl: string | null }> => {
+  // Handle modal download
+  const handleModalDownload = async () => {
+    if (viewerPdfBlobUrl && viewerTitle) {
+      downloadBlobAsFile(viewerPdfBlobUrl, `${viewerTitle}-certificate.pdf`)
+    }
+  }
+
+  // Fetch certificate PDF from CPD secure endpoint (payment-verified)
+  const fetchCpdCertificatePdf = async (courseId: number): Promise<{ pdfBlobUrl: string | null, fallbackUrl: string | null }> => {
     const token = getTokenCookie()
     if (!token) {
-      toast({
-        title: "Authentication required",
-        description: "Please log in to access certificates.",
-        variant: "destructive",
-      })
+      toast({ title: "Authentication required", description: "Please log in to access certificates.", variant: "destructive" })
       return { pdfBlobUrl: null, fallbackUrl: null }
     }
 
     const apiUrl = process.env.NEXT_PUBLIC_WORDPRESS_API_URL || 'https://akfhub-dev.inspirartweb.com/wp-json'
-    const url = `${apiUrl}/custom-api/v1/learner-certificates/${certificate.id}/view?format=pdf`
+    const url = `${apiUrl}/cpd/v1/user/certificates/${courseId}/view?format=pdf`
 
     try {
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      })
-
+      const response = await fetch(url, { method: 'GET', headers: { 'Authorization': `Bearer ${token}` } })
       if (!response.ok) {
         const errorData = await response.json().catch(() => null)
         throw new Error(errorData?.message || 'Failed to fetch certificate')
       }
 
       const jsonData = await response.json()
-      
       if (jsonData.success) {
-        // Check if we got base64 PDF data
         if (jsonData.data?.pdf_base64) {
-          // Convert base64 to blob
           const byteCharacters = atob(jsonData.data.pdf_base64)
           const byteNumbers = new Array(byteCharacters.length)
           for (let i = 0; i < byteCharacters.length; i++) {
@@ -135,254 +117,86 @@ export default function CertificatesContent() {
           }
           const byteArray = new Uint8Array(byteNumbers)
           const blob = new Blob([byteArray], { type: 'application/pdf' })
-          const blobUrl = URL.createObjectURL(blob)
-          
-          return { pdfBlobUrl: blobUrl, fallbackUrl: null }
+          return { pdfBlobUrl: URL.createObjectURL(blob), fallbackUrl: null }
         }
-        
-        // Fallback: got URL instead of PDF data - try to fetch PDF from that URL
         if (jsonData.data?.certificate_url) {
-          const pdfBlobUrl = await fetchPdfFromUrl(jsonData.data.certificate_url)
-          if (pdfBlobUrl) {
-            return { pdfBlobUrl, fallbackUrl: null }
-          }
-          // If fetch failed, return the URL as fallback
           return { pdfBlobUrl: null, fallbackUrl: jsonData.data.certificate_url }
         }
-        
         throw new Error('Certificate data not found in response')
       } else {
         throw new Error(jsonData.message || 'Failed to generate certificate')
       }
     } catch (err) {
-      console.error('Failed to fetch certificate PDF:', err)
-      toast({
-        title: "Error",
-        description: err instanceof Error ? err.message : 'Failed to fetch certificate',
-        variant: "destructive",
-      })
+      console.error('Failed to fetch CPD certificate PDF:', err)
+      toast({ title: "Error", description: err instanceof Error ? err.message : 'Failed to fetch certificate', variant: "destructive" })
       return { pdfBlobUrl: null, fallbackUrl: null }
     }
   }
 
-  // Fetch PDF from URL and return blob URL
-  const fetchPdfFromUrl = async (pdfUrl: string): Promise<string | null> => {
-    try {
-      const response = await fetch(pdfUrl, {
-        method: 'GET',
-        credentials: 'include',
-      })
-      
-      if (!response.ok) {
-        console.error('Failed to fetch PDF from URL:', response.status)
-        return null
-      }
-      
-      const contentType = response.headers.get('content-type')
-      if (!contentType?.includes('application/pdf')) {
-        console.error('Response is not a PDF:', contentType)
-        return null
-      }
-      
-      const blob = await response.blob()
-      return URL.createObjectURL(blob)
-    } catch (err) {
-      console.error('Error fetching PDF from URL:', err)
-      return null
-    }
-  }
-
-  // Fetch certificate URL from API (for download)
-  const fetchCertificateUrl = async (certificate: Certificate): Promise<string | null> => {
-    const token = getTokenCookie()
-    if (!token) {
-      toast({
-        title: "Authentication required",
-        description: "Please log in to access certificates.",
-        variant: "destructive",
-      })
-      return null
-    }
-
-    const apiUrl = process.env.NEXT_PUBLIC_WORDPRESS_API_URL || 'https://akfhub-dev.inspirartweb.com/wp-json'
-    const url = `${apiUrl}/custom-api/v1/learner-certificates/${certificate.id}/download`
-
-    try {
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => null)
-        throw new Error(errorData?.message || 'Failed to fetch certificate')
-      }
-
-      const jsonData = await response.json()
-      
-      if (jsonData.success && jsonData.data?.download_url) {
-        return jsonData.data.download_url
-      } else {
-        throw new Error(jsonData.message || 'Failed to generate certificate')
-      }
-    } catch (err) {
-      console.error('Failed to fetch certificate URL:', err)
-      toast({
-        title: "Error",
-        description: err instanceof Error ? err.message : 'Failed to fetch certificate',
-        variant: "destructive",
-      })
-      return null
-    }
-  }
-
-  // Download PDF from URL by fetching it as blob
-  // WordPress now injects cert-nonce without redirect, so CORS should work
-  const downloadPdfFromUrl = async (pdfUrl: string, filename: string) => {
-    try {
-      // Fetch the PDF with credentials for CORS
-      const response = await fetch(pdfUrl, {
-        method: 'GET',
-        credentials: 'include',
-      })
-      
-      if (!response.ok) {
-        throw new Error(`Failed to fetch PDF: ${response.status}`)
-      }
-
-      // Get the blob
-      const blob = await response.blob()
-      
-      // Create a download link
-      const downloadUrl = window.URL.createObjectURL(blob)
-      const link = document.createElement('a')
-      link.href = downloadUrl
-      link.download = filename
-      document.body.appendChild(link)
-      link.click()
-      
-      // Cleanup
-      document.body.removeChild(link)
-      window.URL.revokeObjectURL(downloadUrl)
-      
-      toast({
-        title: "Download started",
-        description: "Your certificate is being downloaded.",
-      })
-    } catch (err) {
-      console.error('Failed to download PDF:', err)
-      // Fallback: open in new tab if fetch fails
-      window.open(pdfUrl, '_blank')
-      toast({
-        title: "Certificate opened",
-        description: "Certificate opened in new tab. Use Ctrl+S or browser menu to save as PDF.",
-      })
-    }
-  }
-
-  // Handle view certificate - opens in modal with PDF
-  const handleView = async (certificate: Certificate) => {
-    setLoadingCertId(certificate.id + '_view')
-    
-    // Open modal immediately with loading state
-    setViewerTitle(certificate.title)
-    setViewerCertificate(certificate)
+  // Handle CPD certificate view - uses secure CPD endpoint with payment verification
+  const handleCPDView = async (item: CPDCertificateItem) => {
+    const cacheKey = `cpd_${item.course_id}`
+    setLoadingCertId(cacheKey + '_view')
+    setViewerTitle(item.course_name)
     setViewerOpen(true)
     setViewerLoading(true)
     setViewerPdfBlobUrl(null)
     setViewerUrl(null)
-    
-    // Fetch the PDF (uses cache if available)
-    const { pdfBlobUrl, fallbackUrl } = await getOrFetchCertificatePdf(certificate)
-    
+
+    // Check cache first
+    const cached = getFromCache(cacheKey)
+    if (cached) {
+      if (cached.pdfBlobUrl) setViewerPdfBlobUrl(cached.pdfBlobUrl)
+      else if (cached.fallbackUrl) setViewerUrl(cached.fallbackUrl)
+      setViewerLoading(false)
+      setLoadingCertId(null)
+      return
+    }
+
+    const { pdfBlobUrl, fallbackUrl } = await fetchCpdCertificatePdf(item.course_id)
     if (pdfBlobUrl) {
       setViewerPdfBlobUrl(pdfBlobUrl)
+      addToCache(cacheKey, pdfBlobUrl, fallbackUrl)
     } else if (fallbackUrl) {
       setViewerUrl(fallbackUrl)
     }
-    
+
     setViewerLoading(false)
     setLoadingCertId(null)
   }
 
-  // Handle download certificate - use cached PDF if available
-  const handleDownload = async (certificate: Certificate) => {
-    setLoadingCertId(certificate.id + '_download')
-    
+  // Handle CPD certificate download - uses secure CPD endpoint with payment verification
+  const handleCPDDownload = async (item: CPDCertificateItem) => {
+    const cacheKey = `cpd_${item.course_id}`
+    setLoadingCertId(cacheKey + '_download')
+
     // Check cache first
-    const cached = getFromCache(certificate.id)
+    const cached = getFromCache(cacheKey)
     if (cached?.pdfBlobUrl) {
-      // Download from cached blob
-      const link = document.createElement('a')
-      link.href = cached.pdfBlobUrl
-      link.download = `${certificate.title}-certificate.pdf`
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
-      
-      toast({
-        title: "Download started",
-        description: "Your certificate is being downloaded.",
-      })
+      downloadBlobAsFile(cached.pdfBlobUrl, `${item.course_name}-certificate.pdf`)
       setLoadingCertId(null)
       return
     }
-    
-    // Not cached, fetch and download
-    const { pdfBlobUrl } = await getOrFetchCertificatePdf(certificate)
+
+    const { pdfBlobUrl } = await fetchCpdCertificatePdf(item.course_id)
     if (pdfBlobUrl) {
-      const link = document.createElement('a')
-      link.href = pdfBlobUrl
-      link.download = `${certificate.title}-certificate.pdf`
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
-      
-      toast({
-        title: "Download started",
-        description: "Your certificate is being downloaded.",
-      })
+      addToCache(cacheKey, pdfBlobUrl, null)
+      downloadBlobAsFile(pdfBlobUrl, `${item.course_name}-certificate.pdf`)
     }
     setLoadingCertId(null)
   }
 
-  // Handle download from modal - use blob if available, otherwise fetch URL
-  const handleModalDownload = async () => {
-    if (!viewerCertificate) return
-    setLoadingCertId(viewerCertificate.id + '_modal_download')
-    
-    // If we have a blob URL, download directly from it
-    if (viewerPdfBlobUrl) {
-      const link = document.createElement('a')
-      link.href = viewerPdfBlobUrl
-      link.download = `${viewerCertificate.title}-certificate.pdf`
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
-      
-      toast({
-        title: "Download started",
-        description: "Your certificate is being downloaded.",
-      })
-    } else {
-      // Fallback to fetching download URL
-      const downloadUrl = await fetchCertificateUrl(viewerCertificate)
-      if (downloadUrl) {
-        await downloadPdfFromUrl(downloadUrl, `${viewerCertificate.title}-certificate.pdf`)
-      }
-    }
-    
-    setLoadingCertId(null)
+  // Handle buy CPD certificate - redirect to WP course page where the plugin shortcode handles checkout
+  const handleBuyCertificate = (item: CPDCertificateItem) => {
+    const apiUrl = process.env.NEXT_PUBLIC_WORDPRESS_API_URL || 'https://akfhub-dev.inspirartweb.com/wp-json'
+    const siteUrl = apiUrl.replace(/\/wp-json\/?$/, '')
+    window.location.href = `${siteUrl}/payment-test/?course_id=${item.course_id}`
   }
 
-  // Close modal - don't revoke blob URL since it's cached
   const handleCloseModal = () => {
     setViewerOpen(false)
     setViewerUrl(null)
     setViewerPdfBlobUrl(null)
-    setViewerCertificate(null)
     setViewerLoading(false)
   }
 
@@ -390,7 +204,7 @@ export default function CertificatesContent() {
     return <CertificatesLoadingSkeleton />
   }
 
-  if (error) {
+  if (cpdError) {
     return (
       <div className="p-4 lg:p-6">
         <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
@@ -403,82 +217,32 @@ export default function CertificatesContent() {
   return (
     <div className="p-4 lg:p-6 space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-foreground">Certificates</h1>
-        <Button className="bg-green-600 hover:bg-green-700 text-white">
-          All Courses
-        </Button>
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-foreground">My Certificates</h1>
       </div>
 
       {/* Certificates Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {certificates.map((certificate) => (
-          <Card key={certificate.id} className="hover:shadow-md transition-shadow">
-            <CardContent className="p-6">
-              {/* Certificate Icon */}
-              <div className={`w-12 h-12 ${certificate.color} rounded-lg flex items-center justify-center mb-4`}>
-                <Award className="w-6 h-6 text-white" />
-              </div>
-
-              {/* Certificate Title */}
-              <h3 className="font-semibold text-base mb-1">{certificate.title}</h3>
-              <p className="text-xs text-muted-foreground mb-4">{certificate.certificate_code}</p>
-
-              {/* Certificate Details */}
-              <div className="space-y-2 mb-4">
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Instructor:</span>
-                  <span className="font-medium">{certificate.instructor}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Score:</span>
-                  <span className="font-semibold text-green-600">{certificate.score}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Issue Date:</span>
-                  <span className="font-medium">{certificate.issue_date}</span>
-                </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  className="flex-1 text-sm"
-                  size="sm"
-                  onClick={() => handleView(certificate)}
-                  disabled={loadingCertId === certificate.id + '_view'}
-                >
-                  <Eye className="w-4 h-4 mr-1" />
-                  {loadingCertId === certificate.id + '_view' ? 'Loading...' : 'View'}
-                </Button>
-                <Button
-                  className="flex-1 bg-green-600 hover:bg-green-700 text-white text-sm"
-                  size="sm"
-                  onClick={() => handleDownload(certificate)}
-                  disabled={loadingCertId === certificate.id + '_download'}
-                >
-                  <Download className="w-4 h-4 mr-1" />
-                  {loadingCertId === certificate.id + '_download' ? 'Loading...' : 'Download'}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+        {cpdCertificates.map((item) => (
+          <CPDCertificateCard
+            key={item.course_id}
+            item={item}
+            onView={() => handleCPDView(item)}
+            onDownload={() => handleCPDDownload(item)}
+            onBuy={() => handleBuyCertificate(item)}
+          />
         ))}
       </div>
 
-      {/* Empty State (if no certificates) */}
-      {certificates.length === 0 && (
+      {/* Empty State */}
+      {cpdCertificates.length === 0 && (
         <div className="flex flex-col items-center justify-center py-16 text-center">
           <Award className="w-16 h-16 text-muted-foreground mb-4" />
           <h3 className="text-xl font-semibold mb-2">No certificates yet</h3>
-          <p className="text-muted-foreground">
-            Complete courses to earn certificates
-          </p>
+          <p className="text-muted-foreground">Complete courses to earn certificates</p>
         </div>
       )}
 
-      {/* Certificate Viewer Modal */}
       <CertificateViewerModal
         isOpen={viewerOpen}
         onClose={handleCloseModal}
@@ -486,49 +250,225 @@ export default function CertificatesContent() {
         certificateUrl={viewerUrl}
         certificateTitle={viewerTitle}
         onDownload={handleModalDownload}
-        isDownloading={loadingCertId === viewerCertificate?.id + '_modal_download'}
+        isDownloading={false}
         isLoading={viewerLoading}
       />
     </div>
   )
 }
 
-// Loading Skeleton Component
+// ============================================================
+// CPD Certificate Card Component (matches screenshot design)
+// ============================================================
+interface CPDCertificateCardProps {
+  item: CPDCertificateItem
+  onView: () => void
+  onDownload: () => void
+  onBuy: () => void
+}
+
+function CPDCertificateCard({ item, onView, onDownload, onBuy }: CPDCertificateCardProps) {
+  const isPurchased = item.has_certificate && item.certificate
+  const canBuy = item.is_cpd && !item.has_certificate
+  const isStandardCompleted = !isPurchased && !canBuy && !item.is_cpd && item.completion_date
+
+  return (
+    <Card className="rounded-2xl shadow-sm hover:shadow-lg transition-shadow border border-gray-100">
+      <CardContent className="p-7 flex flex-col h-full">
+        {/* Header: Gradient Icon + Course Info */}
+        <div className="flex items-start gap-4 mb-5">
+          <div
+            className="w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0"
+            style={{ background: 'linear-gradient(135deg, #3b82f6, #22c55e)' }}
+          >
+            <Award className="w-5 h-5 text-white" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <h3 className="font-bold text-[15px] leading-snug text-gray-900">{item.course_name}</h3>
+            {item.certificate?.credential_id && (
+              <p className="text-xs text-gray-400 mt-1">
+                Certificate ID: {item.certificate.credential_id}
+              </p>
+            )}
+          </div>
+        </div>
+
+        {/* Certificate Details */}
+        <div className="space-y-3 mb-5 flex-1">
+          {item.instructor && (
+            <div className="flex justify-between text-sm">
+              <span className="text-gray-500">Instructor:</span>
+              <span className="font-semibold text-gray-900">{item.instructor}</span>
+            </div>
+          )}
+          {item.quiz_score !== null && (
+            <div className="flex justify-between text-sm">
+              <span className="text-gray-500">Overall Quiz Score:</span>
+              <span className="font-bold text-green-600">{item.quiz_score}%</span>
+            </div>
+          )}
+          <div className="flex justify-between text-sm items-center">
+            <span className="text-gray-500">Type:</span>
+            <span
+              className={`inline-flex items-center px-3 py-0.5 rounded-md text-xs font-bold ${
+                item.is_cpd
+                  ? 'bg-green-100 text-green-700 border border-green-300'
+                  : 'bg-gray-100 text-gray-600 border border-gray-300'
+              }`}
+            >
+              {item.type}
+            </span>
+          </div>
+          {item.completion_date && (
+            <div className="flex justify-between text-sm">
+              <span className="text-gray-500">
+                {isPurchased ? 'Completion Date:' : 'Course Completion Date:'}
+              </span>
+              <span className="font-semibold text-gray-900">{item.completion_date}</span>
+            </div>
+          )}
+        </div>
+
+        {/* Purchased State: View/Download + Social */}
+        {isPurchased && (
+          <>
+            <div className="mb-4">
+              <span className="text-sm font-bold text-green-600">Certificate Purchased</span>
+            </div>
+            <div className="flex flex-wrap w-full gap-2 sm:gap-2.5 mb-4">
+              <Button
+                variant="outline"
+                className="flex flex-1 min-w-[120px] rounded-xl border-gray-300 text-sm font-medium h-auto min-h-[40px] py-2 whitespace-normal leading-tight justify-center"
+                onClick={onView}
+              >
+                <Eye className="w-4 h-4 mr-1.5 shrink-0" />
+                View
+              </Button>
+              <Button
+                className="flex flex-1 min-w-[120px] rounded-xl bg-green-600 hover:bg-green-700 text-white text-sm font-medium h-auto min-h-[40px] py-2 whitespace-normal leading-tight justify-center"
+                onClick={onDownload}
+              >
+                <Download className="w-4 h-4 mr-1.5 shrink-0" />
+                Download
+              </Button>
+            </div>
+            {item.certificate?.share_urls && (
+              <SocialShareButtons shareUrls={item.certificate.share_urls} />
+            )}
+          </>
+        )}
+
+        {/* Unpurchased CPD: Buy Button (+ pricing) */}
+        {canBuy && (
+          <>
+            {item.pricing && (
+              <div className="bg-green-50 border border-green-200 rounded-xl px-5 py-3 flex items-center justify-between mb-4">
+                <span className="text-sm font-medium text-green-800">CPD Certificate Price:</span>
+                <span className="text-lg font-extrabold text-green-700">{item.pricing.price_formatted}</span>
+              </div>
+            )}
+            <Button
+              className="w-full rounded-xl bg-green-600 hover:bg-green-700 text-white min-h-[44px] h-auto py-2.5 px-4"
+              onClick={onBuy}
+            >
+              <div className="flex items-center justify-center w-full gap-3">
+                <ShoppingCart className="w-5 h-5 sm:w-6 sm:h-6 shrink-0" />
+                <div className="flex flex-col items-start justify-center">
+                  <span className="text-sm sm:text-base font-bold leading-none tracking-wide mb-1">Buy Now</span>
+                  <span className="text-[10px] sm:text-[11px] font-medium opacity-80 leading-none">Verifiable CPD Certificate</span>
+                </div>
+              </div>
+            </Button>
+          </>
+        )}
+
+        {/* Standard (non-CPD) completed: View/Download + Share */}
+        {isStandardCompleted && (
+          <>
+            <div className="mb-4">
+              <span className="text-sm font-bold text-green-600">Certificate Earned</span>
+            </div>
+            <div className="flex flex-wrap w-full gap-2 sm:gap-2.5 mb-4">
+              <Button
+                variant="outline"
+                className="flex flex-1 min-w-[120px] rounded-xl border-gray-300 text-sm font-medium h-auto min-h-[40px] py-2 whitespace-normal leading-tight justify-center"
+                onClick={onView}
+              >
+                <Eye className="w-4 h-4 mr-1.5 shrink-0" />
+                View
+              </Button>
+              <Button
+                className="flex flex-1 min-w-[120px] rounded-xl bg-green-600 hover:bg-green-700 text-white text-sm font-medium h-auto min-h-[40px] py-2 whitespace-normal leading-tight justify-center"
+                onClick={onDownload}
+              >
+                <Download className="w-4 h-4 mr-1.5 shrink-0" />
+                Download
+              </Button>
+            </div>
+            <SocialShareButtons shareUrls={{
+              linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(typeof window !== 'undefined' ? window.location.href : '')}&title=${encodeURIComponent(`I completed ${item.course_name}!`)}`,
+              facebook: `https://www.facebook.com/sharer/sharer.php?quote=${encodeURIComponent(`I completed ${item.course_name}!`)}`,
+              twitter: `https://twitter.com/intent/tweet?text=${encodeURIComponent(`I just completed ${item.course_name}! 🎓`)}`,
+              whatsapp: '',
+              email: '',
+              copy_link: '',
+            }} />
+          </>
+        )}
+
+        {/* Standard (non-CPD) not completed yet */}
+        {!isPurchased && !canBuy && !item.is_cpd && !item.completion_date && (
+          <div className="text-center py-3">
+            <span className="text-sm text-gray-400">
+              Complete the course to earn your certificate
+            </span>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  )
+}
+
+// ============================================================
+// Loading Skeleton
+// ============================================================
 function CertificatesLoadingSkeleton() {
   return (
     <div className="p-4 lg:p-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <Skeleton className="h-8 w-40" />
-        <Skeleton className="h-10 w-28" />
+      <div className="mb-6">
+        <Skeleton className="h-8 w-48" />
       </div>
-
-      {/* Certificates Grid Skeleton */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {[1, 2, 3].map((i) => (
           <Card key={i}>
             <CardContent className="p-6">
-              <Skeleton className="w-12 h-12 rounded-lg mb-4" />
-              <Skeleton className="h-5 w-3/4 mb-2" />
-              <Skeleton className="h-3 w-1/2 mb-4" />
+              <div className="flex items-start gap-3 mb-4">
+                <Skeleton className="w-10 h-10 rounded-full" />
+                <div className="flex-1">
+                  <Skeleton className="h-4 w-3/4 mb-2" />
+                  <Skeleton className="h-3 w-1/2" />
+                </div>
+              </div>
               <div className="space-y-2 mb-4">
                 <div className="flex justify-between">
-                  <Skeleton className="h-4 w-20" />
                   <Skeleton className="h-4 w-24" />
+                  <Skeleton className="h-4 w-16" />
                 </div>
                 <div className="flex justify-between">
-                  <Skeleton className="h-4 w-16" />
+                  <Skeleton className="h-4 w-20" />
                   <Skeleton className="h-4 w-12" />
                 </div>
                 <div className="flex justify-between">
-                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="h-4 w-16" />
+                  <Skeleton className="h-5 w-14 rounded" />
+                </div>
+                <div className="flex justify-between">
+                  <Skeleton className="h-4 w-28" />
                   <Skeleton className="h-4 w-20" />
                 </div>
               </div>
-              <div className="flex gap-2">
-                <Skeleton className="h-9 flex-1" />
-                <Skeleton className="h-9 flex-1" />
-              </div>
+              <Skeleton className="h-10 w-full rounded-lg mb-3" />
+              <Skeleton className="h-10 w-full" />
             </CardContent>
           </Card>
         ))}
