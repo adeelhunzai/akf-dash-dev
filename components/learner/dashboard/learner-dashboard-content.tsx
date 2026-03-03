@@ -114,7 +114,7 @@ export default function LearnerDashboardContent() {
           ))
         ) : (
           <>
-            <Link href={`/${locale}/learner/courses?status=completed`} className="block h-full">
+            <Link href={`/${locale}/learner/certificates`} className="block h-full">
               <Card className="h-full hover:shadow-md transition-shadow cursor-pointer">
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">

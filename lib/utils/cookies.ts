@@ -11,7 +11,7 @@ const TOKEN_COOKIE_NAME = 'jwt_token';
  */
 function getCookieOptions() {
   const expirationDate = new Date();
-  expirationDate.setTime(expirationDate.getTime() + 2 * 60 * 60 * 1000); // 2 hours from now
+  expirationDate.setTime(expirationDate.getTime() + 24 * 60 * 60 * 1000); // 24 hours from now
 
   return {
     secure: process.env.NODE_ENV === 'production', // HTTPS only in production

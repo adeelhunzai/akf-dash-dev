@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { DashboardSkeleton } from '@/components/shared/layout/dashboard-skeleton';
+import { AuthLoader } from '@/components/shared/layout/auth-loader';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useAppDispatch, useAppSelector } from '@/lib/store/hooks';
 import { setToken, setUser, initializeAuth, logout } from '@/lib/store/slices/authSlice';
@@ -145,7 +145,7 @@ export function SSOHandler({ children }: { children: React.ReactNode }) {
   const shouldShowSkeleton = isLoading || (isInitializing && !hasTrustedSession);
   
   if (shouldShowSkeleton) {
-    return <DashboardSkeleton />;
+    return <AuthLoader message="Authenticating..." subMessage="Connecting to AKF Learning Hub" />;
   }
 
   // Show error state if SSO exchange failed

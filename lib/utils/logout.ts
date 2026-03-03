@@ -19,10 +19,10 @@ export async function handleLogout(
 ): Promise<void> {
   // Set logging out state immediately to prevent RouteGuard from showing ForbiddenAccess
   dispatch(setLoggingOut(true));
-  
+
   // Reset all RTK Query caches first
   dispatch(authApi.util.resetApiState());
-  
+
   // Try to revoke the token on WordPress backend (fire and forget)
   // Do this before clearing the token so we still have it
   if (token) {
@@ -30,7 +30,7 @@ export async function handleLogout(
       // Ignore errors - token will expire naturally
     });
   }
-  
+
   // Redirect to WordPress
   if (redirectToWordPress) {
     // Use clearAuthForRedirect which clears auth data but keeps isLoggingOut=true
@@ -38,10 +38,10 @@ export async function handleLogout(
     // 1. Cookie is removed (user can't navigate back and access dashboard)
     // 2. RouteGuard shows "Logging out..." loader (not "Access Forbidden")
     dispatch(clearAuthForRedirect());
-    
+
     // Determine redirect URL
     let wpBaseUrl = wordpressUrl || '';
-    
+
     // Fallback: Extract WordPress base URL from API URL
     if (!wpBaseUrl && WORDPRESS_API_URL) {
       const extractedUrl = WORDPRESS_API_URL.replace('/wp-json', '');
@@ -49,18 +49,23 @@ export async function handleLogout(
         wpBaseUrl = extractedUrl;
       }
     }
-    
+
     // Final fallback if no URL available
     if (!wpBaseUrl) {
       console.warn('No WordPress URL available for redirect');
       wpBaseUrl = '/';
     }
-    
-    // Redirect to WordPress website
-    window.location.href = wpBaseUrl;
+
+    // Append the akf_logout parameter to trigger cookie deletion on the WP side
+    const logoutUrl = new URL(wpBaseUrl);
+    logoutUrl.searchParams.append('akf_logout', '1');
+    logoutUrl.searchParams.append('redirect_to', wpBaseUrl);
+
+    // Redirect to WordPress website to clear cookies there
+    window.location.href = logoutUrl.toString();
     return;
   }
-  
+
   // If NOT redirecting to WordPress, use regular logout
   dispatch(logout());
 }

@@ -7,7 +7,7 @@ import { UserRole } from '@/lib/types/roles';
 import { hasRouteAccess, getDefaultDashboardPath, isPublicRoute, isAuthCallbackRoute } from '@/lib/utils/auth';
 import { useLocale } from 'next-intl';
 import { ForbiddenAccess } from '@/components/ui/forbidden-access';
-import { DashboardSkeleton } from '@/components/shared/layout/dashboard-skeleton';
+import { AuthLoader } from '@/components/shared/layout/auth-loader';
 import { getUserIdCookie } from '@/lib/utils/cookies';
 
 interface RouteGuardProps {
@@ -189,28 +189,28 @@ export function RouteGuard({ children }: RouteGuardProps) {
 
   // Show loading state while initializing
   if (accessStatus.reason === 'initializing') {
-    return <DashboardSkeleton />;
+    return <AuthLoader message="Starting up..." subMessage="Initializing your session" />;
   }
 
   // Show loading state during logout
   if (accessStatus.reason === 'logging_out') {
-    return <DashboardSkeleton />;
+    return <AuthLoader message="Signing out..." subMessage="Clearing your session securely" />;
   }
 
   // Show loading state during SSO exchange
   if (accessStatus.reason === 'sso_exchange') {
-    return <DashboardSkeleton />;
+    return <AuthLoader message="Authenticating..." subMessage="Verifying your credentials" />;
   }
 
   // Show loading state while checking authentication
   if (accessStatus.reason === 'loading') {
-    return <DashboardSkeleton />;
+    return <AuthLoader message="Authenticating..." subMessage="Please wait while we verify your session" />;
   }
 
   // Show loading state when redirecting due to role mismatch
   // This prevents showing the protected route content before redirect
   if (accessStatus.reason === 'no_access' && accessStatus.userRole) {
-    return <DashboardSkeleton />;
+    return <AuthLoader message="Redirecting..." subMessage="Taking you to your dashboard" />;
   }
 
   // If loading timeout occurred, show forbidden access

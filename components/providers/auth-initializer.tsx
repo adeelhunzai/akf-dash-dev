@@ -1,16 +1,16 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { useAppDispatch, useAppSelector } from '@/lib/store/hooks';
-import { setUser, setLoading, initializeAuth, setInitializing, setToken, setWordpressUrl } from '@/lib/store/slices/authSlice';
+import { setUser, setLoading, initializeAuth, setInitializing, setToken, setWordpressUrl, logout } from '@/lib/store/slices/authSlice';
 import { useGetCurrentUserQuery } from '@/lib/store/api/userApi';
 import { useValidateTokenMutation } from '@/lib/store/api/authApi';
 import { useGetGeneralSettingsQuery } from '@/lib/store/api/settingsApi';
 import { UserRole, User } from '@/lib/types/roles';
 import { WordPressUserResponse } from '@/lib/types/wordpress-user.types';
 import { isAuthCallbackRoute } from '@/lib/utils/auth';
-import { getUserIdCookie } from '@/lib/utils/cookies';
+import { getUserIdCookie, getTokenCookie } from '@/lib/utils/cookies';
 import { useLocale } from 'next-intl';
 
 /**
@@ -75,6 +75,7 @@ export function AuthInitializer({ children }: AuthInitializerProps) {
   const locale = useLocale();
   const user = useAppSelector((state) => state.auth.user);
   const token = useAppSelector((state) => state.auth.token);
+  const wordpressUrl = useAppSelector((state) => state.auth.wordpressUrl);
   const [validateToken] = useValidateTokenMutation();
   
   // Extract path without locale
@@ -232,6 +233,75 @@ export function AuthInitializer({ children }: AuthInitializerProps) {
       }
     }
   }, [isError, error, token, dispatch]);
+
+  // --- Periodic token re-validation ---
+  // This catches WordPress-side logouts (token revoked in DB) even if the
+  // user keeps the Next.js tab open. Validates every 5 minutes and on tab focus.
+  const REVALIDATION_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
+  const lastValidationRef = useRef<number>(Date.now());
+  const [revalidateToken] = useValidateTokenMutation({ fixedCacheKey: 'periodic-revalidation' });
+
+  const performRevalidation = useCallback(() => {
+    if (!token || !user || isOnAuthCallback) return;
+
+    revalidateToken({})
+      .unwrap()
+      .then((response) => {
+        if (!response.success || !response.valid) {
+          // Token was revoked — clear the session
+          console.warn('Periodic revalidation: token revoked, logging out');
+          dispatch(logout());
+        }
+        lastValidationRef.current = Date.now();
+      })
+      .catch(() => {
+        // 401 means token is invalid/revoked
+        console.warn('Periodic revalidation failed, logging out');
+        dispatch(logout());
+        lastValidationRef.current = Date.now();
+      });
+  }, [token, user, isOnAuthCallback, revalidateToken, dispatch]);
+
+  // Interval-based periodic re-validation
+  useEffect(() => {
+    if (!token || !user || isOnAuthCallback) return;
+
+    const interval = setInterval(() => {
+      performRevalidation();
+    }, REVALIDATION_INTERVAL_MS);
+
+    return () => clearInterval(interval);
+  }, [token, user, isOnAuthCallback, performRevalidation]);
+
+  // Visibility-change cookie check (when user switches back to this tab)
+  // Since cookies are shared across all tabs on the same domain, when the
+  // logout page removes the jwt_token cookie, ALL tabs lose it instantly.
+  // We just check if the cookie disappeared while Redux still has a token.
+  useEffect(() => {
+    if (isOnAuthCallback) return;
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && token) {
+        const cookieToken = getTokenCookie();
+        if (!cookieToken) {
+          // Cookie was removed by another tab (logout page) — clear Redux & redirect
+          console.warn('Cookie removed by another tab, logging out and redirecting');
+          dispatch(logout());
+          // Redirect to WordPress login page
+          const wpUrl = wordpressUrl || '';
+          if (wpUrl) {
+            window.location.href = wpUrl;
+          } else {
+            // Fallback: reload to trigger RouteGuard's no_token state
+            window.location.reload();
+          }
+        }
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [token, isOnAuthCallback, dispatch]);
 
   return <>{children}</>;
 }
