@@ -242,7 +242,10 @@ export function AuthInitializer({ children }: AuthInitializerProps) {
   const [revalidateToken] = useValidateTokenMutation({ fixedCacheKey: 'periodic-revalidation' });
 
   const performRevalidation = useCallback(() => {
-    if (!token || !user || isOnAuthCallback) return;
+    // Skip revalidation if SSO exchange is in progress (token may be mid-swap)
+    const currentUrl = new URL(window.location.href);
+    const hasSSOToken = currentUrl.searchParams.has('sso_token');
+    if (!token || !user || isOnAuthCallback || hasSSOToken) return;
 
     revalidateToken({})
       .unwrap()
@@ -281,7 +284,10 @@ export function AuthInitializer({ children }: AuthInitializerProps) {
     if (isOnAuthCallback) return;
 
     const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible' && token) {
+      // Skip cookie check if SSO exchange is in progress (cookie doesn't exist yet)
+      const currentUrl = new URL(window.location.href);
+      const hasSSOToken = currentUrl.searchParams.has('sso_token');
+      if (document.visibilityState === 'visible' && token && !hasSSOToken) {
         const cookieToken = getTokenCookie();
         if (!cookieToken) {
           // Cookie was removed by another tab (logout page) — clear Redux & redirect

@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { AuthLoader } from '@/components/shared/layout/auth-loader';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useAppDispatch, useAppSelector } from '@/lib/store/hooks';
-import { setToken, setUser, initializeAuth, logout } from '@/lib/store/slices/authSlice';
+import { setToken, setUser, initializeAuth, logout, setWordpressUrl } from '@/lib/store/slices/authSlice';
 import { useExchangeSSOTokenMutation } from '@/lib/store/api/authApi';
 import { UserRole } from '@/lib/types/roles';
 import { getUserIdCookie } from '@/lib/utils/cookies';
@@ -46,6 +46,7 @@ export function SSOHandler({ children }: { children: React.ReactNode }) {
   
   // Track processed token to prevent duplicate calls in Strict Mode or due to effect re-runs
   const processedTokenRef = useRef<string | null>(null);
+  const [hadSSOToken, setHadSSOToken] = useState(false);
 
   // Handle SSO token exchange
   useEffect(() => {
@@ -85,6 +86,8 @@ export function SSOHandler({ children }: { children: React.ReactNode }) {
     }
     
     if (ssoToken) {
+      // Track that we had an SSO token (for error UI after URL cleanup)
+      setHadSSOToken(true);
       // Mark this token as processed IMMEDIATELY to prevent race conditions
       processedTokenRef.current = ssoToken;
 
@@ -101,6 +104,11 @@ export function SSOHandler({ children }: { children: React.ReactNode }) {
           if (response.success) {
             // Store JWT token
             dispatch(setToken(response.token));
+            
+            // Store WordPress URL for logo link and logout redirect
+            if (response.wordpress_url) {
+              dispatch(setWordpressUrl(response.wordpress_url));
+            }
             
             // Transform and set user
             const user = {
@@ -149,7 +157,7 @@ export function SSOHandler({ children }: { children: React.ReactNode }) {
   }
 
   // Show error state if SSO exchange failed
-  if (isError && searchParams.get('sso_token')) {
+  if (isError && hadSSOToken) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
