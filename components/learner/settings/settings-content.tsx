@@ -32,7 +32,7 @@ export default function SettingsContent() {
   const [learningGoal, setLearningGoal] = useState("")
   const [courseReminders, setCourseReminders] = useState(true)
   const [achievementNotifications, setAchievementNotifications] = useState(true)
-  const [weeklyReport, setWeeklyReport] = useState(false)
+
 
   // Populate form when data loads
   useEffect(() => {
@@ -47,7 +47,7 @@ export default function SettingsContent() {
       setLearningGoal(learning_preferences.learning_goal || "skill")
       setCourseReminders(notifications.course_reminders)
       setAchievementNotifications(notifications.achievement_notifications)
-      setWeeklyReport(notifications.weekly_report)
+
     }
   }, [data])
 
@@ -69,7 +69,7 @@ export default function SettingsContent() {
         notifications: {
           course_reminders: courseReminders,
           achievement_notifications: achievementNotifications,
-          weekly_report: weeklyReport,
+
         },
       }).unwrap()
 
@@ -99,7 +99,7 @@ export default function SettingsContent() {
       setLearningGoal(learning_preferences.learning_goal || "skill")
       setCourseReminders(notifications.course_reminders)
       setAchievementNotifications(notifications.achievement_notifications)
-      setWeeklyReport(notifications.weekly_report)
+
     }
   }
 
@@ -276,18 +276,7 @@ export default function SettingsContent() {
               />
             </div>
 
-            <div className="flex items-center justify-between py-3">
-              <div>
-                <h3 className="font-medium text-sm mb-1">Weekly Progress Report</h3>
-                <p className="text-sm text-muted-foreground">
-                  Receive weekly summaries of your learning progress
-                </p>
-              </div>
-              <Switch
-                checked={weeklyReport}
-                onCheckedChange={setWeeklyReport}
-              />
-            </div>
+
           </div>
         </CardContent>
       </Card>
@@ -364,7 +353,7 @@ function SettingsLoadingSkeleton() {
         <CardContent className="p-6">
           <Skeleton className="h-6 w-48 mb-4" />
           <div className="space-y-4">
-            {[1, 2, 3].map((i) => (
+            {[1, 2].map((i) => (
               <div key={i} className="flex items-center justify-between py-3 border-b last:border-0">
                 <div>
                   <Skeleton className="h-4 w-32 mb-2" />
