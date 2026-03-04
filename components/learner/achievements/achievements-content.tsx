@@ -124,9 +124,13 @@ export default function AchievementsContent() {
                   <div key={goal.id} className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <div className={`w-10 h-10 ${goal.color} rounded-lg flex items-center justify-center`}>
-                          <Icon className="w-5 h-5 text-white" />
-                        </div>
+                        {goal.image ? (
+                          <img src={goal.image} alt={goal.title} className="w-10 h-10 rounded-lg object-cover" />
+                        ) : (
+                          <div className={`w-10 h-10 ${goal.color} rounded-lg flex items-center justify-center`}>
+                            <Icon className="w-5 h-5 text-white" />
+                          </div>
+                        )}
                         <div>
                           <h3 className="font-semibold text-sm text-white">{goal.title}</h3>
                           <p className="text-xs text-white/70">{goal.description}</p>
@@ -153,8 +157,14 @@ export default function AchievementsContent() {
               const Icon = getIcon(badge.icon)
               return (
                 <div key={badge.id} className={`text-center ${!badge.unlocked ? 'opacity-50' : ''}`}>
-                  <div className={`w-20 h-20 ${badge.color} rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-lg relative`}>
-                    <Icon className="w-10 h-10 text-white" />
+                  <div className="relative mx-auto mb-3 w-20 h-20">
+                    {badge.image ? (
+                      <img src={badge.image} alt={badge.title} className="w-20 h-20 rounded-2xl object-cover shadow-lg" />
+                    ) : (
+                      <div className={`w-20 h-20 ${badge.color} rounded-2xl flex items-center justify-center shadow-lg`}>
+                        <Icon className="w-10 h-10 text-white" />
+                      </div>
+                    )}
                     {badge.unlocked && (
                       <div className="absolute -top-1 -right-1 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
                         <Check className="w-4 h-4 text-white" />
@@ -183,9 +193,13 @@ export default function AchievementsContent() {
               return (
                 <Card key={achievement.id} className="hover:shadow-md transition-shadow">
                   <CardContent className="p-5 text-center">
-                    <div className={`w-16 h-16 ${achievement.color} rounded-2xl flex items-center justify-center mx-auto mb-4`}>
-                      <Icon className="w-8 h-8 text-white" />
-                    </div>
+                    {achievement.image ? (
+                      <img src={achievement.image} alt={achievement.title} className="w-16 h-16 rounded-2xl object-cover mx-auto mb-4" />
+                    ) : (
+                      <div className={`w-16 h-16 ${achievement.color} rounded-2xl flex items-center justify-center mx-auto mb-4`}>
+                        <Icon className="w-8 h-8 text-white" />
+                      </div>
+                    )}
                     <h3 className="font-semibold text-base mb-2">{achievement.title}</h3>
                     <p className="text-xs text-muted-foreground mb-3 min-h-[2.5rem]">{achievement.description}</p>
                     <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground mb-3">

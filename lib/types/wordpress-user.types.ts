@@ -312,6 +312,7 @@ export interface LatestGoal {
   icon: string;
   color: string;
   status: string;
+  image?: string;
 }
 
 export interface WizardBadge {
@@ -323,6 +324,7 @@ export interface WizardBadge {
   progress: number;
   required: number;
   unlocked: boolean;
+  image?: string;
 }
 
 export interface Achievement {
@@ -334,6 +336,7 @@ export interface Achievement {
   color: string;
   category: string;
   categoryColor: string;
+  image?: string;
 }
 
 export interface LearnerAchievementsResponse {
