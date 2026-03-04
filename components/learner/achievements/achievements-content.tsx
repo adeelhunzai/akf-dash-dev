@@ -91,23 +91,30 @@ export default function AchievementsContent() {
         {/* Next Goal - Inside Blue Container */}
         {nextGoal.title && (
           <div className="bg-white/10 backdrop-blur-sm rounded-xl p-5 mb-4">
+            <h3 className="font-semibold text-base mb-3 text-white">Your next goal!</h3>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-yellow-500 rounded-xl flex items-center justify-center flex-shrink-0">
-                  <Trophy className="w-6 h-6 text-white" />
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden">
+                  {nextGoal.image ? (
+                    <img src={nextGoal.image} alt={nextGoal.title} className="w-full h-full object-contain" />
+                  ) : (
+                    <div className="w-full h-full bg-yellow-500 flex items-center justify-center">
+                      <Trophy className="w-6 h-6 text-white" />
+                    </div>
+                  )}
                 </div>
                 <div>
-                  <h3 className="font-semibold text-base mb-1 text-white">Your Next Goal</h3>
-                  <p className="text-sm text-white/80">{nextGoal.description}</p>
+                  <h4 className="font-semibold text-white mb-0">{nextGoal.title}</h4>
+                  <p className="text-xs text-white/80">{nextGoal.description}</p>
                 </div>
               </div>
-              <div className="flex items-center gap-3">
-                <div className="w-24">
-                  <Progress value={(nextGoal.progress / nextGoal.total) * 100} className="h-2 bg-white/20 [&>*]:bg-yellow-300" />
-                </div>
-                <span className="text-lg font-bold text-yellow-300">
+              <div className="flex flex-col items-end gap-1">
+                <span className="text-sm font-bold text-yellow-300">
                   {nextGoal.progress}/{nextGoal.total}
                 </span>
+                <div className="w-24">
+                  <Progress value={nextGoal.total > 0 ? (nextGoal.progress / nextGoal.total) * 100 : 0} className="h-2 bg-white/20 [&>*]:bg-yellow-300" />
+                </div>
               </div>
             </div>
           </div>
@@ -159,9 +166,9 @@ export default function AchievementsContent() {
                 <div key={badge.id} className={`text-center ${!badge.unlocked ? 'opacity-50' : ''}`}>
                   <div className="relative mx-auto mb-3 w-20 h-20">
                     {badge.image ? (
-                      <img src={badge.image} alt={badge.title} className="w-20 h-20 rounded-2xl object-cover shadow-lg" />
+                      <img src={badge.image} alt={badge.title} className="w-20 h-20 rounded-2xl object-cover" />
                     ) : (
-                      <div className={`w-20 h-20 ${badge.color} rounded-2xl flex items-center justify-center shadow-lg`}>
+                      <div className={`w-20 h-20 ${badge.color} rounded-2xl flex items-center justify-center`}>
                         <Icon className="w-10 h-10 text-white" />
                       </div>
                     )}
@@ -185,32 +192,32 @@ export default function AchievementsContent() {
 
       {/* Achievement Cards */}
       {achievements.length > 0 && (
-        <div>
-          <h2 className="text-xl font-bold mb-4">Achievements</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="mt-8">
+          <h2 className="text-xl font-bold mb-6">Other Achievements</h2>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             {achievements.map((achievement) => {
               const Icon = getIcon(achievement.icon)
               return (
-                <Card key={achievement.id} className="hover:shadow-md transition-shadow">
-                  <CardContent className="p-5 text-center">
+                <div key={achievement.id} className={`flex flex-col items-center text-center gap-3 ${!achievement.unlocked ? 'opacity-50' : ''}`}>
+                  <div className="relative w-20 h-20 flex-shrink-0">
                     {achievement.image ? (
-                      <img src={achievement.image} alt={achievement.title} className="w-16 h-16 rounded-2xl object-cover mx-auto mb-4" />
+                      <img src={achievement.image} alt={achievement.title} className="w-20 h-20 object-contain" />
                     ) : (
-                      <div className={`w-16 h-16 ${achievement.color} rounded-2xl flex items-center justify-center mx-auto mb-4`}>
-                        <Icon className="w-8 h-8 text-white" />
+                      <div className={`w-20 h-20 ${achievement.color} rounded-2xl flex items-center justify-center`}>
+                        <Icon className="w-10 h-10 text-white" />
                       </div>
                     )}
-                    <h3 className="font-semibold text-base mb-2">{achievement.title}</h3>
-                    <p className="text-xs text-muted-foreground mb-3 min-h-[2.5rem]">{achievement.description}</p>
-                    <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground mb-3">
-                      <CalendarIcon className="w-3 h-3" />
-                      <span>{achievement.date}</span>
-                    </div>
-                    <Badge className={achievement.categoryColor}>
-                      {achievement.category}
-                    </Badge>
-                  </CardContent>
-                </Card>
+                    {achievement.unlocked && (
+                      <div className="absolute -top-1 -right-1 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center shadow-sm">
+                        <Check className="w-4 h-4 text-white" />
+                      </div>
+                    )}
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-gray-900 mb-1">{achievement.title}</h3>
+                    <p className="text-sm text-gray-500 max-w-[200px] leading-tight">{achievement.description}</p>
+                  </div>
+                </div>
               )
             })}
           </div>
@@ -309,20 +316,17 @@ function AchievementsLoadingSkeleton() {
       </div>
 
       {/* Achievement Cards Skeleton */}
-      <div>
-        <Skeleton className="h-7 w-32 mb-4" />
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {[1, 2, 3, 4].map((i) => (
-            <Card key={i}>
-              <CardContent className="p-5 text-center">
-                <Skeleton className="w-16 h-16 rounded-2xl mx-auto mb-4" />
-                <Skeleton className="h-5 w-32 mx-auto mb-2" />
-                <Skeleton className="h-3 w-full mb-1" />
-                <Skeleton className="h-3 w-3/4 mx-auto mb-3" />
-                <Skeleton className="h-3 w-20 mx-auto mb-3" />
-                <Skeleton className="h-6 w-24 mx-auto rounded-full" />
-              </CardContent>
-            </Card>
+      <div className="mt-8">
+        <Skeleton className="h-7 w-48 mb-6" />
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <div key={i} className="flex flex-col items-center text-center gap-3">
+              <Skeleton className="w-20 h-20 rounded-2xl flex-shrink-0" />
+              <div>
+                <Skeleton className="h-5 w-24 mx-auto mb-2" />
+                <Skeleton className="h-4 w-32 mx-auto" />
+              </div>
+            </div>
           ))}
         </div>
       </div>

@@ -6,7 +6,7 @@ import { useAppSelector } from '@/lib/store/hooks';
 import { UserRole } from '@/lib/types/roles';
 import { hasRouteAccess, getDefaultDashboardPath, isPublicRoute, isAuthCallbackRoute } from '@/lib/utils/auth';
 import { useLocale } from 'next-intl';
-import { ForbiddenAccess } from '@/components/ui/forbidden-access';
+import { WORDPRESS_API_URL } from '@/lib/config/wordpress.config';
 import { AuthLoader } from '@/components/shared/layout/auth-loader';
 import { getUserIdCookie, getTokenCookie } from '@/lib/utils/cookies';
 
@@ -22,6 +22,26 @@ interface RouteGuardProps {
  * Key improvement: Access is checked synchronously BEFORE rendering children
  * to prevent mount-then-redirect behavior
  */
+/**
+ * Build the WordPress login redirect URL.
+ * Derives the base WP URL from WORDPRESS_API_URL (strips /wp-json),
+ * same approach used in the logout flow (lib/utils/logout.ts).
+ */
+function getWordPressLoginUrl(): string {
+  let wpBaseUrl = '';
+  if (WORDPRESS_API_URL) {
+    const extracted = WORDPRESS_API_URL.replace('/wp-json', '');
+    if (extracted && extracted !== WORDPRESS_API_URL) {
+      wpBaseUrl = extracted;
+    }
+  }
+  if (!wpBaseUrl) {
+    wpBaseUrl = '/';
+  }
+
+  return wpBaseUrl;
+}
+
 export function RouteGuard({ children }: RouteGuardProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -173,12 +193,19 @@ export function RouteGuard({ children }: RouteGuardProps) {
 
   // Handle redirects in useEffect (but children won't render if access is denied)
   useEffect(() => {
-    // Only redirect if access is denied due to role mismatch
+    // Redirect to WordPress login page when unauthenticated
+    if (!accessStatus.canAccess && ['no_token', 'timeout', 'unknown'].includes(accessStatus.reason) && !hasRedirected) {
+      setHasRedirected(true);
+      window.location.href = getWordPressLoginUrl();
+      return;
+    }
+
+    // Redirect if access is denied due to role mismatch
     if (!accessStatus.canAccess && accessStatus.reason === 'no_access' && accessStatus.userRole && !hasRedirected) {
       const defaultPath = getDefaultDashboardPath(accessStatus.userRole, locale);
       setHasRedirected(true);
       router.replace(defaultPath);
-    } else if (accessStatus.canAccess || accessStatus.reason !== 'no_access') {
+    } else if (accessStatus.canAccess || (accessStatus.reason !== 'no_access' && !['no_token', 'timeout', 'unknown'].includes(accessStatus.reason))) {
       // Reset redirect flag if access is granted or reason changed
       setHasRedirected(false);
     }
@@ -218,34 +245,10 @@ export function RouteGuard({ children }: RouteGuardProps) {
     return <AuthLoader message="Redirecting..." subMessage="Taking you to your dashboard" />;
   }
 
-  // If loading timeout occurred, show forbidden access
-  if (accessStatus.reason === 'timeout') {
-    return (
-      <ForbiddenAccess 
-        message="Authentication is taking longer than expected. Please try refreshing the page."
-        showHomeButton={false}
-      />
-    );
-  }
-
-  // If no token and not a public route, show forbidden access
-  if (accessStatus.reason === 'no_token') {
-    return (
-      <ForbiddenAccess 
-        message="You need to be authenticated to access this page. Please log in to WordPress first, then click the dashboard link to access this application with automatic authentication."
-        showHomeButton={false}
-      />
-    );
-  }
-
-  // If access is denied for unknown reason, show forbidden access
-  if (!accessStatus.canAccess && accessStatus.reason === 'unknown') {
-    return (
-      <ForbiddenAccess 
-        message="You do not have permission to access this page. Please contact your administrator if you believe this is an error."
-        showHomeButton={true}
-      />
-    );
+  // If loading timeout, no token, or unknown reason — show redirect loader
+  // The useEffect above will handle the actual redirect to WordPress login
+  if (accessStatus.reason === 'timeout' || accessStatus.reason === 'no_token' || (!accessStatus.canAccess && accessStatus.reason === 'unknown')) {
+    return <AuthLoader message="Redirecting to login..." subMessage="Taking you to the login page" />;
   }
 
   // Access granted - render children
