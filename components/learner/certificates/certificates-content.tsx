@@ -7,6 +7,7 @@ import { Award, Download, Eye, ExternalLink, ShoppingCart } from "lucide-react"
 import { useGetCPDCertificatesQuery } from "@/lib/store/api/certificatesApi"
 import { CPDCertificateItem } from "@/lib/types/cpd-certificate.types"
 import { useState, useEffect, useRef, useCallback } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
 import { getTokenCookie } from "@/lib/utils/cookies"
 import { CertificateViewerModal } from "./certificate-viewer-modal"
@@ -23,6 +24,8 @@ interface CacheEntry {
 const CACHE_EXPIRY_MS = 10 * 60 * 1000
 
 export default function CertificatesContent() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
   const { data: cpdData, isLoading, error: cpdError } = useGetCPDCertificatesQuery()
   
   const [loadingCertId, setLoadingCertId] = useState<string | null>(null)
@@ -49,6 +52,35 @@ export default function CertificatesContent() {
       pdfCacheRef.current.clear()
     }
   }, [])
+
+  // Handle payment return status
+  useEffect(() => {
+    const paymentStatus = searchParams.get('payment')
+    if (paymentStatus === 'success') {
+      toast({
+        title: "Payment Successful!",
+        description: "Your certificate is now available and your account has been updated.",
+        variant: "default"
+      })
+      // Clean up URL
+      const newUrl = new URL(window.location.href)
+      newUrl.searchParams.delete('payment')
+      newUrl.searchParams.delete('session_id')
+      newUrl.searchParams.delete('transaction_id')
+      router.replace(newUrl.pathname + newUrl.search)
+    } else if (paymentStatus === 'cancelled') {
+      toast({
+        title: "Payment Cancelled",
+        description: "The payment process was cancelled. You can try again whenever you're ready.",
+        variant: "destructive"
+      })
+      // Clean up URL
+      const newUrl = new URL(window.location.href)
+      newUrl.searchParams.delete('payment')
+      newUrl.searchParams.delete('transaction_id')
+      router.replace(newUrl.pathname + newUrl.search)
+    }
+  }, [searchParams, toast, router])
 
   // Get from cache
   const getFromCache = useCallback((certificateId: string): CacheEntry | null => {

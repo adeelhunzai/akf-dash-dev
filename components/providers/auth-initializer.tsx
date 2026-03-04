@@ -164,10 +164,19 @@ export function AuthInitializer({ children }: AuthInitializerProps) {
             dispatch(setInitializing(false));
           }
         })
-        .catch((err) => {
+        .catch((err: unknown) => {
           console.error('Token validation failed:', err);
-          // Token is invalid, clear it
-          dispatch(setToken(null));
+          // Distinguish between genuine token invalidity (401) and transient errors
+          const status = (err as { status?: number })?.status;
+          if (status === 401 || status === 403) {
+            // Token is genuinely invalid/revoked — clear the session
+            console.warn('Token is invalid (HTTP', status, '), clearing session');
+            dispatch(setToken(null));
+          } else {
+            // Transient error (network, timeout, 5xx) — keep the token
+            // The user can continue with their existing session
+            console.warn('Token validation failed due to transient error, keeping session');
+          }
           dispatch(setLoading(false));
           dispatch(setInitializing(false));
         });
@@ -242,10 +251,11 @@ export function AuthInitializer({ children }: AuthInitializerProps) {
   const [revalidateToken] = useValidateTokenMutation({ fixedCacheKey: 'periodic-revalidation' });
 
   const performRevalidation = useCallback(() => {
-    // Skip revalidation if SSO exchange is in progress (token may be mid-swap)
+    // Skip revalidation if SSO exchange or payment return is in progress
     const currentUrl = new URL(window.location.href);
     const hasSSOToken = currentUrl.searchParams.has('sso_token');
-    if (!token || !user || isOnAuthCallback || hasSSOToken) return;
+    const hasPaymentParam = currentUrl.searchParams.has('payment');
+    if (!token || !user || isOnAuthCallback || hasSSOToken || hasPaymentParam) return;
 
     revalidateToken({})
       .unwrap()
@@ -257,10 +267,16 @@ export function AuthInitializer({ children }: AuthInitializerProps) {
         }
         lastValidationRef.current = Date.now();
       })
-      .catch(() => {
-        // 401 means token is invalid/revoked
-        console.warn('Periodic revalidation failed, logging out');
-        dispatch(logout());
+      .catch((err: unknown) => {
+        // Only logout if the error is a genuine 401/403 (token revoked)
+        const status = (err as { status?: number })?.status;
+        if (status === 401 || status === 403) {
+          console.warn('Periodic revalidation: token invalid (HTTP', status, '), logging out');
+          dispatch(logout());
+        } else {
+          // Transient error — don't destroy the session
+          console.warn('Periodic revalidation failed (transient), keeping session');
+        }
         lastValidationRef.current = Date.now();
       });
   }, [token, user, isOnAuthCallback, revalidateToken, dispatch]);
@@ -284,10 +300,11 @@ export function AuthInitializer({ children }: AuthInitializerProps) {
     if (isOnAuthCallback) return;
 
     const handleVisibilityChange = () => {
-      // Skip cookie check if SSO exchange is in progress (cookie doesn't exist yet)
+      // Skip cookie check if SSO exchange or payment return is in progress
       const currentUrl = new URL(window.location.href);
       const hasSSOToken = currentUrl.searchParams.has('sso_token');
-      if (document.visibilityState === 'visible' && token && !hasSSOToken) {
+      const hasPaymentParam = currentUrl.searchParams.has('payment');
+      if (document.visibilityState === 'visible' && token && !hasSSOToken && !hasPaymentParam) {
         const cookieToken = getTokenCookie();
         if (!cookieToken) {
           // Cookie was removed by another tab (logout page) — clear Redux & redirect

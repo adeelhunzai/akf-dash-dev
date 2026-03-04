@@ -8,7 +8,7 @@ import { hasRouteAccess, getDefaultDashboardPath, isPublicRoute, isAuthCallbackR
 import { useLocale } from 'next-intl';
 import { ForbiddenAccess } from '@/components/ui/forbidden-access';
 import { AuthLoader } from '@/components/shared/layout/auth-loader';
-import { getUserIdCookie } from '@/lib/utils/cookies';
+import { getUserIdCookie, getTokenCookie } from '@/lib/utils/cookies';
 
 interface RouteGuardProps {
   children: React.ReactNode;
@@ -83,15 +83,20 @@ export function RouteGuard({ children }: RouteGuardProps) {
       return { canAccess: false, reason: 'sso_exchange' };
     }
 
+    // If payment parameter is present, we are likely returning from Stripe
+    // Wait for initialization to complete before denying access
+    const isPaymentRedirect = searchParams.get('payment') === 'success' || searchParams.get('payment') === 'cancelled';
+    if (isPaymentRedirect && !token) {
+      return { canAccess: false, reason: 'loading' };
+    }
+
     // Allow public routes
     if (isPublicRoute(pathWithoutLocale)) {
       return { canAccess: true, reason: 'public_route' };
     }
 
-    // Check if cookie exists (might be in cookie but not in Redux yet)
-    const cookieToken = typeof document !== 'undefined' 
-      ? document.cookie.split('; ').find(row => row.startsWith('jwt_token='))?.split('=')[1]
-      : null;
+    // Check if cookie exists (robust check using utility)
+    const cookieToken = getTokenCookie();
 
     // If no token in Redux or cookie, and not loading, deny access
     if (!token && !cookieToken) {
