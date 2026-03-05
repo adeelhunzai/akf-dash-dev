@@ -21,6 +21,7 @@ import { type MetricsQueryArgs, useGetUsersCountQuery, useGetCourseCompletionRat
 import { useToast } from "@/hooks/use-toast";
 import { RefreshCw } from "lucide-react";
 import { CoursePopularityTable } from "../reports/course-popularity-table";
+import { useTranslations } from "next-intl";
 
 // Skeleton component for metric cards
 function MetricCardSkeleton() {
@@ -123,6 +124,7 @@ export default function DashboardContent() {
   const [customRange, setCustomRange] = useState<DateRange | undefined>(undefined);
   const periods = ["1 Month", "3 Months", "6 Months", "1 Year", "All Time"];
   const { toast } = useToast();
+  const t = useTranslations("dashboard");
   
   // Map frontend period to API period format
   const getPeriodParam = (period: string): string | undefined => {
@@ -255,10 +257,10 @@ export default function DashboardContent() {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold text-foreground">
-            Admin Dashboard
+            {t("adminTitle")}
           </h1>
           <p className="text-muted-foreground mt-1 text-sm">
-            Monitor your platform performance and key metrics
+            {t("adminDescription")}
           </p>
         </div>
         <DateRangePicker

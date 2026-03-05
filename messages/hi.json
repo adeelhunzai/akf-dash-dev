@@ -16,7 +16,9 @@
   "header": {
     "myAccount": "मेरा खाता",
     "accountSettings": "खाता सेटिंग्स",
-    "searchPlaceholder": "यहां खोजें"
+    "searchPlaceholder": "यहां खोजें",
+    "adminDashboard": "व्यवस्थापक डैशबोर्ड",
+    "learnerProfile": "शिक्षार्थी प्रोफ़ाइल"
   },
   "roles": {
     "admin": "व्यवस्थापक डैशबोर्ड",
@@ -32,7 +34,7 @@
     "reports": "रिपोर्ट",
     "settings": "सेटिंग्स",
     "teamManagement": "टीम प्रबंधन",
-    "userManagement": "User Management",
+    "userManagement": "उपयोगकर्ता प्रबंधन",
     "createCourse": "पाठ्यक्रम बनाएं",
     "manageLearners": "शिक्षार्थियों का प्रबंधन",
     "certificates": "प्रमाणपत्र",
@@ -43,14 +45,28 @@
     "myProgress": "मेरी प्रगति",
     "analytics": "विश्लेषण",
     "team": "टीम",
-    "goals": "लक्ष्य"
+    "teams": "टीमें",
+    "goals": "लक्ष्य",
+    "facilitators": "सुविधाकर्ता",
+    "learners": "शिक्षार्थी",
+    "pricingManagement": "मूल्य निर्धारण प्रबंधन"
   },
   "dashboard": {
     "title": "डैशबोर्ड",
+    "adminTitle": "व्यवस्थापक डैशबोर्ड",
+    "adminDescription": "अपने प्लेटफ़ॉर्म के प्रदर्शन और प्रमुख मेट्रिक्स की निगरानी करें",
     "welcome": "वापसी पर स्वागत है",
     "overview": "अवलोकन",
     "statistics": "आंकड़े",
     "recentActivity": "हाल की गतिविधि"
+  },
+  "teamManagement": {
+    "title": "टीम प्रबंधन",
+    "description": "सीखने वाली टीमों और उनकी प्रगति का प्रबंधन करें"
+  },
+  "pricingManagement": {
+    "title": "मूल्य निर्धारण प्रबंधन",
+    "description": "देश-विशिष्ट मूल्य निर्धारण और प्रमाणपत्र प्रबंधित करें"
   },
   "courses": {
     "title": "पाठ्यक्रम",
@@ -75,7 +91,8 @@
     "role": "भूमिका",
     "status": "स्थिति",
     "active": "सक्रिय",
-    "inactive": "निष्क्रिय"
+    "inactive": "निष्क्रिय",
+    "description": "शिक्षार्थियों, सुविधाकर्ताओं और प्रबंधकों सहित सभी लर्निंग हब उपयोगकर्ताओं को प्रबंधित करें"
   },
   "learners": {
     "title": "User Management",
@@ -96,6 +113,7 @@
   },
   "reports": {
     "title": "रिपोर्ट",
+    "description": "विस्तृत एनालिटिक्स रिपोर्ट जेनरेट करें और देखें",
     "generateReport": "रिपोर्ट बनाएं",
     "exportReport": "रिपोर्ट निर्यात करें",
     "dateRange": "तिथि सीमा",
@@ -103,6 +121,8 @@
   },
   "settings": {
     "title": "सेटिंग्स",
+    "adminTitle": "व्यवस्थापक सेटिंग",
+    "adminDescription": "प्लेटफ़ॉर्म सेटिंग्स और प्राथमिकताएं कॉन्फ़िगर करें",
     "generalSettings": "सामान्य सेटिंग्स",
     "accountSettings": "खाता सेटिंग्स",
     "notificationSettings": "सूचना सेटिंग्स",

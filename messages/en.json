@@ -16,7 +16,9 @@
   "header": {
     "myAccount": "My Account",
     "accountSettings": "Account Settings",
-    "searchPlaceholder": "Search here"
+    "searchPlaceholder": "Search here",
+    "adminDashboard": "Admin Dashboard",
+    "learnerProfile": "Learner Profile"
   },
   "roles": {
     "admin": "Admin Dashboard",
@@ -51,10 +53,20 @@
   },
   "dashboard": {
     "title": "Dashboard",
+    "adminTitle": "Admin Dashboard",
+    "adminDescription": "Monitor your platform performance and key metrics",
     "welcome": "Welcome back",
     "overview": "Overview",
     "statistics": "Statistics",
     "recentActivity": "Recent Activity"
+  },
+  "teamManagement": {
+    "title": "Team Management",
+    "description": "Manage learning teams and their progress"
+  },
+  "pricingManagement": {
+    "title": "Pricing Management",
+    "description": "Manage country-specific pricing and certificates"
   },
   "courses": {
     "title": "Courses",
@@ -79,7 +91,8 @@
     "role": "Role",
     "status": "Status",
     "active": "Active",
-    "inactive": "Inactive"
+    "inactive": "Inactive",
+    "description": "Manage all Learning Hub users including learners, facilitators and managers"
   },
   "learners": {
     "description": "Manage all Learning Hub users including learners, facilitators and managers",
@@ -101,6 +114,7 @@
   },
   "reports": {
     "title": "Reports",
+    "description": "Generate and view detailed analytics reports",
     "generateReport": "Generate Report",
     "exportReport": "Export Report",
     "dateRange": "Date Range",
@@ -118,6 +132,8 @@
   },
   "settings": {
     "title": "Settings",
+    "adminTitle": "Admin Setting",
+    "adminDescription": "Configure platform settings and preferences",
     "generalSettings": "General Settings",
     "accountSettings": "Account Settings",
     "notificationSettings": "Notification Settings",

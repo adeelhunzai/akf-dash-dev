@@ -194,7 +194,7 @@ export default function Header({
                     onClick={() => handleRoleSwitch(UserRole.ADMIN)}
                   >
                     <ShieldUser className={`w-4 h-4 ${activeRole === UserRole.ADMIN ? "text-green-600" : "text-gray-600"}`} />
-                    <span>Admin Dashboard</span>
+                    <span>{tHeader('adminDashboard')}</span>
                   </DropdownMenuItem>
                 )}
                 
@@ -208,7 +208,7 @@ export default function Header({
                   onClick={() => handleRoleSwitch(UserRole.LEARNER)}
                 >
                   <FileUser className={`w-4 h-4 ${activeRole === UserRole.LEARNER ? "text-green-600" : "text-gray-600"}`} />
-                  <span>Learner Profile</span>
+                  <span>{tHeader('learnerProfile')}</span>
                 </DropdownMenuItem>
                 
                 {/* Account Settings */}
@@ -217,7 +217,7 @@ export default function Header({
                   onClick={() => router.push(`/${locale}/${activeRole}/settings`)}
                 >
                   <UserPen className="w-4 h-4 text-gray-600" />
-                  <span>Account Settings</span>
+                  <span>{tHeader('accountSettings')}</span>
                 </DropdownMenuItem>
                 
                 {/* Logout */}

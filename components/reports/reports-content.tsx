@@ -18,6 +18,7 @@ import { Document, Page, Text, View, StyleSheet, Font, pdf } from "@react-pdf/re
 import DateRangePicker from "@/components/ui/date-range-picker"
 import { type DateRange } from "react-day-picker"
 import { format } from "date-fns"
+import { useTranslations } from "next-intl"
 
 Font.register({ family: "DejaVuSans", src: "/fonts/DejaVuSans.ttf" })
 Font.register({ family: "NotoSansArabic", src: "/fonts/NotoSansArabic-Regular.ttf" })
@@ -38,6 +39,7 @@ export function ReportsContent() {
   const [isExportingPDF, setIsExportingPDF] = useState(false)
   const [isReportLoading, setIsReportLoading] = useState(false)
   const loadingSourcesRef = useRef(new Set<string>())
+  const t = useTranslations("reports")
 
   const getMonthsBack = (period: string, range?: DateRange) => {
     if (range?.from && range?.to) {
@@ -479,8 +481,8 @@ export function ReportsContent() {
       {/* Header Section */}
       <div className="mb-8 flex flex-col md:flex-row md:items-start justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Reports</h1>
-          <p className="mt-2 text-sm text-muted-foreground">Generate and view detailed analytics reports</p>
+          <h1 className="text-3xl font-bold text-foreground">{t("title")}</h1>
+          <p className="mt-2 text-sm text-muted-foreground">{t("description")}</p>
         </div>
         <div className="flex flex-wrap gap-3">
           <Button

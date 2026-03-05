@@ -34,6 +34,7 @@ import { PricingAuditLogModal } from "./pricing-audit-log-modal"
 import { useBulkImportPricingMutation, useExportPricingMutation } from "@/lib/store/api/pricingApi"
 import { useToast } from "@/hooks/use-toast"
 import { useRef } from "react"
+import { useTranslations } from "next-intl"
 
 export default function PricingManagementContent() {
   const [searchTerm, setSearchTerm] = useState("")
@@ -46,6 +47,7 @@ export default function PricingManagementContent() {
   const [editingRule, setEditingRule] = useState<PricingRule | null>(null)
   const [isImportSuccessModalOpen, setIsImportSuccessModalOpen] = useState(false)
   const [importResult, setImportResult] = useState({ count: 0, message: "" })
+  const t = useTranslations("pricingManagement")
 
   // Debounce search input
   useEffect(() => {
@@ -132,12 +134,12 @@ export default function PricingManagementContent() {
 
   return (
     <>
-      <div className="space-y-6">
+      <div className="p-4 lg:p-6 space-y-6">
         {/* Header section matching design exactly */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h1 className="text-[28px] font-bold tracking-tight text-gray-900">Pricing Management</h1>
-            <p className="text-gray-500 text-sm mt-1">Manage country-specific pricing and certificates</p>
+            <h1 className="text-[28px] font-bold tracking-tight text-gray-900">{t("title")}</h1>
+            <p className="text-gray-500 text-sm mt-1">{t("description")}</p>
           </div>
           <Button 
             onClick={() => {

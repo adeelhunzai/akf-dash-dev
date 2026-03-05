@@ -41,7 +41,7 @@ export default function Sidebar({ isOpen, isMobile, onClose }: SidebarProps) {
   const navItems = navigationConfig[currentRole] || navigationConfig[UserRole.ADMIN]
 
   return (
-    <aside className={`w-64 bg-card flex flex-col h-screen ${isMobile ? "shadow-lg" : ""}`}>
+    <aside className={`w-[280px] shrink-0 bg-card flex flex-col h-screen ${isMobile ? "shadow-lg" : ""}`}>
       {isMobile && (
         <div className="flex justify-end p-4">
           <Button variant="ghost" size="sm" onClick={onClose}>
@@ -83,8 +83,8 @@ export default function Sidebar({ isOpen, isMobile, onClose }: SidebarProps) {
                     : ""
                 }`}
               >
-                <Icon className="w-5 h-5" />
-                <span>{tNav(item.labelKey)}</span>
+                <Icon className="w-5 h-5 shrink-0" />
+                <span className="truncate">{tNav(item.labelKey)}</span>
               </Button>
             </Link>
           )
@@ -99,8 +99,8 @@ export default function Sidebar({ isOpen, isMobile, onClose }: SidebarProps) {
                 : ""
             }`}
           >
-            <Settings className="w-5 h-5" />
-            <span>{tCommon("settings")}</span>
+            <Settings className="w-5 h-5 shrink-0" />
+            <span className="truncate">{tCommon("settings")}</span>
           </Button>
         </Link>
       </nav>

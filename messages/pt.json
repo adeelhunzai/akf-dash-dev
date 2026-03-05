@@ -16,7 +16,9 @@
   "header": {
     "myAccount": "Minha Conta",
     "accountSettings": "Configurações da Conta",
-    "searchPlaceholder": "Pesquisar aqui"
+    "searchPlaceholder": "Pesquisar aqui",
+    "adminDashboard": "Painel do Administrador",
+    "learnerProfile": "Perfil do Aluno"
   },
   "roles": {
     "admin": "Painel do Administrador",
@@ -32,7 +34,7 @@
     "reports": "Relatórios",
     "settings": "Configurações",
     "teamManagement": "Gestão de Equipe",
-    "userManagement": "User Management",
+    "userManagement": "Gerenciamento de Usuários",
     "createCourse": "Criar Curso",
     "manageLearners": "Gerenciar Alunos",
     "certificates": "Certificados",
@@ -43,15 +45,28 @@
     "myProgress": "Meu Progresso",
     "analytics": "Análises",
     "team": "Equipe",
+    "teams": "Equipes",
     "goals": "Objetivos",
+    "facilitators": "Facilitadores",
+    "learners": "Alunos",
     "pricingManagement": "Gestão de Preços"
   },
   "dashboard": {
     "title": "Painel",
+    "adminTitle": "Painel do Administrador",
+    "adminDescription": "Monitore o desempenho da sua plataforma e as principais métricas",
     "welcome": "Bem-vindo de volta",
     "overview": "Visão Geral",
     "statistics": "Estatísticas",
     "recentActivity": "Atividade Recente"
+  },
+  "teamManagement": {
+    "title": "Gestão de Equipe",
+    "description": "Gerenciar equipes de aprendizagem e seu progresso"
+  },
+  "pricingManagement": {
+    "title": "Gestão de Preços",
+    "description": "Gerenciar preços e certificados específicos de cada país"
   },
   "courses": {
     "title": "Cursos",
@@ -76,7 +91,8 @@
     "role": "Função",
     "status": "Status",
     "active": "Ativo",
-    "inactive": "Inativo"
+    "inactive": "Inativo",
+    "description": "Gerencie todos os usuários do Learning Hub, incluindo alunos, facilitadores e gerentes"
   },
   "learners": {
     "title": "User Management",
@@ -97,6 +113,7 @@
   },
   "reports": {
     "title": "Relatórios",
+    "description": "Gerar e visualizar relatórios de análise detalhados",
     "generateReport": "Gerar Relatório",
     "exportReport": "Exportar Relatório",
     "dateRange": "Intervalo de Datas",
@@ -114,6 +131,8 @@
   },
   "settings": {
     "title": "Configurações",
+    "adminTitle": "Configurações do Administrador",
+    "adminDescription": "Configurar as definições e preferências da plataforma",
     "generalSettings": "Configurações Gerais",
     "accountSettings": "Configurações da Conta",
     "notificationSettings": "Configurações de Notificação",

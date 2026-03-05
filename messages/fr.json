@@ -16,7 +16,9 @@
   "header": {
     "myAccount": "Mon Compte",
     "accountSettings": "Paramètres du Compte",
-    "searchPlaceholder": "Rechercher ici"
+    "searchPlaceholder": "Rechercher ici",
+    "adminDashboard": "Tableau de Bord Administrateur",
+    "learnerProfile": "Profil de l'Apprenant"
   },
   "roles": {
     "admin": "Tableau de Bord Administrateur",
@@ -32,7 +34,7 @@
     "reports": "Rapports",
     "settings": "Paramètres",
     "teamManagement": "Gestion d'Équipe",
-    "userManagement": "User Management",
+    "userManagement": "Gestion des Utilisateurs",
     "createCourse": "Créer un Cours",
     "manageLearners": "Gérer les Apprenants",
     "certificates": "Certificats",
@@ -43,15 +45,28 @@
     "myProgress": "Mon Progrès",
     "analytics": "Analyses",
     "team": "Équipe",
+    "teams": "Équipes",
     "goals": "Objectifs",
+    "facilitators": "Facilitateurs",
+    "learners": "Apprenants",
     "pricingManagement": "Gestion des Prix"
   },
   "dashboard": {
     "title": "Tableau de Bord",
-    "welcome": "Bienvenue",
+    "adminTitle": "Tableau de Bord Administrateur",
+    "adminDescription": "Surveillez les performances de votre plateforme et les indicateurs clés",
+    "welcome": "Bon retour",
     "overview": "Aperçu",
     "statistics": "Statistiques",
     "recentActivity": "Activité Récente"
+  },
+  "teamManagement": {
+    "title": "Gestion d'Équipe",
+    "description": "Gérer les équipes d'apprentissage et leurs progrès"
+  },
+  "pricingManagement": {
+    "title": "Gestion des Tarifs",
+    "description": "Gérer les tarifs et les certificats par pays"
   },
   "courses": {
     "title": "Cours",
@@ -76,7 +91,8 @@
     "role": "Rôle",
     "status": "Statut",
     "active": "Actif",
-    "inactive": "Inactif"
+    "inactive": "Inactif",
+    "description": "Gérer tous les utilisateurs du Learning Hub, y compris les apprenants, les facilitateurs et les coordinateurs"
   },
   "learners": {
     "title": "User Management",
@@ -97,6 +113,7 @@
   },
   "reports": {
     "title": "Rapports",
+    "description": "Générer et consulter des rapports d'analyse détaillés",
     "generateReport": "Générer un Rapport",
     "exportReport": "Exporter le Rapport",
     "dateRange": "Plage de Dates",
@@ -114,6 +131,8 @@
   },
   "settings": {
     "title": "Paramètres",
+    "adminTitle": "Paramètres Administrateur",
+    "adminDescription": "Configurer les paramètres et les préférences de la plateforme",
     "generalSettings": "Paramètres Généraux",
     "accountSettings": "Paramètres du Compte",
     "notificationSettings": "Paramètres de Notification",

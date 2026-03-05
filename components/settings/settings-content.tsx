@@ -7,15 +7,17 @@ import { BookOpen, Shield, Settings } from "lucide-react";
 import GeneralSettings from "./general-settings";
 import CourseSettings from "./course-settings";
 import SecuritySettings from "./security-settings";
+import { useTranslations } from "next-intl";
 
 export default function SettingsContent() {
+  const t = useTranslations("settings");
   return (
-    <div className="p-6 lg:p-8 space-y-6 bg-transparent">
+      <div className="p-6 lg:p-8 space-y-6 bg-transparent">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-foreground">Admin Setting</h1>
+        <h1 className="text-3xl font-bold text-foreground">{t("adminTitle")}</h1>
         <p className="text-muted-foreground mt-1">
-          Configure platform settings and preferences
+          {t("adminDescription")}
         </p>
       </div>
 

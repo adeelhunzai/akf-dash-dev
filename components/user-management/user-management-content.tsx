@@ -16,6 +16,7 @@ import UserTable from "./user-table";
 import AddLearnerDialog from "./add-learner-dialog";
 import AddFacilitatorDialog from "./add-facilitator-dialog";
 import { UserRow } from "./user-table";
+import { useTranslations } from "next-intl";
 
 export default function UserManagementContent() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -23,6 +24,7 @@ export default function UserManagementContent() {
   const [isAddLearnerOpen, setIsAddLearnerOpen] = useState(false);
   const [isAddFacilitatorOpen, setIsAddFacilitatorOpen] = useState(false);
   const [visibleRows, setVisibleRows] = useState<UserRow[]>([]);
+  const t = useTranslations("users");
 
   const handleVisibleRowsChange = useCallback((rows: UserRow[]) => {
     setVisibleRows((prevRows) => {
@@ -73,10 +75,10 @@ export default function UserManagementContent() {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold text-foreground">
-            User Management
+            {t("title")}
           </h1>
           <p className="text-muted-foreground mt-1">
-            Manage all Learning Hub users including learners, facilitators and managers
+            {t("description")}
           </p>
         </div>
 

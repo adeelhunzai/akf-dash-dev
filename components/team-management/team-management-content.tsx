@@ -8,12 +8,14 @@ import { Card } from "@/components/ui/card"
 import TeamTable from "./team-table"
 import CreateTeamDialog from "./create-team-dialog"
 import type { Team } from "@/lib/types/team.types"
+import { useTranslations } from "next-intl"
 
 export default function TeamManagementContent() {
   const [searchInput, setSearchInput] = useState("")
   const [debouncedSearch, setDebouncedSearch] = useState("")
   const [isCreateTeamOpen, setIsCreateTeamOpen] = useState(false)
   const [visibleTeams, setVisibleTeams] = useState<Team[]>([])
+  const t = useTranslations("teamManagement")
 
   const handleVisibleTeamsChange = useCallback((rows: Team[]) => {
     setVisibleTeams((prev) => {
@@ -70,8 +72,8 @@ export default function TeamManagementContent() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Team Management</h1>
-          <p className="text-muted-foreground mt-1">Manage learning teams and their progress</p>
+          <h1 className="text-3xl font-bold text-foreground">{t("title")}</h1>
+          <p className="text-muted-foreground mt-1">{t("description")}</p>
         </div>
 
         {/* Create Team Button */}

@@ -16,7 +16,9 @@
   "header": {
     "myAccount": "حسابي",
     "accountSettings": "إعدادات الحساب",
-    "searchPlaceholder": "ابحث هنا"
+    "searchPlaceholder": "ابحث هنا",
+    "adminDashboard": "لوحة تحكم المسؤول",
+    "learnerProfile": "ملف المتعلم"
   },
   "roles": {
     "admin": "لوحة تحكم المسؤول",
@@ -32,7 +34,7 @@
     "reports": "التقارير",
     "settings": "الإعدادات",
     "teamManagement": "إدارة الفريق",
-    "userManagement": "User Management",
+    "userManagement": "إدارة المستخدمين",
     "createCourse": "إنشاء دورة",
     "manageLearners": "إدارة المتعلمين",
     "certificates": "الشهادات",
@@ -43,14 +45,28 @@
     "myProgress": "تقدمي",
     "analytics": "التحليلات",
     "team": "الفريق",
-    "goals": "الأهداف"
+    "teams": "الفرق",
+    "goals": "الأهداف",
+    "facilitators": "الميسرون",
+    "learners": "المتعلمون",
+    "pricingManagement": "إدارة الأسعار"
   },
   "dashboard": {
     "title": "لوحة التحكم",
+    "adminTitle": "لوحة تحكم المسؤول",
+    "adminDescription": "مراقبة أداء المنصة والمقاييس الرئيسية",
     "welcome": "مرحبا بعودتك",
     "overview": "نظرة عامة",
     "statistics": "الإحصائيات",
     "recentActivity": "النشاط الأخير"
+  },
+  "teamManagement": {
+    "title": "إدارة الفريق",
+    "description": "إدارة فرق التعلم وتقدمهم"
+  },
+  "pricingManagement": {
+    "title": "إدارة الأسعار",
+    "description": "إدارة الأسعار والشهادات الخاصة بكل بلد"
   },
   "courses": {
     "title": "الدورات",
@@ -75,7 +91,8 @@
     "role": "الدور",
     "status": "الحالة",
     "active": "نشط",
-    "inactive": "غير نشط"
+    "inactive": "غير نشط",
+    "description": "إدارة جميع مستخدمي منصة التعلم بما في ذلك المتعلمين والميسرين والمديرين"
   },
   "learners": {
     "title": "User Management",
@@ -96,6 +113,7 @@
   },
   "reports": {
     "title": "التقارير",
+    "description": "إنشاء وعرض تقارير تحليلية مفصلة",
     "generateReport": "إنشاء تقرير",
     "exportReport": "تصدير التقرير",
     "dateRange": "نطاق التاريخ",
@@ -103,6 +121,8 @@
   },
   "settings": {
     "title": "الإعدادات",
+    "adminTitle": "إعدادات المسؤول",
+    "adminDescription": "تكوين إعدادات وتفضيلات المنصة",
     "generalSettings": "الإعدادات العامة",
     "accountSettings": "إعدادات الحساب",
     "notificationSettings": "إعدادات الإشعارات",

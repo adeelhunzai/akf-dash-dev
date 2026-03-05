@@ -19,6 +19,7 @@ import { useCreateTeamMutation } from "@/lib/store/api/teamApi";
 import SelectLearnersModal from "./select-learners-modal";
 import SelectFacilitatorsModal from "./select-facilitators-modal";
 import SelectCoursesModal from "./select-courses-modal";
+import { SuccessModal } from "@/components/ui/success-modal";
 
 interface CreateTeamModalProps {
   open: boolean;
@@ -59,6 +60,9 @@ export default function CreateTeamModal({ open, onOpenChange }: CreateTeamModalP
   const [isSelectCoursesOpen, setIsSelectCoursesOpen] = useState(false);
   const [errors, setErrors] = useState<{ teamName?: string }>({});
   const { toast } = useToast();
+  
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successTeamName, setSuccessTeamName] = useState("");
 
   const [createTeam, { isLoading }] = useCreateTeamMutation();
 
@@ -115,11 +119,9 @@ export default function CreateTeamModal({ open, onOpenChange }: CreateTeamModalP
         course_ids: courses.map(c => c.id),
       }).unwrap();
 
-      toast({
-        title: "Team created",
-        description: "The team has been successfully created.",
-      });
+      setSuccessTeamName(teamName);
       onOpenChange(false);
+      setShowSuccessModal(true);
     } catch (error) {
       toast({
         title: "Error",
@@ -440,6 +442,14 @@ export default function CreateTeamModal({ open, onOpenChange }: CreateTeamModalP
         onOpenChange={setIsSelectCoursesOpen}
         onSelect={handleAddCourses}
         existingCourseIds={courses.map(c => c.id)}
+      />
+
+      <SuccessModal
+        open={showSuccessModal}
+        onOpenChange={setShowSuccessModal}
+        title="Team Created"
+        message="The team has been created successfully."
+        userName={successTeamName}
       />
     </>
   );
