@@ -2,7 +2,6 @@ import type React from 'react';
 import type { Metadata } from 'next';
 import { Open_Sans } from 'next/font/google';
 import { Analytics } from '@vercel/analytics/next';
-import { ReduxProvider } from '@/components/providers/redux-provider';
 import { AuthInitializer } from '@/components/providers/auth-initializer';
 import { SSOHandler } from '@/components/providers/sso-handler';
 import { RouteGuard } from '@/components/providers/route-guard';
@@ -44,15 +43,13 @@ export default function DashboardsLayout({
 }>) {
   return (
     <div className={`${openSans.variable} font-sans antialiased`}>
-      <ReduxProvider>
-        <AuthInitializer>
-          <SSOHandler>
-            <RouteGuard>
-              {children}
-            </RouteGuard>
-          </SSOHandler>
-        </AuthInitializer>
-      </ReduxProvider>
+      <AuthInitializer>
+        <SSOHandler>
+          <RouteGuard>
+            {children}
+          </RouteGuard>
+        </SSOHandler>
+      </AuthInitializer>
       <Analytics />
     </div>
   );
