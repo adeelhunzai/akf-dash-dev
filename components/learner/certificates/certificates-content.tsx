@@ -327,12 +327,7 @@ function CPDCertificateCard({ item, onView, onDownload, onBuy }: CPDCertificateC
 
         {/* Certificate Details */}
         <div className="space-y-3 mb-5 flex-1">
-          {item.instructor && (
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-500">Instructor:</span>
-              <span className="font-semibold text-gray-900">{item.instructor}</span>
-            </div>
-          )}
+
           {item.quiz_score !== null && (
             <div className="flex justify-between text-sm">
               <span className="text-gray-500">Overall Quiz Score:</span>

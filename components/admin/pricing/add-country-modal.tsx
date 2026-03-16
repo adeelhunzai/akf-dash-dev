@@ -8,6 +8,7 @@ import { format } from "date-fns"
 import { CalendarIcon } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
 import {
   Dialog,
   DialogContent,
@@ -49,6 +50,7 @@ const addCountrySchema = z.object({
   currency: z.string().min(3, "Currency is required"),
   price: z.coerce.number().min(0, "CPD Price must be a positive number"),
   tax_rate: z.coerce.number().min(0, "Tax rate cannot be negative").default(0),
+  is_active: z.boolean().default(true),
   effective_from: z.date({
     required_error: "Effective date is required",
   }),
@@ -97,6 +99,7 @@ export function AddCountryModal({ open, onOpenChange, initialData }: AddCountryM
           currency: initialData.currency,
           price: initialData.price,
           tax_rate: (initialData.tax_rate ?? 0) * 100, // Convert decimal back to percentage for form
+          is_active: initialData.is_active ?? true,
           effective_from: (() => {
             if (!initialData.effective_from) return undefined;
             const date = new Date(initialData.effective_from);
@@ -110,6 +113,7 @@ export function AddCountryModal({ open, onOpenChange, initialData }: AddCountryM
           currency: "",
           price: 0,
           tax_rate: 0,
+          is_active: true,
         });
       }
     }
@@ -123,7 +127,7 @@ export function AddCountryModal({ open, onOpenChange, initialData }: AddCountryM
         ...data,
         tax_rate: (data.tax_rate ?? 0) / 100, // API expects decimal format (e.g. 0.15 for 15%)
         discount_percent: 0,
-        is_active: true,
+        is_active: data.is_active,
         effective_from: format(data.effective_from, "yyyy-MM-dd"),
       }
 
@@ -280,7 +284,31 @@ export function AddCountryModal({ open, onOpenChange, initialData }: AddCountryM
                 />
               </div>
 
-                <FormField
+              <FormField
+                control={form.control}
+                name="is_active"
+                render={({ field }) => (
+                  <FormItem className="space-y-1.5">
+                    <FormLabel className="text-[14px] font-medium text-gray-700">
+                      Status
+                    </FormLabel>
+                    <div className="flex flex-row items-center space-x-2 space-y-0 h-11">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                          disabled={isFormLoading}
+                          className="data-[state=checked]:bg-[#00B44B] data-[state=checked]:border-[#00B44B]"
+                        />
+                      </FormControl>
+                      <span className="text-[14px] text-gray-700 leading-none">Active</span>
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
                 control={form.control}
                 name="effective_from"
                 render={({ field }) => (
