@@ -265,16 +265,23 @@ export function ReportsContent() {
 
   const buildExportContext = (): ExportContext | null => {
     if (activeTab === "certificates") {
-      const headers = ["Month", "Certificates Issued"]
-      const rows = visibleCertificates.map((row) => [row.month, row.sold.toString()])
-      const title = `Certificate Sales (${certificateActiveTab === "cpd" ? "CPD" : "Other"})`
+      const isCpd = certificateActiveTab === "cpd"
+      const headers = isCpd
+        ? ["Month", "Certificates Issued", "Revenue (USD)"]
+        : ["Month", "Certificates Issued"]
+      const rows = visibleCertificates.map((row) =>
+        isCpd
+          ? [row.month, row.sold.toString(), row.revenue_usd != null && row.revenue_usd > 0 ? `$${row.revenue_usd.toFixed(2)}` : "—"]
+          : [row.month, row.sold.toString()]
+      )
+      const title = `Certificate Sales (${isCpd ? "CPD" : "Other"})`
       const filePrefix = `certificate-sales-${certificateActiveTab}`
       return {
         headers,
         rows,
         title,
         filePrefix,
-        columnWidths: [0.7, 0.3],
+        columnWidths: isCpd ? [0.5, 0.25, 0.25] : [0.7, 0.3],
       }
     }
 
@@ -548,7 +555,7 @@ export function ReportsContent() {
           {/* Totals Summary */}
           {activeTab === "certificates" && certificateSalesData?.data?.totals && (
             <div className="mb-6 rounded-lg bg-gray-50 p-4">
-              <div className="grid grid-cols-3 gap-4 text-center">
+              <div className="grid grid-cols-3 lg:grid-cols-4 gap-4 text-center">
                 <div>
                   <p className="text-sm text-muted-foreground">Total CPD Issued</p>
                   <p className="text-lg font-semibold text-foreground">{certificateSalesData.data.totals.total_cpd_issued}</p>
@@ -561,6 +568,14 @@ export function ReportsContent() {
                   <p className="text-sm text-muted-foreground">Total Certificates</p>
                   <p className="text-lg font-semibold text-foreground">{certificateSalesData.data.totals.total_certificates_issued}</p>
                 </div>
+                {certificateSalesData.data.totals.total_cpd_revenue_usd != null && (
+                  <div>
+                    <p className="text-sm text-muted-foreground">Total CPD Revenue</p>
+                    <p className="text-lg font-semibold text-green-600">
+                      ${certificateSalesData.data.totals.total_cpd_revenue_usd.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           )}

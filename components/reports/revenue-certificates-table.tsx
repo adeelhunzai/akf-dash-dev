@@ -153,6 +153,9 @@ export function RevenueCertificatesTable({ searchQuery = "", monthsBack = 24, st
                 <th className="px-6 py-4 text-left text-xs font-medium uppercase text-gray-500">{t("months")}</th>
                 <th className="px-6 py-4 text-left text-xs font-medium uppercase text-gray-500">{t("year")}</th>
                 <th className="px-6 py-4 text-right text-xs font-medium uppercase text-gray-500">{t("certificatesIssued")}</th>
+                {activeTab === "cpd" && (
+                  <th className="px-6 py-4 text-right text-xs font-medium uppercase text-gray-500">Revenue (USD)</th>
+                )}
               </tr>
             </thead>
             <tbody>
@@ -162,11 +165,18 @@ export function RevenueCertificatesTable({ searchQuery = "", monthsBack = 24, st
                     <td className="px-6 py-4 text-sm text-foreground">{row.month}</td>
                     <td className="px-6 py-4 text-sm text-foreground">{row.month_key ? row.month_key.split("-")[0] : ""}</td>
                     <td className="px-6 py-4 text-sm text-foreground text-right">{row.sold}</td>
+                    {activeTab === "cpd" && (
+                      <td className="px-6 py-4 text-sm text-right font-medium text-green-600">
+                        {row.revenue_usd != null && row.revenue_usd > 0
+                          ? `$${row.revenue_usd.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                          : "—"}
+                      </td>
+                    )}
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan={3} className="px-6 py-8 text-center text-sm text-muted-foreground">
+                  <td colSpan={activeTab === "cpd" ? 4 : 3} className="px-6 py-8 text-center text-sm text-muted-foreground">
                     {t("noData")}
                   </td>
                 </tr>

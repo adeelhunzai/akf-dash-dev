@@ -111,12 +111,14 @@ export interface CertificateSalesData {
   month: string;
   month_key: string;
   sold: number;
+  revenue_usd?: number;
 }
 
 export interface CertificateSalesTotals {
   total_cpd_issued: number;
   total_other_issued: number;
   total_certificates_issued: number;
+  total_cpd_revenue_usd?: number;
 }
 
 export interface CertificateSalesResponse {
