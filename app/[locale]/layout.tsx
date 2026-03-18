@@ -4,6 +4,7 @@ import { getMessages } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { locales, localeDirections, type Locale } from '@/lib/i18n/config';
 import { ReduxProvider } from '@/components/providers/redux-provider';
+import { Toaster } from '@/components/ui/toaster';
 import './(dashboards)/globals.css';
 
 export function generateStaticParams() {
@@ -35,6 +36,7 @@ export default async function LocaleLayout({
         <ReduxProvider>
           <NextIntlClientProvider messages={messages}>
             {children}
+            <Toaster />
           </NextIntlClientProvider>
         </ReduxProvider>
       </body>

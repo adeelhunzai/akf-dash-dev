@@ -41,7 +41,7 @@ import {
   useGetCurrenciesQuery,
   PricingRule
 } from "@/lib/store/api/pricingApi"
-import { toast } from "sonner"
+import { useToast } from "@/hooks/use-toast"
 import { cn } from "@/lib/utils"
 
 const addCountrySchema = z.object({
@@ -76,6 +76,8 @@ export function AddCountryModal({ open, onOpenChange, initialData }: AddCountryM
   const countries = countriesResponse?.data || []
   const regions = regionsResponse?.data || []
   const currencies = currenciesResponse?.data || []
+
+  const { toast } = useToast();
 
   const isFormLoading = isCreating || isUpdating || isLoadingCountries || isLoadingRegions || isLoadingCurrencies;
 
@@ -133,15 +135,20 @@ export function AddCountryModal({ open, onOpenChange, initialData }: AddCountryM
 
       if (isEditMode && initialData) {
         await updatePricingRule({ id: initialData.id, data: payload }).unwrap()
-        toast.success("Pricing rule updated successfully!")
+        toast({ title: "Success", description: "Pricing rule updated successfully!" })
       } else {
         await createPricingRule(payload).unwrap()
-        toast.success("Pricing rule created successfully!")
+        toast({ title: "Success", description: "Pricing rule created successfully!" })
       }
       
       onOpenChange(false)
     } catch (error: any) {
-      toast.error(error?.data?.message || `Failed to ${isEditMode ? 'update' : 'create'} pricing rule.`)
+      const isConflict = error?.data?.message?.includes("already an active pricing rule");
+      toast({ 
+        title: isConflict ? "Active Rule Exists" : "Action Failed", 
+        description: error?.data?.message || `Failed to ${isEditMode ? 'update' : 'create'} pricing rule.`, 
+        variant: "destructive" 
+      })
     }
   }
 

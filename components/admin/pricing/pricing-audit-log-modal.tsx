@@ -67,7 +67,7 @@ export function PricingAuditLogModal({ open, onOpenChange }: PricingAuditLogModa
         }
 
         let actionDisplay = log.action
-        if (log.action === "pricing_updated") actionDisplay = "Price Update"
+        if (log.action === "pricing_updated") actionDisplay = "Rule Updated"
         else if (log.action === "pricing_created") actionDisplay = "New Rule"
         else if (log.action === "pricing_deleted") actionDisplay = "Rule Deleted"
         else if (log.action.includes("currency")) actionDisplay = "Currency Update"
@@ -75,6 +75,9 @@ export function PricingAuditLogModal({ open, onOpenChange }: PricingAuditLogModa
         if (log.old_data && log.new_data) {
           const fieldsToCheck = [
             { key: 'price', label: 'Price', isCurrency: true },
+            { key: 'cpd_price', label: 'CPD Price', isCurrency: true },
+            { key: 'country_code', label: 'Country', isCurrency: false },
+            { key: 'region', label: 'Region', isCurrency: false },
             { key: 'effective_from', label: 'Effective Date', isCurrency: false },
             { key: 'currency', label: 'Currency', isCurrency: false },
             { key: 'tax_rate', label: 'Tax Rate', isCurrency: false },
@@ -85,6 +88,16 @@ export function PricingAuditLogModal({ open, onOpenChange }: PricingAuditLogModa
           for (const field of fieldsToCheck) {
             if (String(log.old_data[field.key]) !== String(log.new_data[field.key])) {
               changedField = field.label
+              
+              if (log.action === "pricing_updated") {
+                if (field.key === 'is_active') actionDisplay = "Status updated"
+                else if (field.key === 'price' || field.key === 'cpd_price') actionDisplay = "Price update"
+                else if (field.key === 'country_code') actionDisplay = "Country update"
+                else if (field.key === 'region') actionDisplay = "Region update"
+                else if (field.key === 'currency') actionDisplay = "Currency update"
+                else actionDisplay = `${field.label} updated`
+              }
+
               if (field.isCurrency) {
                 oldVal = formatCurrency(log.old_data[field.key])
                 newVal = formatCurrency(log.new_data[field.key])
@@ -236,7 +249,7 @@ export function PricingAuditLogModal({ open, onOpenChange }: PricingAuditLogModa
 
                     // Evaluate action text
                     let actionDisplay = log.action;
-                    if (log.action === "pricing_updated") actionDisplay = "Price Update";
+                    if (log.action === "pricing_updated") actionDisplay = "Rule Updated";
                     else if (log.action === "pricing_created") actionDisplay = "New Rule";
                     else if (log.action === "pricing_deleted") actionDisplay = "Rule Deleted";
                     else if (log.action.includes("currency")) actionDisplay = "Currency Update";
@@ -245,6 +258,9 @@ export function PricingAuditLogModal({ open, onOpenChange }: PricingAuditLogModa
                     if (log.old_data && log.new_data) {
                       const fieldsToCheck = [
                         { key: 'price', label: 'Price', isCurrency: true },
+                        { key: 'cpd_price', label: 'CPD Price', isCurrency: true },
+                        { key: 'country_code', label: 'Country', isCurrency: false },
+                        { key: 'region', label: 'Region', isCurrency: false },
                         { key: 'effective_from', label: 'Effective Date', isCurrency: false },
                         { key: 'currency', label: 'Currency', isCurrency: false },
                         { key: 'tax_rate', label: 'Tax Rate', isCurrency: false },
@@ -255,6 +271,16 @@ export function PricingAuditLogModal({ open, onOpenChange }: PricingAuditLogModa
                       for (const field of fieldsToCheck) {
                         if (String(log.old_data[field.key]) !== String(log.new_data[field.key])) {
                           changedField = field.label;
+                          
+                          if (log.action === "pricing_updated") {
+                            if (field.key === 'is_active') actionDisplay = "Status updated";
+                            else if (field.key === 'price' || field.key === 'cpd_price') actionDisplay = "Price update";
+                            else if (field.key === 'country_code') actionDisplay = "Country update";
+                            else if (field.key === 'region') actionDisplay = "Region update";
+                            else if (field.key === 'currency') actionDisplay = "Currency update";
+                            else actionDisplay = `${field.label} updated`;
+                          }
+
                           if (field.isCurrency) {
                             oldVal = formatCurrency(log.old_data[field.key]);
                             newVal = formatCurrency(log.new_data[field.key]);
@@ -280,7 +306,7 @@ export function PricingAuditLogModal({ open, onOpenChange }: PricingAuditLogModa
                         </TableCell>
                         <TableCell className="align-top py-4">
                           <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
-                            actionDisplay === "Price Update" ? "bg-blue-100/50 text-blue-600" : 
+                            actionDisplay.toLowerCase().includes("update") ? "bg-blue-100/50 text-blue-600" : 
                             actionDisplay === "New Rule" ? "bg-green-100/50 text-green-600" :
                             "bg-yellow-100/50 text-yellow-600"
                           }`}>
