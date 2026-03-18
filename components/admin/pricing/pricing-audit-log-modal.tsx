@@ -86,7 +86,24 @@ export function PricingAuditLogModal({ open, onOpenChange }: PricingAuditLogModa
           ] as const
 
           for (const field of fieldsToCheck) {
-            if (String(log.old_data[field.key]) !== String(log.new_data[field.key])) {
+            let isDifferent = false;
+            const oldValRaw = log.old_data[field.key] ?? null;
+            const newValRaw = log.new_data[field.key] ?? null;
+
+            if (oldValRaw === newValRaw) {
+              isDifferent = false;
+            } else if (['price', 'cpd_price', 'tax_rate', 'discount_percent'].includes(field.key)) {
+              isDifferent = Number(oldValRaw) !== Number(newValRaw);
+            } else if (field.key === 'is_active') {
+              // Handle "1"/1/true vs "0"/0/false
+              const oldBool = oldValRaw === "1" || oldValRaw === 1 || oldValRaw === true;
+              const newBool = newValRaw === "1" || newValRaw === 1 || newValRaw === true;
+              isDifferent = oldBool !== newBool;
+            } else {
+              isDifferent = String(oldValRaw) !== String(newValRaw);
+            }
+
+            if (isDifferent) {
               changedField = field.label
               
               if (log.action === "pricing_updated") {
@@ -269,7 +286,23 @@ export function PricingAuditLogModal({ open, onOpenChange }: PricingAuditLogModa
                       ] as const;
                       
                       for (const field of fieldsToCheck) {
-                        if (String(log.old_data[field.key]) !== String(log.new_data[field.key])) {
+                        let isDifferent = false;
+                        const oldValRaw = log.old_data[field.key] ?? null;
+                        const newValRaw = log.new_data[field.key] ?? null;
+
+                        if (oldValRaw === newValRaw) {
+                          isDifferent = false;
+                        } else if (['price', 'cpd_price', 'tax_rate', 'discount_percent'].includes(field.key)) {
+                          isDifferent = Number(oldValRaw) !== Number(newValRaw);
+                        } else if (field.key === 'is_active') {
+                          const oldBool = oldValRaw === "1" || oldValRaw === 1 || oldValRaw === true;
+                          const newBool = newValRaw === "1" || newValRaw === 1 || newValRaw === true;
+                          isDifferent = oldBool !== newBool;
+                        } else {
+                          isDifferent = String(oldValRaw) !== String(newValRaw);
+                        }
+
+                        if (isDifferent) {
                           changedField = field.label;
                           
                           if (log.action === "pricing_updated") {
