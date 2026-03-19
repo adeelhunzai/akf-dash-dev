@@ -222,7 +222,7 @@ export default function CertificatesContent() {
   const handleBuyCertificate = (item: CPDCertificateItem) => {
     const apiUrl = process.env.NEXT_PUBLIC_WORDPRESS_API_URL || 'https://akfhub-dev.inspirartweb.com/wp-json'
     const siteUrl = apiUrl.replace(/\/wp-json\/?$/, '')
-    window.location.href = `${siteUrl}/payment-test/?course_id=${item.course_id}`
+    window.location.href = `${siteUrl}/payment/?course_id=${item.course_id}&source=nextjs`
   }
 
   const handleCloseModal = () => {
